@@ -6,7 +6,7 @@ There are a few ways to build the paper:
 
 1. Build it locally on your computer via `knitr` and `R`. This will require
 the following packages:
-`knitr`, `devtools`, `doFuture`, `doRNG`, `dplyr`, `ggplot2`, `hypergeo`, `knitr`, `LambertW`, `microbenchmark`, 
+`knitr`, `devtools`, `doFuture`, `doRNG`, `dplyr`, `ggplot2`, `hypergeo`, `knitr`, `LambertW`, 
 `quantmod`, `SharpeR`, `tidyr`, `xtable`, 
 and `aqfb.data`, which is available from github via
 ```r
@@ -21,9 +21,7 @@ knitr::knit('qbound.Rnw')
 ```bash
 make docker_doc
 ```
-
 The doc will be deposited in `output/qbound.pdf`.
-
 3. The doc can be built via docker with the docker image pulled from docker hub:
  ```bash
 docker pull shabbychef/qbound

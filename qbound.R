@@ -80,7 +80,7 @@ suppressMessages({
 #X <- matrix(rnorm(100),nrow=1)
 #norm(X,'2') - sqrt(X %*% t(X))
 #microbenchmark('norm'={ norm(X,'2') },'ogram'={ sqrt(X %*% t(X)) })
-# note that colMeans is afaster than apply
+# note that colMeans is faster than apply
 #library(microbenchmark)
 #X <- matrix(rnorm(10000),ncol=100)
 #microbenchmark('colmeans'={ colMeans(X,na.rm=TRUE) },'apply'={ as.vector(apply(X,MARGIN=2,mean,na.rm=TRUE)) })

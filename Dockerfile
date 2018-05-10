@@ -34,8 +34,9 @@ RUN (DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true apt-get ins
 	sync ; \
 	mkdir -p /usr/local/lib/R/site-library ; \
 	chmod -R 777 /usr/local/lib/R/site-library ; \
-	sync ; \
-	/usr/local/bin/install2.r knitr devtools doFuture doRNG dplyr ggplot2 hypergeo knitr LambertW microbenchmark quantmod SharpeR tidyr xtable ; \
+	sync )
+
+RUN (/usr/local/bin/install2.r knitr devtools doFuture doRNG dplyr ggplot2 hypergeo knitr LambertW quantmod SharpeR tidyr xtable ; \
 	/usr/local/bin/r -l 'devtools' -e 'options(unzip="internal");install_github("shabbychef/aqfb_data");' ) 
 
 ADD Makefile /srv/ 
