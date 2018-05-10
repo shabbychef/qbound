@@ -1,0 +1,3041 @@
+\documentclass[10pt,a4paper,english]{article}
+
+% now ignored, I think:
+%\VignetteEngine{knitr::knitr}
+%\VignetteIndexEntry{Asymptotic Distribution of the Markowitz Portfolio}
+%\VignetteKeyword{Finance}
+%\VignetteKeyword{Markowitz}
+%\VignettePackage{MarkowitzR}
+
+% front matter%FOLDUP
+\usepackage[hyphens]{url}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+% for therefore
+\usepackage{amssymb}
+% for theorems?
+\usepackage{amsthm}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{example}{Example}[section]
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newtheorem*{caution}{Caution}
+\newtheorem*{note}{Note}
+
+% see http://tex.stackexchange.com/a/3034/2530
+\PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
+\usepackage{hyperref}
+\usepackage[square,numbers]{natbib}
+%\usepackage[authoryear]{natbib}
+%\usepackage[iso]{datetime}
+%\usepackage{datetime}
+
+%%http://choorucode.com/2010/05/05/how-to-add-draft-watermark-in-latex/
+%\usepackage{draftwatermark}
+%% V1 sent to Mortada.
+%% V2 on paper to JHZD.
+%% V3 sent to s.lee@BR 140826
+%\providecommand{\versnum}{V4}
+%\SetWatermarkText{DRAFT \versnum}
+%\SetWatermarkLightness{0.87}
+%\SetWatermarkScale{4.5}
+
+%\usepackage{fancyhdr}
+%\pagestyle{fancy}
+%\chead{}
+%\rhead{}
+%\lhead{}
+%\rhead{\sc draft \versnum; do not distribute}
+%\rfoot{}
+
+%compactitem and such:
+\usepackage[newitem,newenum,increaseonly]{paralist}
+
+\makeatletter
+\makeatother
+
+%\input{sr_defs.tex}
+\usepackage[notheorems]{SharpeR}
+
+\providecommand{\sideWarning}[1][0.5]{\marginpar{\hfill\includegraphics[width=#1\marginparwidth]{warning}}}
+
+% knitr setup%FOLDUP
+
+<<'preamble', include=FALSE, warning=FALSE, message=FALSE>>=
+library(knitr)
+
+# set the knitr options ... for everyone!
+# if you unset this, then vignette build bonks. oh, joy.
+#opts_knit$set(progress=TRUE)
+opts_knit$set(eval.after='fig.cap')
+# for a package vignette, you do want to echo.
+# opts_chunk$set(echo=FALSE,warning=FALSE,message=FALSE)
+opts_chunk$set(warning=FALSE,message=FALSE)
+#opts_chunk$set(results="asis")
+opts_chunk$set(cache=TRUE,cache.path="cache/qbound")
+
+#opts_chunk$set(fig.path="figure/",dev=c("pdf","cairo_ps"))
+opts_chunk$set(fig.path="figure/qbound",dev=c("pdf"))
+opts_chunk$set(fig.width=5,fig.height=4,dpi=64)
+
+# doing this means that png files are made of figures;
+# the savings is small, and it looks like shit:
+#opts_chunk$set(fig.path="figure/",dev=c("png","pdf","cairo_ps"))
+#opts_chunk$set(fig.width=4,fig.height=4)
+# for figures? this is sweave-specific?
+#opts_knit$set(eps=TRUE)
+
+# this would be for figures:
+#opts_chunk$set(out.width='.8\\textwidth')
+# for text wrapping:
+options(width=64,digits=2)
+opts_chunk$set(size="small")
+opts_chunk$set(tidy=TRUE,tidy.opts=list(width.cutoff=50,keep.blank.line=TRUE))
+
+compile.time <- Sys.time()
+
+# from the environment
+
+# only recompute if FORCE_RECOMPUTE=True w/out case match.
+FORCE_RECOMPUTE <- 
+	(toupper(Sys.getenv('FORCE_RECOMPUTE',unset='False')) == "TRUE")
+
+
+library(quantmod)
+options("getSymbols.warning4.0"=FALSE)
+
+library(SharpeR)
+
+gen_norm <- rnorm
+lseq <- function(from,to,length.out) { 
+	exp(seq(log(from),log(to),length.out = length.out))
+}
+@
+%UNFOLD
+
+<<'runtime', include=FALSE, warning=FALSE, message=FALSE, cache=TRUE>>=
+# compiler flags!
+
+# you can manipulate the 'runtime' by setting this variable.
+# by convention the value 1 should take the longest time,
+# while larger values should result in quicker execution
+# (for low fidelity simulations)
+
+RUNTIME_PARAM <- 1
+@
+    
+% SYMPY preamble%FOLDUP
+    
+    %\usepackage{graphicx} % Used to insert images
+    %\usepackage{adjustbox} % Used to constrain images to a maximum size 
+    \usepackage{color} % Allow colors to be defined
+    \usepackage{enumerate} % Needed for markdown enumerations to work
+    %\usepackage{geometry} % Used to adjust the document margins
+    \usepackage{amsmath} % Equations
+    \usepackage{amssymb} % Equations
+    %\usepackage[utf8]{inputenc} % Allow utf-8 characters in the tex document
+    %\usepackage[mathletters]{ucs} % Extended unicode (utf-8) support
+		\usepackage{fancyvrb} % verbatim replacement that allows latex
+    %\usepackage{grffile} % extends the file name processing of package graphics 
+                         % to support a larger range 
+    % The hyperref package gives us a pdf with properly built
+    % internal navigation ('pdf bookmarks' for the table of contents,
+    % internal cross-reference links, web links for URLs, etc.)
+    \usepackage{hyperref}
+    %\usepackage{longtable} % longtable support required by pandoc >1.10
+    
+
+    
+    
+    \definecolor{orange}{cmyk}{0,0.4,0.8,0.2}
+    \definecolor{darkorange}{rgb}{.71,0.21,0.01}
+    \definecolor{darkgreen}{rgb}{.12,.54,.11}
+    \definecolor{myteal}{rgb}{.26, .44, .56}
+    \definecolor{gray}{gray}{0.45}
+    \definecolor{lightgray}{gray}{.95}
+    \definecolor{mediumgray}{gray}{.8}
+    \definecolor{inputbackground}{rgb}{.95, .95, .85}
+    \definecolor{outputbackground}{rgb}{.95, .95, .95}
+    \definecolor{traceback}{rgb}{1, .95, .95}
+    % ansi colors
+    \definecolor{red}{rgb}{.6,0,0}
+    \definecolor{green}{rgb}{0,.65,0}
+    \definecolor{brown}{rgb}{0.6,0.6,0}
+    \definecolor{blue}{rgb}{0,.145,.698}
+    \definecolor{purple}{rgb}{.698,.145,.698}
+    \definecolor{cyan}{rgb}{0,.698,.698}
+    \definecolor{lightgray}{gray}{0.5}
+    
+    % bright ansi colors
+    \definecolor{darkgray}{gray}{0.25}
+    \definecolor{lightred}{rgb}{1.0,0.39,0.28}
+    \definecolor{lightgreen}{rgb}{0.48,0.99,0.0}
+    \definecolor{lightblue}{rgb}{0.53,0.81,0.92}
+    \definecolor{lightpurple}{rgb}{0.87,0.63,0.87}
+    \definecolor{lightcyan}{rgb}{0.5,1.0,0.83}
+    
+    % commands and environments needed by pandoc snippets
+    % extracted from the output of `pandoc -s`
+    
+    %\DefineShortVerb[commandchars=\\\{\}]{\|}
+    %\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+    %% Add ',fontsize=\small' for more characters per line
+    %\newenvironment{Shaded}{}{}
+    %\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    %\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{{#1}}}
+    %\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    %\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    %\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    %\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    %\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    %\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{{#1}}}}
+    %\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{{#1}}}
+    %\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    %\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{{#1}}}
+    %\newcommand{\RegionMarkerTok}[1]{{#1}}
+    %\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    %\newcommand{\NormalTok}[1]{{#1}}
+    
+    %% Define a nice break command that doesn't care if a line doesn't already
+    %% exist.
+    %\def\br{\hspace*{\fill} \\* }
+    %% Math Jax compatability definitions
+    %\def\gt{>}
+    %\def\lt{<}
+    
+
+    %% Pygments definitions
+    
+%\makeatletter
+%\def\PY@reset{\let\PY@it=\relax \let\PY@bf=\relax%
+    %\let\PY@ul=\relax \let\PY@tc=\relax%
+    %\let\PY@bc=\relax \let\PY@ff=\relax}
+%\def\PY@tok#1{\csname PY@tok@#1\endcsname}
+%\def\PY@toks#1+{\ifx\relax#1\empty\else%
+    %\PY@tok{#1}\expandafter\PY@toks\fi}
+%\def\PY@do#1{\PY@bc{\PY@tc{\PY@ul{%
+    %\PY@it{\PY@bf{\PY@ff{#1}}}}}}}
+%\def\PY#1#2{\PY@reset\PY@toks#1+\relax+\PY@do{#2}}
+
+%\expandafter\def\csname PY@tok@gd\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.63,0.00,0.00}{##1}}}
+%\expandafter\def\csname PY@tok@gu\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+%\expandafter\def\csname PY@tok@gt\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.27,0.87}{##1}}}
+%\expandafter\def\csname PY@tok@gs\endcsname{\let\PY@bf=\textbf}
+%\expandafter\def\csname PY@tok@gr\endcsname{\def\PY@tc##1{\textcolor[rgb]{1.00,0.00,0.00}{##1}}}
+%\expandafter\def\csname PY@tok@cm\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+%\expandafter\def\csname PY@tok@vg\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+%\expandafter\def\csname PY@tok@m\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+%\expandafter\def\csname PY@tok@mh\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+%\expandafter\def\csname PY@tok@go\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.53,0.53,0.53}{##1}}}
+%\expandafter\def\csname PY@tok@ge\endcsname{\let\PY@it=\textit}
+%\expandafter\def\csname PY@tok@vc\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+%\expandafter\def\csname PY@tok@il\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+%\expandafter\def\csname PY@tok@cs\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+%\expandafter\def\csname PY@tok@cp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.74,0.48,0.00}{##1}}}
+%\expandafter\def\csname PY@tok@gi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.63,0.00}{##1}}}
+%\expandafter\def\csname PY@tok@gh\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+%\expandafter\def\csname PY@tok@ni\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.60,0.60,0.60}{##1}}}
+%\expandafter\def\csname PY@tok@nl\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.63,0.63,0.00}{##1}}}
+%\expandafter\def\csname PY@tok@nn\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+%\expandafter\def\csname PY@tok@no\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.53,0.00,0.00}{##1}}}
+%\expandafter\def\csname PY@tok@na\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.49,0.56,0.16}{##1}}}
+%\expandafter\def\csname PY@tok@nb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+%\expandafter\def\csname PY@tok@nc\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+%\expandafter\def\csname PY@tok@nd\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+%\expandafter\def\csname PY@tok@ne\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.82,0.25,0.23}{##1}}}
+%\expandafter\def\csname PY@tok@nf\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+%\expandafter\def\csname PY@tok@si\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+%\expandafter\def\csname PY@tok@s2\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+%\expandafter\def\csname PY@tok@vi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+%\expandafter\def\csname PY@tok@nt\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+%\expandafter\def\csname PY@tok@nv\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+%\expandafter\def\csname PY@tok@s1\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+%\expandafter\def\csname PY@tok@sh\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+%\expandafter\def\csname PY@tok@sc\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+%\expandafter\def\csname PY@tok@sx\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+%\expandafter\def\csname PY@tok@bp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+%\expandafter\def\csname PY@tok@c1\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+%\expandafter\def\csname PY@tok@kc\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+%\expandafter\def\csname PY@tok@c\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+%\expandafter\def\csname PY@tok@mf\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+%\expandafter\def\csname PY@tok@err\endcsname{\def\PY@bc##1{\setlength{\fboxsep}{0pt}\fcolorbox[rgb]{1.00,0.00,0.00}{1,1,1}{\strut ##1}}}
+%\expandafter\def\csname PY@tok@kd\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+%\expandafter\def\csname PY@tok@ss\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+%\expandafter\def\csname PY@tok@sr\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+%\expandafter\def\csname PY@tok@mo\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+%\expandafter\def\csname PY@tok@kn\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+%\expandafter\def\csname PY@tok@mi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+%\expandafter\def\csname PY@tok@gp\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+%\expandafter\def\csname PY@tok@o\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+%\expandafter\def\csname PY@tok@kr\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+%\expandafter\def\csname PY@tok@s\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+%\expandafter\def\csname PY@tok@kp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+%\expandafter\def\csname PY@tok@w\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.73,0.73}{##1}}}
+%\expandafter\def\csname PY@tok@kt\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.69,0.00,0.25}{##1}}}
+%\expandafter\def\csname PY@tok@ow\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+%\expandafter\def\csname PY@tok@sb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+%\expandafter\def\csname PY@tok@k\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+%\expandafter\def\csname PY@tok@se\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.13}{##1}}}
+%\expandafter\def\csname PY@tok@sd\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+
+%\def\PYZbs{\char`\\}
+%\def\PYZus{\char`\_}
+%\def\PYZob{\char`\{}
+%\def\PYZcb{\char`\}}
+%\def\PYZca{\char`\^}
+%\def\PYZam{\char`\&}
+%\def\PYZlt{\char`\<}
+%\def\PYZgt{\char`\>}
+%\def\PYZsh{\char`\#}
+%\def\PYZpc{\char`\%}
+%\def\PYZdl{\char`\$}
+%\def\PYZhy{\char`\-}
+%\def\PYZsq{\char`\'}
+%\def\PYZdq{\char`\"}
+%\def\PYZti{\char`\~}
+%% for compatibility with earlier versions
+%\def\PYZat{@}
+%\def\PYZlb{[}
+%\def\PYZrb{]}
+%\makeatother
+
+
+    % Exact colors from NB
+    \definecolor{incolor}{rgb}{0.0, 0.0, 0.5}
+    \definecolor{outcolor}{rgb}{0.545, 0.0, 0.0}
+
+
+
+    
+    % Prevent overflowing lines due to hard-to-break entities
+    \sloppy 
+    % Setup hyperref package
+    \hypersetup{
+      breaklinks=true,  % so long urls are correctly broken across lines
+      colorlinks=true,
+      urlcolor=blue,
+      linkcolor=darkorange,
+      citecolor=darkgreen,
+      }
+    % Slightly bigger margins than the latex defaults
+    
+    %\geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+    %UNFOLD
+%UNFOLD
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% commands specific to this paper:%FOLDUP
+\providecommand{\pqlUL}[3]{\funcitUL{q}{#1}{#2}{#3}}
+\providecommand{\pql}[1]{\pqlUL{}{}{#1}}
+\providecommand{\pqlsq}[1]{\pqlUL{2}{}{#1}}
+
+\providecommand{\pQlUL}[3]{\funcitUL{Q}{#1}{#2}{#3}}
+\providecommand{\pQl}[1]{\pQlUL{}{}{#1}}
+\providecommand{\pQlsq}[1]{\pQlUL{2}{}{#1}}
+
+\providecommand{\qlev}[1][{}]{\MATHIT{s}}
+\providecommand{\qtl}[1]{\mathUL{q}{}{#1}}
+\providecommand{\qbnd}[1][{}]{\mathUL{B}{}{#1}}
+
+\providecommand{\prvcsym}{c}
+\providecommand{\cfncUL}[3]{\funcitUL{\prvcsym}{#1}{#2}{#3}}
+\providecommand{\cfnc}[2][{\ssiz}]{\cfncUL{}{#1}{#2}}
+\providecommand{\csqfnc}[2][{\ssiz}]{\cfncUL{2}{#1}{#2}}
+\providecommand{\cfncp}[2][{\ssiz}]{\cfncUL{\prime}{#1}{#2}}
+
+\providecommand{\prvssym}{s}
+\providecommand{\sfncUL}[3]{\funcitUL{\prvssym}{#1}{#2}{#3}}
+\providecommand{\sfnc}[2][{\ssiz}]{\sfncUL{}{#1}{#2}}
+\providecommand{\csqfnc}[2][{\ssiz}]{\sfncUL{2}{#1}{#2}}
+\providecommand{\sfncp}[2][{\ssiz}]{\sfncUL{\prime}{#1}{#2}}
+
+
+
+
+\providecommand{\prvfsym}{f}
+\providecommand{\ffncUL}[3]{\funcitUL{\prvfsym}{#1}{#2}{#3}}
+\providecommand{\ffnc}[2][{\ssiz}]{\ffncUL{}{#1}{#2}}
+\providecommand{\fsqfnc}[2][{\ssiz}]{\ffncUL{2}{#1}{#2}}
+\providecommand{\ffncp}[2][{\ssiz}]{\ffncUL{\prime}{#1}{#2}}
+
+% bias
+\providecommand{\prvbterm}[3]{\funcitUL{\vect{b}}{#1}{#2}{#3}}
+\providecommand{\buterm}[1][{}]{\prvbterm{#1}{\ssiz}{\pvmu, \pvsig}}
+\providecommand{\bterm}{\buterm[{}]}
+\providecommand{\bsqterm}{\buterm[\trsym]\buterm}
+
+% conditional bias
+\providecommand{\prvBterm}[3]{\funcitUL{\vect{B}}{#1}{#2}{#3}}
+\providecommand{\Buterm}[1][{}]{\prvBterm{#1}{\ssiz}{\pvmu, \pvsig, \pfacsig}}
+\providecommand{\Bterm}{\Buterm[{}]}
+\providecommand{\Bsqterm}{\Buterm[\trsym]\Buterm}
+
+\providecommand{\sphere}[1]{\mathUL{\mathcal{S}}{#1}{}}
+\providecommand{\spherep}{\sphere{\nlatf - 1}}
+\providecommand{\fnorm}[1]{\funcitUL{f}{}{\mathcal{S}}{#1}}
+\providecommand{\sportwfnc}[1]{\funcit{\sportw}{#1}}
+
+\providecommand{\sportWfnc}[1]{\funcit{\sportW}{#1}}
+
+\providecommand{\spang}{\MATHIT{\theta}}
+\providecommand{\spangfnc}[1]{\funcit{\spang}{#1}}
+\providecommand{\spperp}{\mathUL{\pportw}{}{\bottom}}
+\providecommand{\spperpfnc}[1]{\funcitUL{\pportw}{}{\bottom}{#1}}
+
+%\providecommand{\prskvecU}[1]{\vectUL{\eta}{#1}{*}}
+\providecommand{\prskvecU}[1]{\vectUL{\eta}{#1}{}}
+\providecommand{\prskvec}{\prskvecU{}}
+\providecommand{\gramprskvec}{\prskvecU{\trsym}\prskvec}
+\providecommand{\ogramprskvec}{\prskvec\prskvecU{\trsym}}
+\providecommand{\Drv}{\Mtx{D}}
+
+\providecommand{\prskMtxU}[1]{\MtxUL{H}{#1}{}}
+\providecommand{\prskMtx}{\prskMtxU{}}
+\providecommand{\gramprskMtx}{\prskMtxU{\trsym}\prskMtx}
+
+\providecommand{\zvc}{\vect{z}}
+\providecommand{\farcsin}[1]{\funcit{\arcsin}{#1}}
+\providecommand{\farccos}[1]{\funcit{\arccos}{#1}}
+\providecommand{\farctan}[1]{\funcit{\arctan}{#1}}
+\providecommand{\farctanh}[1]{\funcitUL{\tanh}{-1}{}{#1}}
+
+\providecommand{\zzvc}{\vect{z}}
+\providecommand{\Cmat}{\Mtx{C}}
+\providecommand{\Vmat}{\Mtx{V}}
+\providecommand{\Jmat}{\Mtx{J}}
+\providecommand{\Qmat}{\Mtx{Q}}
+\providecommand{\scoro}[2]{\gradof[{#1}]{\log #2}}
+
+%\providecommand{\txtQual}{quality\xspace}
+\providecommand{\txtQual}{\txtSNR}
+\providecommand{\txtKS}{Kolmogorov-Smirnov\xspace}
+%UNFOLD
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% document incantations%FOLDUP
+\begin{document}
+
+\title{Bounds on Portfolio Quality}
+\author{Steven E. Pav \thanks{\email{steven@gilgamath.com} The author thanks
+Ramakrishna Kakarala for sharing his research.
+The code to build this document is available at
+\href{http://www.github.com/shabbychef/qbound}{\normalfont\texttt{www.github.com/shabbychef/qbound}}.
+}
+}
+%\date{\today, \currenttime}
+
+\maketitle
+%UNFOLD
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{abstract}%FOLDUP
+The \txtQual of a portfolio of \nlatf assets, its expected return divided 
+by its risk, is couched as an estimation problem on the sphere
+\spherep.  When the portfolio is built using noisy data, the expected
+value of the \txtQual is bounded from above via a \txtCR bound, 
+%on the portfolio estimator, 
+for the case of Gaussian returns. The bound holds
+for `biased' estimators, thus there appears to be no bias-variance
+tradeoff for the problem of maximizing the \txtQual. 
+An approximate distribution of the \txtQual for the \txtMP is 
+given, and shown to be fairly accurate via Monte Carlo simulations, 
+for Gaussian returns as well as more exotic returns distributions.
+These findings imply that if the maximal population 
+\txtSNR grows slower than the universe size to the 
+\oneby{4} power, there may be no diversification benefit, 
+rather expected \txtQual can \emph{decrease} with additional assets.
+As a practical matter, this may explain why the
+\txtMP is typically applied to small asset universes.
+Finally, the theorem is expanded to cover more general models
+of returns and trading schemes, including the conditional expectation
+case where mean returns are linear in some observable
+features, subspace constraints (\ie dimensionality reduction),
+and hedging constraints.
+\end{abstract}%UNFOLD
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}%FOLDUP
+
+Given \nlatf assets with expected return \pvmu and covariance of return \pvsig,
+the portfolio defined as 
+\begin{equation}
+\pportwopt \defeq \minvAB{\pvsig}{\pvmu},
+\end{equation}
+known, somewhat informally, as the `\txtMP',
+plays a central role in portfolio 
+theory. \cite{markowitz1952portfolio,brandt2009portfolio}
+Up to scaling, it solves the classic mean-variance
+optimization, as well as the 
+(population) \txtSR maximization problem:
+\begin{equation}
+\max_{\pportw }
+\frac{\trAB{\pportw}{\pvmu}}{\sqrt{\qform{\pvsig}{\pportw}}}.
+\label{eqn:opt_port_I}
+\end{equation}
+
+In practice, the \txtMP has a tarnished reputation, and
+is infrequently, if ever, used without some modification.
+The unknown population parameters \pvmu and \pvsig must
+be estimated from samples, resulting in a feasible
+portfolio of dubious value. Michaud went so far as to call
+mean-variance optimization, ``error maximization.'' \cite{michaud1989markowitz}  
+In its stead, numerous portfolio construction methodologies have been proposed
+to replace the \txtMP, 
+some based on patching conjectured theoretical deficiencies, 
+others relying on simple heuristics. \cite{demiguel2009optimal,tu2011markowitz,brandt2009portfolio}
+
+Praticioners often resort to dimensionality reduction heuristics
+to mitigate estimation error, effectively reducing the number 
+of free variables in the portfolio optimization problem. 
+One version of this tactic describes the returns of
+dozens, or even hundreds, of equities as the linear combination
+of a handful of `factor' returns (plus some `idiosyncratic' term); 
+the portfolio problem is then couched as an optimization over factor
+portfolios. If the population parameters were known with certainty,
+shrinking the set of feasible portfolios would only result in
+reducing the optimal portfolio utility. However, the population
+parameters can typically only be weakly estimated, and dimensionality
+reduction is common practice. 
+
+In this paper, an upper bound is established on the expected value of
+a feasible portfolio's \txtQual, defined to be the expected return of the portfolio
+divided by it's risk, with return and risk measured using the (unknown)
+population parameters, and with the ``expected value'' taken over realizations
+of the sample used to estimate the portfolio. This bound balances the
+`effect size,' $\sqrt{\ssiz \qiform{\pvsig}{\pvmu}},$ with the number of assets,
+\nlatf, and justifies some form of dimensionality reduction. It
+is established, for example, that if, by adding additional assets
+to the investment universe, $\sqrt{\qiform{\pvsig}{\pvmu}}$ grows at a rate
+slower than $\nlatf^{1/4}$, the upper bound on expected \txtQual
+can decrease.
+%UNFOLD
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Portfolio \txtQual}%FOLDUP
+\label{sec:portfolio_qual}
+
+Let \vreti be the vector of relative returns of \nlatf
+assets, with expectation \pvmu and covariance \pvsig.
+A portfolio \sportw on these assets has expected return
+\trAB{\sportw}{\pvmu} and variance \qform{\pvsig}{\sportw}. 
+Define the \txtQual of the portfolio \sportw as the
+\txtQual of the returns of \trAB{\sportw}{\vreti}:
+\begin{equation}
+\pql{\sportw} \defeq
+\frac{\trAB{\sportw}{\pvmu}}{\sqrt{\qform{\pvsig}{\sportw}}}
+\label{eqn:def_pql}
+\end{equation}
+
+One can think of the \txtQual as a kind of `quality' metric
+on portfolios, as follows:
+The \txtSR statistic of the future returns of \sportw are 
+`stochastically monotonic' in the \txtQual as so defined, 
+meaning that if $\pql{\sportw[1]} \le \pql{\sportw[2]}$ then the 
+\txtSR of \trAB{\sportw[2]}{\vreti} 
+(first order) stochastically dominates the 
+\txtSR of \trAB{\sportw[1]}{\vreti}. 
+
+Note that the portfolio \txtQual is bounded by the \txtQual achieved
+by the population \txtMP, \pportwopt:
+\begin{equation}
+\abs{\pql{\sportw}} 
+\le \psnropt \defeq \sqrt{\qiform{\pvsig}{\pvmu}} 
+= \pql{\pportwopt} 
+= \pql{\minvAB{\pvsig}{\pvmu}}.
+\end{equation}
+
+We can interpret portfolio \txtQual geometrically, in `risk space',
+by introducing a risk transform:
+\begin{equation}
+\pql{\sportw} =
+\frac{\trAB{\sportw}{\pvsig\minvAB{\pvsig}{\pvmu}}}{\sqrt{\qform{\pvsig}{\sportw}}}
+=
+\frac{\trAB{\wrapParens{\trchol{\pvsig}\sportw}}{\trchol{\pvsig}{\pportwopt}}}{\sqrt{\gram{\wrapParens{\trchol{\pvsig}\sportw}}}}.
+\end{equation}
+Now normalize by the maximum absolute value that \pql{\sportw} can take:
+\begin{equation*}
+\begin{split}
+\frac{\pql{\sportw}}{\psnropt} 
+&=
+\frac{\trAB{\wrapParens{\trchol{\pvsig}\sportw}}{\trchol{\pvsig}{\pportwopt}}}{%
+\sqrt{\gram{\wrapParens{\trchol{\pvsig}\sportw}}}
+\sqrt{\gram{\wrapParens{\trchol{\pvsig}\pportwopt}}}},\\
+&=
+\trAB{\wrapParens{\frac{\trchol{\pvsig}\sportw}{\sqrt{\gram{\wrapParens{\trchol{\pvsig}\sportw}}}}}}{%
+\wrapParens{\frac{\trchol{\pvsig}\pportwopt}{\sqrt{\gram{\wrapParens{\trchol{\pvsig}\pportwopt}}}}}},\\
+&=
+\trAB{\fnorm{\trchol{\pvsig}\sportw}}{\fnorm{\trchol{\pvsig}\pportwopt}},
+\end{split}
+\end{equation*}
+where 
+\begin{equation}
+\fnorm{\vect{x}}\defeq \frac{\vect{x}}{\sqrt{\gram{\vect{x}}}}
+\end{equation}
+is the projection operator taking non-zero vector \vect{x} to the
+unit sphere.
+That is, \fracc{\pql{\sportw}}{\psnropt} can be viewed as the dot product
+of two vectors on the unit sphere (assuming both \sportw and \pportwopt
+are non-zero vectors), namely 
+\fnorm{\trchol{\pvsig}\sportw} and \fnorm{\trchol{\pvsig}\pportwopt}.
+Let \spang be the angle between 
+\fnorm{\trchol{\pvsig}\sportw} and \fnorm{\trchol{\pvsig}\pportwopt}, and 
+thus 
+$\pql{\sportw} = \psnropt \cos \spang.$
+
+%By the law of cosines, we can relate the relative \txtQual to the distance
+%between these vectors:
+%\begin{equation}
+%\normUL{2}{2}{\fnorm{\trchol{\pvsig}\sportw} -
+%\fnorm{\trchol{\pvsig}\pportwopt}} = 2 - 2\frac{\pql{\sportw}}{\psnropt}
+%\label{eqn:cos_law_form}
+%\end{equation}
+
+In practice the portfolio \sportw is built using \ssiz \iid observations 
+of the random variable \vreti. Denote these observations by the
+\bby{\ssiz}{\nlatf} matrix \mreti, and, by abuse of notation, denote
+the \emph{estimator} that gives \sportw for a given \mreti by
+\sportwfnc{\mreti}. By the same abuse of notation, write 
+\spangfnc{\mreti}. We will bound the expected value of
+\sportwfnc{\mreti}. 
+
+%Define
+%\begin{equation}
+%\cfnc{\psnrsqopt}\defeq\E{\frac{\pql{\sportw}}{\psnropt}} 
+%= \E{\cos \spangfnc{\mreti}}.
+%\end{equation}
+%By definition $\abs{\cfnc{x}} \le 1$,
+%and we expect $\cfnc{x} \ge 0$ for a `sane' portfolio estimator.
+%Moreover, one expects $\cfnc{x} \to 0$ as $\ssiz x \to 0$, and
+%for non-zero $x$, $\cfnc[{\ssiz}]{x} \to 1$ as $\ssiz\to\infty$.
+%Note that
+%\begin{equation*}
+%\begin{split}
+%\E{\frac{\pql{\sportw}}{\psnropt}} &= \E{\cos \spangfnc{\mreti}},\\
+%\VAR{\frac{\pql{\sportw}}{\psnropt}} &= \E{\sin^2 \spangfnc{\mreti}}.
+%\end{split}
+%\end{equation*}
+%Define $\cfnc{\psnrsqopt}\defeq\E{\frac{\pql{\sportw}}{\psnropt}} =
+%\E{\cos\spangfnc{\mreti}}$. By definition $\abs{\cfnc{x}} \le 1$,
+%and we expect $\cfnc{x} \ge 0$ for a `sane' portfolio estimator.
+%Moreover, one expects $\cfnc{x} \to 0$ as $\ssiz x \to 0$, and
+%for non-zero $x$, $\cfnc[{\ssiz}]{x} \to 1$ as $\ssiz\to\infty$.
+%By the trigonometric identity, then Jensen's Inequality \cite{rudin1987real},
+%we have
+%\begin{equation}
+%\label{eqn:var_bounds}
+%\VAR{\frac{\pql{\sportw}}{\psnropt}} 
+%= 1 - \E{\cos^2 \spangfnc{\mreti}} 
+%\le 1 - \csqfnc{\psnrsqopt}.
+%\end{equation}
+%We will bound the left hand side of \eqnref{var_bounds} via 
+%a \txtCR bound, thus establishing an upper bound on \cfnc{\psnrsqopt},
+%and thus a bound on the expected value of \pql{\sportwfnc{\mreti}}.
+%To appeal to a \txtCR bound, one must typically assume the estimator
+%is unbiased. In this case, however, there is no bias-variance tradeoff,
+%and our assumptions may be rather weak. We assume that
+
+To appeal to a \txtCR bound, one must typically assume the estimator
+is unbiased. For this problem a somewhat weaker condition suffices.
+\begin{assumption}[Directional Independence]%FOLDUP
+Assume that
+\begin{equation}
+\label{eqn:sane_estimator}
+\E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}} = 
+\cfnc{\psnrsqopt} \fnorm{\trchol{\pvsig}\pportwopt}
++ \bterm,
+\end{equation}
+where \bterm is the `bias' term, which is orthogonal to
+\fnorm{\trchol{\pvsig}\pportwopt}, and which may be an
+arbitrary function
+of \pvmu and \pvsig.
+
+\end{assumption}%UNFOLD
+
+Note that by orthogonality of \bterm and \fnorm{\trchol{\pvsig}\pportwopt}, 
+and linearity of the expectation, 
+\begin{equation}
+\E{\cos \spangfnc{\mreti}} = 
+\E{\frac{\pql{\sportw}}{\psnropt}} =
+\E{\trAB{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}}{\fnorm{\trchol{\pvsig}\pportwopt}}}
+= \cfnc{\psnrsqopt}.
+\end{equation}
+Thus $\abs{\cfnc{x}} \le 1$,
+and we expect $\cfnc{x} \ge 0$ for a `sane' portfolio estimator.
+Moreover, one expects $\cfnc{x} \to 0$ as $\ssiz x \to 0$, and
+for non-zero $x$, $\cfnc[{\ssiz}]{x} \to 1$ as $\ssiz\to\infty$.
+
+When \bterm is the zero vector, the estimator is a 
+`parallel estimator' in Watson's terminology
+\cite{ANZS:ANZS253}, or `unbiased' in the sense of Hendricks.
+\cite{Hendriks1991245,Dutchmen1992}
+Note that \eqnref{sane_estimator} is satisfied for 
+any \emph{directionally equivariant} portfolio estimator,
+\ie one which, for any orthonormal \Mtx{H}, 
+($\gram{\Mtx{H}} = \eye[\nlatf] = \ogram{\Mtx{H}}$), one
+has 
+\begin{equation*}
+\sportwfnc{\mreti\tr{\Mtx{H}}} = \Mtx{H}\sportwfnc{\mreti}.
+\end{equation*}
+However, one should recognize that not all portfolio estimators
+satisfy this assumption. For example, consider an estimator that
+never concentrates greater than $\nlatf^{-\half}$ proportion of its
+total gross allocation in any one asset; this estimator does not exhibit
+Directional Independence, since it can not capitalize when 
+$\pportwopt=\psnropt\basev[1]$. Neither does the ``one over $N$ allocation'' 
+estimator.  \cite{demiguel2009optimal}  
+
+We must eliminate other `pathological' cases from consideration.
+\begin{assumption}[Residual Independence]
+Assume that the distribution of the residual
+$$
+\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}} - \E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}}
+$$
+is independent of \trchol{\pvsig}\pportwopt.
+\end{assumption}
+This assumption prevents us from making false assertions about 
+\eg the 1/$N$ allocation in the case where 
+it happens to nearly equal \pportwopt.  \cite{demiguel2009optimal}  
+%These two assumptions eliminate the ``one over $N$'' estimator
+%from further consideration here.
+
+Let $\vect{y}$ be a \nlatf-variate random variable. Then
+\begin{align}
+\nonumber\trace{\VAR{\vect{y}}} 
+&= \trace{\E{\ogram{\wrapParens{\vect{y} - \E{\vect{y}}}}}},&\\
+\nonumber &= \trace{\E{\ogram{\vect{y}}}} - \trace{\ogram{\E{\vect{y}}}},&\\
+&= \E{\gram{\vect{y}}} - \gram{\E{\vect{y}}}.&
+\end{align}
+By \eqnref{sane_estimator}, and using orthogonality of 
+\bterm and \fnorm{\trchol{\pvsig}\pportwopt}, we then have
+\begin{align}
+\nonumber
+\trace{\VAR{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}}} &= 
+1 - \wrapParens{\csqfnc{\psnrsqopt} + \bsqterm}&\\
+\label{eqn:var_bounds}
+&\le 1 - \csqfnc{\psnrsqopt},&
+\end{align}
+We will bound the variance of 
+$\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}$
+by a \txtCR lower bound, thus establishing an upper bound on
+\cfnc{\psnrsqopt}.
+
+Define 
+\begin{equation}
+\prskvec \defeq \trchol{\pvsig}\pportwopt = \ichol{\pvsig}\pvmu.
+\end{equation}
+Note that $\gramprskvec = \qiform{\pvsig}{\pvmu} = \psnrsqopt$.
+%Under the assumption of \eqnref{sane_estimator}, \eqnref{var_bounds}
+%becomes
+%\begin{equation}
+%\trace{\VAR{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}}}
+%\le 2\wrapParens{1 - \cfnc{\gramprskvec}}.
+%\end{equation}
+Using the \txtCR lower bound for the left hand side 
+of \eqnref{var_bounds},
+and then using the definition of \prskvec in the expectation, we have
+\cite{tj_moore_ccrb}
+\begin{equation}
+\label{eqn:crb_one}
+\oneby{\ssiz}\trace{\qoform{\iFishI[\prskvec]}{\Drv}}
+\le 1 - \csqfnc{\gramprskvec},
+\end{equation}
+where
+\begin{equation}
+\Drv\defeq
+{\dbyd{\cfnc{\gramprskvec}\frac{\prskvec}{\sqrt{\gramprskvec}}}{\prskvec}}.
+\end{equation}
+Here we take the derivative to follow the `numerator layout' convention, 
+meaning a gradient is a row vector. This derivative takes the form
+\begin{equation}
+\label{eqn:Drv_form}
+\Drv = \frac{\cfncp{\gramprskvec}}{\sqrt{\gramprskvec}}\ogramprskvec + 
+\cfnc{\gramprskvec}\wrapParens{\frac{\eye}{\sqrt{\gramprskvec}} -
+\frac{\ogramprskvec}{\gramprskvec^{\half[3]}}}.
+\end{equation}
+
+To compute the Fisher information, \FishI[\prskvec], we must fix the likelihood
+of the returns, \vreti. While the normal distribution is a poor fit for asset
+returns \cite{stylized_facts}, it is a convenient distribution to work with.
+
+\begin{assumption}[Normal Returns]
+Assume that \vreti are multivariate normally distributed,
+$\vreti\sim\normlaw{\pvmu,\pvsig}$.
+\end{assumption}
+
+For multivariate normal returns, and conditional on \pvsig, the log likelihood
+takes the form
+\begin{equation}
+\begin{split}
+\log\FOOlik{}{\vreti}{\prskvec} &= c_1 - \half
+\qiform{\pvsig}{\wrapParens{\vreti - \pvmu}},\\
+&= \funcit{c}{\vreti} + \prskvecU{\trsym}\ichol{\pvsig}\vreti - \half
+\gramprskvec,
+\end{split}
+\end{equation}
+dropping the `nuisance parameters' from the likelihood function.
+The Fisher Information is negative the expectation of the 
+Hessian of the log likelihood with respect to \prskvec. 
+In this case we have simply
+\begin{equation}
+\label{eqn:FisherI}
+\FishI[\prskvec] =
+- \E{\prby[2]{\log\FOOlik{}{\vreti}{\prskvec}}{\px[\prskvec]\px[\prskvecU{\trsym}]}}
+= \eye[\nlatf].
+\end{equation}
+This radically simplifies the exposition, as the \txtCR bound of
+\eqnref{crb_one} can now be expressed as 
+\begin{equation}
+\label{eqn:crb_two}
+\oneby{\ssiz}\trace{\ogram{\Drv}}
+\le 1 - \csqfnc{\gramprskvec}.
+\end{equation}
+Using the form of \Drv given in \eqnref{Drv_form}, and noting that the cross
+terms are orthogonal, we have
+\begin{equation}
+\begin{split}
+\trace{\ogram{\Drv}}
+&=
+\trace{\wrapBracks{\cfncp{\gramprskvec}}^2 \ogramprskvec +
+\csqfnc{\gramprskvec}\wrapBracks{\frac{\eye}{\gramprskvec} 
+%+ \frac{\ogramprskvec}{\wrapParens{\gramprskvec}^2} 
+%- 2\frac{\ogramprskvec}{\wrapParens{\gramprskvec}^2}}},\\
+- \frac{\ogramprskvec}{\wrapParens{\gramprskvec}^2}}},\\
+&= \wrapBracks{\cfncp{\gramprskvec}}^2 \gramprskvec + 
+\csqfnc{\gramprskvec}\frac{\nlatf - 1}{\gramprskvec},
+\end{split}
+\end{equation}
+using the fact that $\trace{\ogram{\vect{y}}} = \gram{\vect{y}}$.
+With \eqnref{crb_two}, this gives
+\begin{equation}
+\label{eqn:crb_three}
+\wrapBracks{\cfncp{\gramprskvec}}^2 \gramprskvec + 
+\csqfnc{\gramprskvec}\frac{\nlatf - 1}{\gramprskvec}
+\le \ssiz\wrapParens{1 - \csqfnc{\gramprskvec}}.
+\end{equation}
+The term $\wrapBracks{\cfncp{\gramprskvec}}^2 \gramprskvec$ is 
+non-negative, so we may discard it to get a coarser bound that 
+does not involve the derivative of \cfnc{}:
+\begin{equation}
+\label{eqn:crb_four}
+\csqfnc{\gramprskvec}\frac{\nlatf - 1}{\gramprskvec}
+\le \ssiz\wrapParens{1 - \csqfnc{\gramprskvec}}.
+\end{equation}
+This yields
+\begin{equation}
+\label{eqn:crb_five}
+\csqfnc{\gramprskvec} \le \frac{\ssiz\gramprskvec}{\nlatf - 1 +
+\ssiz\gramprskvec},
+\end{equation}
+proving the following theorem.
+\begin{theorem}
+\label{theorem:qual_bound}
+Let \sportwfnc{\mreti} be an estimator based on \ssiz \iid observations of
+multivariate Gaussian returns, \mreti, satisfying the assumptions of
+directional independence and residual independence. Then
+\begin{equation}
+\E{\pql{\sportwfnc{\mreti}}} 
+\le \frac{\sqrt{\ssiz}\psnrsqopt}{\sqrt{\nlatf - 1 + \ssiz\psnrsqopt}}.
+\end{equation}
+\end{theorem}
+
+\theoremref{qual_bound} balances the ``degrees of freedom'' of
+the estimator, $\nlatf-1$, with one lost because only direction matters,
+and the ``observable effect size'', $\ssiz\psnrsqopt$. The effect size
+is a unitless quantity. If \psnropt is measured in trading days, then \ssiz should
+be the number of trading days; if \psnropt is measured in 
+`annualized' terms, then \ssiz should be the number of years.
+
+<<'prelook',eval=TRUE,echo=FALSE,cache=TRUE>>=
+qbound <- function(p, n, zeta.s, use.ope=1) {
+	# the upper bound on quality of the theorem.
+	n.zet <- sqrt(n) * zeta.s
+	retval <- sqrt(use.ope) * (n.zet * zeta.s) / sqrt(p - 1 + n.zet^2)
+}
+ex.n <- 5
+ex.z <- 1.0
+ex.p <- 10
+myubound <- qbound(ex.p, ex.n, ex.z, 1)
+@
+This bound is fairly harsh. Consider a typical actively managed portfolio.
+Generously, we can estimate $\psnropt=\Sexpr{ex.z}\yrtomhalf$ over
+$\nlatf=\Sexpr{ex.p}$
+assets, using $\ssiz=\Sexpr{ex.n}\yrto{}$ of historical data. Then the expected
+value of \pql{\sportwfnc{\mreti}} is bounded by 
+$\Sexpr{myubound}\yrtomhalf$; the event of having a year-over-year loss is
+then a ``$\Sexpr{myubound}$-sigma'' event. 
+
+\theoremref{qual_bound} suggests that for comparing investments,
+the magnitude of the \emph{squared} \txtSR is a limiting factor,
+rather than the \txtSR itself (assuming it is positive). That
+is, under the bound of the theorem, $\psnropt=2\yrtomhalf$
+is \emph{four} times as `good' as $\psnropt=1\yrtomhalf$, in the
+sense that such an effect size can `balance' four times as many
+degrees of freedom.
+
+%The bound in the theorem is trivial in the $\nlatf=1$ case. 
+
+%A tighter upper bound can be had with a bit more work by 
+%not discarding the derivative term, and solving the differential
+%equation upper bound implied by \eqnref{crb_three}.  First
+%we have
+%\begin{equation}
+%\label{eqn:crbmo_one}
+%\wrapBracks{\cfncp{\gramprskvec}}^2 
+%\le \frac{\ssiz}{\gramprskvec} - 
+%\frac{\nlatf - 1 + \ssiz\gramprskvec}{\wrapParens{\gramprskvec}^2}
+%\csqfnc{\gramprskvec}.
+%\end{equation}
+%Let us rewrite \cfnc{\cdot} as 
+%\begin{equation}
+%\cfnc{x} = \fcos{\ffnc{x}},
+%\end{equation}
+%for some function \ffnc{\cdot}. By basic calculus, we have
+%\begin{equation*}
+%\cfncp{x} = -\fsin{\ffnc{x}}\ffncp{x}.
+%\end{equation*}
+%We can then rewrite \eqnref{crbmo_one} as
+%\begin{equation}
+%\begin{split}
+%\label{eqn:crbmo_f_one}
+%\wrapBracks{\ffncp{\gramprskvec}}^2 \wrapParens{1 - \csqfnc{\gramprskvec}}
+%&\le \wrapBracks{%
+%\frac{\ssiz}{\gramprskvec}\wrapParens{1 - \csqfnc{\gramprskvec}}
+%- \frac{\wrapParens{\nlatf -
+  %1}\csqfnc{\gramprskvec}}{\wrapParens{\gramprskvec}^2}},\\
+%\wrapBracks{\ffncp{\gramprskvec}}^2 
+%&\le \frac{\ssiz}{\gramprskvec} 
+%- \frac{\wrapParens{\nlatf - 1}\fcot[2]{\ffnc{\gramprskvec}}}{\wrapParens{\gramprskvec}^2}.
+%\end{split}
+%\end{equation}
+%This yields an upper bound of
+
+%Assuming equality holds, and solving the differential equation, we
+%have ...
+
+%\subsection{A quantile bound}%FOLDUP
+
+%The average portfolio manager, who posesses above-average luck, should
+%not care about \theoremref{qual_bound}.
+%To sidestep this issue, here a rough bound on quantiles of
+%portfolio \txtQual is presented.  Let $\half < \qlev < 1$. 
+%By Cantelli's inequality, the \kth{\qlev} quantile of
+%\pql{\sportwfnc{\mreti}}, call it \qtl{\qlev}, is bounded by
+%\begin{equation}
+%\label{eqn:cantelli_one}
+%\qtl{\qlev} \le \E{\pql{\sportwfnc{\mreti}}} + \sqrt{\frac{\qlev}{1 -
+%\qlev}}\sqrt{\VAR{\pql{\sportwfnc{\mreti}}}}.
+%\end{equation}
+%Note that Cantelli's inequality is a \emph{very} rough upper bound 
+%for most probability distributions, and this inequality could 
+%likely be improved if one could prove that the 
+%distribution of \pql{\sportwfnc{\mreti}} were 
+%unimodal.  \cite{sellkebounds}
+
+%It suffices then to find an \emph{upper} bound on 
+%\VAR{\pql{\sportwfnc{\mreti}}}. Again, letting \spangfnc{\mreti}
+%be the angle between 
+%\fnorm{\trchol{\pvsig}\sportw} and \fnorm{\trchol{\pvsig}\pportwopt}, 
+%we can rewrite \eqnref{cantelli_one} as
+%\begin{equation}
+%\begin{split}
+%\label{eqn:cantelli_two}
+%\frac{\qtl{\qlev}}{\psnropt} 
+%&\le 
+%\E{\fcos{\spangfnc{\mreti}}} + 
+%\sqrt{\frac{\qlev}{1 - \qlev}}\sqrt{\E{\fcos[2]{\spangfnc{\mreti}}} - 
+%\E{\fcos{\spangfnc{\mreti}}}^2},\\
+%&=
+%\cfnc{\psnrsqopt} + 
+%\sqrt{\frac{\qlev}{1 - \qlev}}\sqrt{1 - \E{\fsin[2]{\spangfnc{\mreti}}} - 
+%\csqfnc{\psnrsqopt}}.
+%\end{split}
+%\end{equation}
+%Since \theoremref{qual_bound} gives an upper bound on
+%\cfnc{\psnrsqopt}, it suffices to find a \emph{lower} bound on 
+%\E{\fsin[2]{\spangfnc{\mreti}}}. Kakarala and Watson established
+%a \txtCR lower bound on the directional `divergence' which could be 
+%used here for the unbiased case.  \cite{ANZS:ANZS253} 
+%The result is derived here to avoid this restriction.
+
+
+%Decompose the normalized sample portfolio as
+%\begin{equation}
+%\fnorm{\trchol{\pvsig}\sportw} = 
+%\fcos{\spang}\fnorm{\trchol{\pvsig}\pportwopt} + \fsin{\spang}\spperp,
+%\end{equation}
+%where \spperp is a unit length vector orthogonal to 
+%$\trchol{\pvsig}\pportwopt$. 
+%%Then note that 
+%%\begin{equation}
+%%\begin{split}
+%%\E{\fsin[2]{\spangfnc{\mreti}}} 
+%%&=
+%%\E{\trace{\fsin[2]{\spangfnc{\mreti}}\gram{\wrapParens{\spperpfnc{\mreti}}}}},\\
+%%&=
+%%\E{\trace{\ogram{\wrapParens{\fsin{\spangfnc{\mreti}}\spperpfnc{\mreti}}}}},\\
+%%&\ge \VAR{\fsin{\spangfnc{\mreti}}\spperpfnc{\mreti}},\\
+%%&\ge \oneby{\ssiz}\trace{\qoform{\iFishI[\prskvec]}{\Drv}},\\
+%%&= \oneby{\ssiz}\trace{\ogram{\Drv}},
+%%\end{split}
+%%\end{equation}
+%%using the \txtCR bound, and \eqnref{FisherI}, and where
+%%\begin{equation}
+%%\Drv= \dbyd{\E{\fsin{\spang}\spperp}}{\prskvec}.
+%%\end{equation}
+
+%Following Kakarala and Watson, define
+%\begin{equation}
+%\zzvc \defeq
+%\twobyone{\fsin{\spangfnc{\mreti}}\spperpfnc{\mreti}}{\Cmat\scoro{\prskvec}{\FOOlik{}{\prskvec}{\mreti}}},
+%\end{equation}
+%where \Cmat is a \bby{\nlatf-1}{\nlatf} matrix whose rows form
+%an orthonormal basis for the sphere 
+%\spherep at \fnorm{\prskvec}.  \cite{ANZS:ANZS253} 
+%Define, as in Kakarala and Watson's Equation (9), 
+%\begin{equation}
+%\E{\ogram{\zzvc}} = \twobytwo{\Vmat}{\tr{\Qmat}}{\Qmat}{\Jmat}.
+%\end{equation}
+%Because this second moment matrix is positive semidefinite, as is
+%\Vmat, then so is the Schur complement of \Jmat:
+%\begin{equation}
+%\Vmat - \qiform{\Jmat}{\Qmat} \succeq \mzero,
+%\end{equation}
+%where $\Mtx{A}\succeq\Mtx{B}$ means $\Mtx{A} - \Mtx{B}$ is positive
+%semidefinite. Then $\Vmat \succeq \qiform{\Jmat}{\Qmat}$. Note
+%that in our case $\trace{\Vmat} = \E{\fsin[2]{\spangfnc{\mreti}}}
+%\ge\trace{\qiform{\Jmat}{\Qmat}}$.
+
+%By \eqnref{FisherI}, the second moment of the score, 
+%\scoro{\prskvec}{\FOOlik{}{\prskvec}{\mreti}}, is $\ssiz\eye[\nlatf]$,
+%and thus 
+%\begin{equation}
+%\Jmat = \ssiz\ogram{\Cmat}.
+%\end{equation}
+%It remains to find the form of \Qmat. This relies on a standard
+%trick of assuming that integration and differentation can be
+%interchanged, \cf the proof of Lemma 1 by Ben-Haim and 
+%Eldar. \cite{Ben-HaimE09} The standard trick gives
+%\begin{equation*}
+%\begin{split}
+%\Qmat 
+%&= \E{\Cmat\scoro{\prskvec}{\FOOlik{}{\prskvec}{\mreti}}
+%\fsin{\spangfnc{\mreti}}\tr{\wrapParens{\spperpfnc{\mreti}}}},\\
+%&=
+%\Cmat\gradof[\prskvec]{\E{\fsin{\spangfnc{\mreti}}\tr{\wrapParens{\spperpfnc{\mreti}}}}},\\
+%&=
+%\Cmat\gradof[\prskvec]{\tr{\bterm}},
+%\end{split}
+%\end{equation*}
+%%UNFOLD
+
+%UNFOLD
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Approximate distribution of the \txtQual of the \txtMP}%FOLDUP
+\label{sec:apx_distribution}
+
+Here we establish an approximate distribution of the 
+quantity $\fracc{\pql{\sportw}}{\psnropt} = \cos\spang$
+for the sample \txtMP, $\sportwopt \defeq \minvAB{\svsig}{\svmu},$
+with $\svsig, \svmu$ the usual sample estimates of \pvsig and
+\pvmu. The approximation is constructed by assuming that
+misestimation of \pvsig contributes no error to the portfolio.
+
+Assuming that $\svsig = \pvsig$, then
+\begin{equation}
+\trchol{\pvsig}\sportwopt = \ichol{\pvsig}\svmu = 
+\ichol{\pvsig}\pvmu + \oneby{\sqrt{\ssiz}}\zvc,
+\end{equation}
+where $\zvc \sim \normlaw{\vzero, \eye}$. 
+%Then we should have
+%\begin{equation}
+%\pql{\sportwfnc{\mreti}} = \psnropt \frac{\norm{\ichol{\pvsig}\pvmu} + \oneby{\sqrt{\ssiz}}z_1}{%
+%\sqrt{\normUL{2}{2}{\ichol{\pvsig}\pvmu} + \oneby{\ssiz}\sum_{1 \le i \le \nlatf} z_i^2}},
+%\end{equation}
+%where the $z_i$ are independent standard normal random variables.
+%Equivalently,
+%\begin{equation}
+%\label{apx:qual_beta}
+%\pqlsq{\sportwfnc{\mreti}} \sim 
+%\psnrsqopt \nctbetalaw{\ssiz\psnrsqopt}{\half}{\half[\nlatf-1]},
+%\end{equation}
+%where \nctbetalaw{\nctp}{p}{q} is a non-central Beta distribution 
+%with non-centrality \nctp, and `shape' parameters $p$ and $q$.
+%\cite{walck:1996}
+Then, with $\fracc{\pql{\sportwfnc{\mreti}}}{\psnropt} =
+\fcos{\spangfnc{\mreti}}$, we should have
+\begin{equation}
+\fcot{\spangfnc{\mreti}} =  \frac{\norm{\ichol{\pvsig}\pvmu} + \oneby{\sqrt{\ssiz}}z_1}{%
+\sqrt{\oneby{\ssiz}\sum_{2 \le i \le \nlatf} z_i^2}},
+\end{equation}
+where the $z_i$ are independent standard normal random variables.
+This can be expressed as
+\begin{equation}
+\label{apx:qual_dist}
+\ftan{\farcsin{\frac{\pql{\sportwfnc{\mreti}}}{\psnropt}}}
+\sim \oneby{\sqrt{\nlatf - 1}}\nctlaw{\sqrt{\ssiz}\psnropt,\nlatf-1},
+\end{equation}
+where \nctlaw{\nctp,\nu} is a non-central \tstat-distribution with 
+non-centrality parameter $\nctp$ and $\nu$ degrees of freedom.
+
+\apxref{qual_dist} implies the following approximation:
+\begin{equation}
+\label{apx:qual_beta}
+\pqlsq{\sportwfnc{\mreti}} \sim 
+\psnrsqopt \nctbetalaw{\ssiz\psnrsqopt}{\half}{\half[\nlatf-1]},
+\end{equation}
+where \nctbetalaw{\nctp}{p}{q} is a non-central Beta distribution 
+with non-centrality \nctp, and `shape' parameters $p$ and $q$.
+\cite{walck:1996}
+However, by describing the distribution of the 
+\emph{square} of \pql{\sportwfnc{\mreti}}, we cannot easily model the 
+(sometimes significant) probability that it 
+is negative.
+This form, does, however, give bounds on the variance
+of \pql{\sportwfnc{\mreti}} under the 
+approximation of \apxref{qual_dist}, since
+the moments of the non-central Beta are known.
+\cite[sec 30.3]{walck:1996} Under \apxref{qual_dist},
+we have
+\begin{equation}
+\label{eqn:hypergeo_extwo}
+\E{\pqlsq{\sportwfnc{\mreti}}} = 
+\psnrsqopt \exp{-\half[\ssiz\psnrsqopt]}
+\GAMhalfrat{3}{1}
+\GAMhalfrat{\nlatf}{\nlatf+2}
+\HyperF{2}{2}{\half[\nlatf], \half[3] ; \half, \half[2 + \nlatf];
+\half[\ssiz\psnrsqopt]},
+\end{equation}
+where \HyperF{2}{2}{\cdot,\cdot;\cdot,\cdot;\cdot} is the Generalized
+Hypergeometric function. \cite[sec 16.2]{NIST_handbook} This
+is a rough upper bound on the variance of \pqlsq{\sportwfnc{\mreti}};
+a lower bound can be had using the upper bound on the mean
+from \theoremref{qual_bound}.
+
+%Another way of expressing \apxref{qual_dist} is via a non-central
+%\tstat{}-distribution:
+%\begin{equation}
+%\label{apx:hcut_apx}
+%\ftan{\farcsin{\frac{\pql{\sportwfnc{\mreti}}}{\psnropt}}} 
+%\sim \oneby{\sqrt{\nlatf - 1}}\nctlaw{\sqrt{\ssiz}\psnropt,\nlatf-1},
+%\end{equation}
+%where \nctlaw{\nctp,\nu} is a non-central \tstat-distribution with 
+%non-centrality parameter $\nctp$ and $\nu$ degrees of freedom.
+%Again, this is an approximation for the case of Gaussian returns
+%assuming no mis-estimation of the covariance matrix.
+Because the median value of the non-central 
+\tstat{}-distribution is approximately equal to the 
+non-centrality parameter, \cite{Johnson:1940,kramer_paik_1979}
+the median value of \pql{\sportwfnc{\mreti}} for
+the sample \txtMP, via \apxref{qual_dist}, is approximately
+\begin{equation}
+\label{apx:hcut50_apx}
+m \approx \psnropt \fsin{\farctan{\frac{\sqrt{\ssiz}\psnropt}{\sqrt{\nlatf-1}}}}
+= \frac{\sqrt{\ssiz}\psnrsqopt}{\sqrt{\nlatf - 1 + \ssiz \psnrsqopt}},
+\end{equation}
+which is exactly the upper bound of \theoremref{qual_bound}!
+
+%Thus 
+%\begin{equation}
+%\label{apx:hcut_apx}
+%\ftan{\farcsin{\frac{\pql{\sportwfnc{\mreti}}}{\psnropt}}} 
+%\sim \oneby{\sqrt{\nlatf - 1}}\nctlaw{\sqrt{\ssiz}\psnropt,\nlatf-1}.
+%\end{equation}
+%This can also be expressed as
+%\begin{equation}
+%\label{apx:qual_beta}
+%\pqlsq{\sportwfnc{\mreti}} 
+%= \psnrsqopt \frac{\nctvar^2}{\wrapParens{\nlatf-1} + \nctvar^2}
+%= \psnrsqopt b,
+%\end{equation}
+%where $\nctvar\sim\nctlaw{\sqrt{\ssiz}\psnropt,\nlatf-1}$, and
+%$b\sim\nctbetalaw{\ssiz\psnrsqopt}{\half[\nlatf-1]}{\half}$,
+%a non-central beta distribution. \cite[39.1]{HastingsPeacock3rd}
+
+\subsection{Monte Carlo simulations}%FOLDUP
+
+<<'haircut_study_setup',eval=TRUE,echo=FALSE,cache=TRUE>>=
+suppressMessages({
+	library(SharpeR)
+  library(dplyr)
+  library(tidyr)
+})
+
+# speed tests:
+#X <- matrix(rnorm(100),nrow=1)
+#norm(X,'2') - sqrt(X %*% t(X))
+#microbenchmark('norm'={ norm(X,'2') },'ogram'={ sqrt(X %*% t(X)) })
+# note that colMeans is afaster than apply
+#library(microbenchmark)
+#X <- matrix(rnorm(10000),ncol=100)
+#microbenchmark('colmeans'={ colMeans(X,na.rm=TRUE) },'apply'={ as.vector(apply(X,MARGIN=2,mean,na.rm=TRUE)) })
+# simple markowitz.
+simple.marko <- function(rets) {
+	mu.hat <- colMeans(rets,na.rm=TRUE)
+	Sig.hat <- cov(rets)
+	w.opt <- solve(Sig.hat,mu.hat)
+	retval <- list('mu'=mu.hat,'sig'=Sig.hat,'w'=w.opt)
+	return(retval)
+}
+
+# function that generates 0 mean, unit sd random variables as a vector#FOLDUP
+genz.gauss <- rnorm
+sq3 <- sqrt(3)
+genz.uni <- function(n) {
+	runif(n,min=-sq3,max=sq3)
+}
+make_genz.t <- function(df) {
+	true.v <- df / (df - 2)
+	adjust <- sqrt(1/true.v)
+	function(n) { adjust * rt(n,df=df) }
+}
+make_genz.tukeyh <- function(h) {
+	require(LambertW,quietly=TRUE)
+	Gauss_input <- create_LambertW_input("normal", beta=c(0,1))
+	params <- list(delta = c(h))
+	LW.Gauss <- create_LambertW_output(LambertW.input = Gauss_input, theta = params)
+	#get the moments of this distribution
+	moms <- mLambertW(theta=list(beta=c(0,1),delta = h,gamma = 0,alpha = 1),distname=c("normal"))
+	function(n) {
+		Z <- LW.Gauss$r(n)
+		Z <- (1 / moms$sd) * (Z - moms$mean)
+		Z
+	}
+}
+make_genz.lambertw <- function(gam) {
+	require(LambertW,quietly=TRUE)
+	Gauss_input = create_LambertW_input("normal", beta=c(0,1))
+	params = list(delta = c(0), gamma=c(gam), alpha = 1)
+	LW.Gauss = create_LambertW_output(LambertW.input = Gauss_input, theta = params)
+	#get the moments of this distribution
+	moms <- mLambertW(theta=list(beta=c(0,1),delta = 0,gamma = gam, alpha = 1), distname=c("normal"))
+	function(n) {
+		Z <- LW.Gauss$r(n)
+		Z <- (1 / moms$sd) * (Z - moms$mean)
+		Z
+	}
+}
+#UNFOLD
+
+# make multivariate pop. & sample w/ given zeta.star
+gen.pop <- function(n,p,zeta.s,genf=genz.gauss,...) {
+	true.mu <- matrix(rnorm(p),ncol=p)
+	#generate an SPD population covariance. a hack.
+	# maybe Bartlett would be faster
+	#xser <- matrix(rnorm(p*(p + 50)),ncol=p)
+	#true.Sig <- t(xser) %*% xser
+	# since simple markowitz has the same performance invariant
+	# to rotation, we can assume the true Sigma is diagonal
+	true.Sig <- diag(p)
+	pre.sr <- sqrt(true.mu %*% solve(true.Sig,t(true.mu)))
+	#scale down the sample mean to match the zeta.s
+	true.mu <- (zeta.s/pre.sr[1]) * true.mu 
+  Z <- genf(n*p)
+	Z <- matrix(Z,nrow=n,ncol=p)
+	# true.Sig is eye, so no need to chol it. save some time
+	#Z <- Z %*% chol(true.Sig)
+	X <- Z + matrix(rep(true.mu,n),nrow=n,byrow=TRUE)
+	retval <- list('X'=X,'mu'=true.mu,'sig'=true.Sig,'SNR'=zeta.s)
+	return(retval)
+}
+# a single simulation
+sample.haircut <- function(n,p,zeta.s,genf=genz.gauss,...) {
+	popX <- gen.pop(n=n,p=p,zeta.s=zeta.s,genf=genf,...)
+	smeas <- simple.marko(popX$X)
+	# popX$sig is eye
+	#ssnr <- (t(smeas$w) %*% t(popX$mu)) / sqrt(t(smeas$w) %*% popX$sig %*% smeas$w)
+	ssnr <- (t(smeas$w) %*% t(popX$mu)) / sqrt(t(smeas$w) %*% smeas$w)
+	as.numeric(ssnr)
+}
+
+# test
+#sample.haircut(1000,10,zeta.s=0.1)
+
+# set everything up
+ope <- 253
+
+n.sim <- ceiling(1e6/max(1,RUNTIME_PARAM))
+n.per <- ceiling(1e3/max(1,RUNTIME_PARAM))
+
+n.stok <- 6
+n.yr <- 4
+n.obs <- ceiling(ope * n.yr)
+zeta.s <- 1.25 / sqrt(ope)   # optimal SNR, in daily units
+
+t.df <- 4
+tuk.h <- 0.15
+lam.gam <- -0.2
+
+repsim <- function(nsamp, nobs, nstok, zeta.s, genf, rseed=NULL) {
+	if (!is.null(rseed)) {
+		set.seed(rseed)
+	}
+	experiments <- replicate(nsamp, sample.haircut(n=nobs,p=nstok,zeta.s=zeta.s,genf=genf))
+	data_frame(ssnr=sqrt(ope) * experiments,
+						 n=nobs,p=nstok,zeta=zeta.s)
+}
+# testing
+#repsim(100,genf=genz.gauss)
+#repsim(nsamp=100,zeta=0.1,nstok=5,nobs=100,genf=genz.gauss)
+
+suppressMessages({
+  library(doRNG)
+	registerDoRNG()
+  # https://cran.r-project.org/web/packages/doFuture/vignettes/doFuture.html
+  library(doFuture)
+  registerDoFuture()
+})
+
+manysim <- function(nsamp, genf, nobs=n.obs, nstok=n.stok, zeta=zeta.s, nper=n.per, rseed=1234) {
+  require(doFuture)
+  registerDoFuture()
+  plan(multiprocess)
+
+	quals <- future_lapply(1:ceiling(nsamp/nper),
+												 FUN=function(...) {
+													 repsim(nsamp=nper,genf=genf,nobs=nobs,nstok=nstok,zeta=zeta)
+												 },
+												 future.seed=rseed) %>%
+		bind_rows()
+
+	# might have to down select
+	quals <- quals[1:nsamp,]
+	return(quals)
+}
+
+t0 <- Sys.time()
+
+# gaussian
+quals.gaussian <- manysim(n.sim,genf=genz.gauss)$ssnr
+
+# uniform
+quals.uni <- manysim(n.sim,genf=genz.uni)$ssnr
+
+# t(4)
+quals.t <- manysim(n.sim,genf=make_genz.t(t.df))$ssnr
+
+# tukey(0.1)
+quals.tukey <- manysim(n.sim,genf=make_genz.tukeyh(tuk.h))$ssnr
+
+# Lambert W(0.1)
+quals.lambert <- manysim(n.sim,genf=make_genz.lambertw(lam.gam))$ssnr
+@
+
+<<'hcut_qtile',echo=FALSE,cache=FALSE>>=
+# print(summary(quals.gaussian))
+# haircut approximation in the equation above
+qqual <- function(p, df1, df2, zeta.s, use.ope=1, lower.tail=TRUE) {
+	# incorporates the annualization factor
+	# uses the sin(atan( ... )) formulation:
+	atant <- atan((1/sqrt(df1-1)) * 
+		qt(p,df=df1-1,ncp=sqrt(df2)*zeta.s,lower.tail=lower.tail))
+	# a slightly better approximation is:
+	# retval <- 1 - sin(atant - 0.0184 * zeta.s * sqrt(df1 - 1))
+	retval <- sqrt(use.ope) * zeta.s * sin(atant)
+
+	# use the beta formulation, but oh fuck, no negatives 
+	# on this one. shit.
+#	retval <- zeta.s * sqrt(use.ope * qbeta(p, shape1=0.5, shape2=0.5 * (df1-1),
+#		ncp = df2 * zeta.s^2, lower.tail=lower.tail))
+
+}
+pqual <- function(q, df1, df2, zeta.s, use.ope=1, lower.tail=TRUE, log.p=FALSE) {
+	sinthet <- pmin(pmax(q / (zeta.s * sqrt(use.ope)),-1),1)
+	fooq <- sqrt(df1-1) * tan(asin(sinthet))
+	retval <- pt(fooq,df=df1-1,ncp=sqrt(df2)*zeta.s,
+				lower.tail=lower.tail,log.p=log.p)
+	#retval <- min(max(retval,0),1)
+	#retval
+}
+qbound <- function(p, n, zeta.s, use.ope=1) {
+	# the upper bound on quality of the theorem.
+	n.zet <- sqrt(n) * zeta.s
+	retval <- sqrt(use.ope) * (n.zet * zeta.s) / sqrt(p - 1 + n.zet^2)
+}
+#apx.medv <- qqual(0.5,n.stok,n.obs,zeta.s,use.ope=ope)
+#corr.digs <- function(true.v,est.v) {
+#	err <- est.v - true.v
+#	true.digs <- ceiling(log10(abs(true.v)))
+#	err.digs <- trunc(log10(abs(err)))
+#	n.signif <- true.digs - err.digs
+#}
+#n.digs <- corr.digs(median(quals.gaussian),apx.medv)
+@
+
+The accuracy of \apxref{qual_dist} is checked by 
+Monte Carlo simulations: $\Sexpr{n.sim}$ simulations were performed
+of construction of the \txtMP 
+using $\ssiz=\Sexpr{n.obs}$ (\Sexpr{n.yr} years of daily observations), 
+$\nlatf=\Sexpr{n.stok}$ and $\psnropt=\Sexpr{zeta.s * sqrt(ope)}\yrtomhalf$;
+the returns are normally distributed.
+Since the population \txtMP is known, the portfolio \txtQual 
+can be computed exactly.
+The Q-Q plot in \figref{haircutting} confirms that 
+\apxref{qual_dist} is very good for this choice of $\ssiz, \nlatf, \psnropt$.
+
+<<'kstestit',eval=TRUE,cache=TRUE,echo=FALSE>>=
+
+x <- quals.gaussian
+x <- x[!is.na(x)]
+sim.ks <- ks.test(x, y=pqual, df1=n.stok, df2=n.obs,
+                    zeta.s=zeta.s, use.ope=ope)
+
+ksp <- signif(sim.ks$p.value,digits=8)
+kss.gaussian <- signif(sim.ks$statistic,digits=4)
+
+get.stat <- function(x.quals) {
+	x.quals <- x.quals[!is.na(x.quals)]
+	res.ks <- ks.test(x.quals, y=pqual, df1=n.stok, df2=n.obs,
+											zeta.s=zeta.s, use.ope=ope)
+	res.stat <- signif(res.ks$statistic,digits=4)
+}
+
+kss.uni <- get.stat(quals.uni)
+kss.t <- get.stat(quals.t)
+kss.tukey <- get.stat(quals.tukey)
+kss.lambert <- get.stat(quals.lambert)
+@
+
+<<'damnoptions1',eval=TRUE,cache=FALSE,echo=FALSE>>=
+options(digits=3)
+@
+Rather than rely on `proof by graph', the \txtKS test was
+computed for the values of \txtQual generated under Gaussian returns.
+\cite{Marsaglia:Tsang:Wang:2003:JSSOBK:v08i18}
+The statistic, the maximal difference between empirical CDF and
+theoretical CDF under the approximation, was computed to be \Sexpr{kss.gaussian}
+over the $\Sexpr{n.sim}$ simulations.
+While this seems small, the computed p-value under the null underflows to \Sexpr{ksp}
+because the sample size is so large.
+
+<<'damnoptions2',eval=TRUE,cache=FALSE,echo=FALSE>>=
+options(digits=2)
+@
+
+
+<<'haircutting',echo=FALSE,cache=TRUE,fig.width=5.00,fig.height=3.0,dpi=450,fig.cap=paste0("Q-Q plot of $10^{",round(log10(n.sim)),"}$ simulated \\txtQual values versus \\apxref{qual_dist} is shown. Units are `annual', \\ie \\yrtomhalf. Since the number of samples is very large, only a subset of $10^{",round(log10(max.ps)),"}$ points, uniformly selected by sample quantile, are plotted.")>>=
+# qqplot;
+
+# via qqplot;
+#qqplot(qqual(ppoints(length(quals.gaussian)),n.stok,n.obs,zeta.s,use.ope=ope),quals.gaussian,
+#			 xlab = "Theoretical Approximate Quantiles", ylab = "Sample Quantiles")
+#qqline(quals.gaussian,datax=FALSE,distribution = function(p) {
+# qqual(p,n.stok,n.obs,zeta.s,use.ope=ope) },
+#			 col=2)
+
+suppressMessages({
+  library(ggplot2)
+})
+
+max.ps <- 1e4
+if (length(quals.gaussian) > max.ps) {
+	pvs <- ppoints(max.ps)
+	subquals <- quantile(quals.gaussian, probs=pvs)
+} else {
+	subquals <- quals.gaussian
+	pvs <- ppoints(subquals)
+}
+
+# or, see: 
+# http://stackoverflow.com/a/4939257/164611
+xydf <- as.data.frame(qqplot(x=qqual(pvs,n.stok,n.obs,zeta.s,use.ope=ope),
+	y=subquals,plot=F))
+ph <- ggplot(data=xydf,mapping=aes(x=x, y=y)) +
+  geom_point() +
+  geom_abline(intercept=0, slope=1, color="red") + 
+  labs(x="Theoretical Approximate Quantiles", y="Sample Quantiles")
+
+#ph <- ph + geom_smooth(method="lm", se=FALSE)	
+print(ph)
+
+@
+
+%% 2FIX: these are for the 'haircut', not 'quality'
+%The median value of the haircut over the $\Sexpr{n.sim}$ simulations
+%is $\Sexpr{median(quals.gaussian)}$, meaning that in more than half the simulations,
+%the sample portfolio has `lost' more than 
+%$\Sexpr{round(100 * median(quals.gaussian))}$\% of the optimal population \txtSR.
+%Put another way, with probability around one half, 
+%the population \txtSR of the sample \txtMP is less than 
+%$\Sexpr{(1 - median(quals.gaussian)) * zeta.s * sqrt(ope)}\yrtomhalf$.
+%Note that the median value under \apxref{qual_dist}
+%is correct to $\Sexpr{n.digs}$ digits.
+
+%For the case where
+%$\ssiz=\Sexpr{n.obs}$ (\Sexpr{n.yr} years of daily observations), 
+%$\nlatf=\Sexpr{n.stok}$ and $\psnropt=\Sexpr{zeta.s * sqrt(ope)}\yrtomhalf$, 
+%the t-approximation is very good indeed. 
+
+%Since the Gaussian distribution is a poor model for real returns, 
+The experiment is then repeated using returns drawn 
+from a uniform distribution, 
+a \tstat{}-distribution with $\Sexpr{t.df}$ degrees of freedom, 
+from a Tukey $h$-distribution with parameter $h=\Sexpr{tuk.h}$, 
+and from a Lambert W $\times$ Gaussian
+with parameter $\gamma=\Sexpr{lam.gam}$.  \cite{2009arXiv0912.4554G,2010arXiv1010.2265G}
+Returns are generated by first generating \iid \nlatf-variate draws
+from a zero mean, identity covariance distribution whose marginals
+follow the so-named laws, then scaling and shifting to have the
+appropriate \psnropt. For each simulation, the \pvsig is a random
+draw from a Wishart random variable.
+
+The uniform distribution is not a realistic model of market returns,
+but is included to check the approximation on platykurtic returns.
+The \tstat{} and more exotic distributions are more realistic
+models of market returns, and are leptokurtotic. The 
+Lambert W has non-zero skew. 
+Again, $\Sexpr{n.sim}$ simulations are performed under each of these 
+distributions with the same values of $\ssiz, \nlatf, \psnropt$ as
+above. 
+Some of the empirical quantiles from these simulations are
+shown in \tabref{qtiles},
+along with the approximate quantiles from \apxref{qual_dist}. 
+The \txtKS test statistics for the different
+distributions are presented in \tabref{ks_stats}.
+For this choice of \ssiz, \nlatf, \psnropt, the approximation is
+very good, across the tested returns distributions.
+
+<<'qtiles',echo=FALSE,cache=TRUE,results='asis'>>=
+
+qs <- c(0.1,0.25,0.5,0.75,0.95,0.975,0.99,0.995)
+qs <- sort(1 - qs)
+foo.tab <- data.frame(Gaussian=quantile(quals.gaussian,qs),
+	uniform=quantile(quals.uni,qs),
+	t=quantile(quals.t,qs),
+	tukey=quantile(quals.tukey,qs),
+	lambert=quantile(quals.lambert,qs),
+	approximation=qqual(qs,n.stok,n.obs,zeta.s,use.ope=ope))
+colnames(foo.tab) <- c("normal",
+	"unif.",
+	sprintf("t(%d)",t.df),
+	sprintf("Tukey(%.2f)",tuk.h),
+	sprintf("Lam.W(%.1f)",lam.gam),
+	"approx.")
+#rownames(foo.tab) <- 100 * qs
+foo.tab <- cbind(data.frame("q-tile"=1*qs),foo.tab)
+
+	#align=paste0(paste0(rep("l",dim(foo.tab)[2]-1),collapse=""),"|","l"),
+	#align=c(rep("l",dim(foo.tab)[2]),"|","l"),
+	#align=rep("c",dim(foo.tab)[2]+1),
+library(xtable)
+xres <- xtable(foo.tab,
+	digits=c(3,3,rep(4,dim(foo.tab)[2]-1)),
+	label="tab:qtiles",
+	align=c("c","r|",rep("c",dim(foo.tab)[2]-2),"|c"),
+	caption=paste0("Empirical quantiles of portfolio \\txtQual",
+		" from $10^{",log10(n.sim),"}$",
+		" simulations of ",n.obs," days of ",n.stok," assets, with",
+		" maximal \\txtSR of $",zeta.s * sqrt(ope),"\\yrtomhalf$ are",
+		" given, along with the approximate quantiles from",
+		" \\apxref{qual_dist}. Units of \\txtQual are `annual',",
+		" \\ie \\yrtomhalf."))
+#print(xres,include.rownames=TRUE)
+print(xres,include.rownames=FALSE)
+@
+
+<<'ks_table',echo=FALSE,cache=TRUE,results='asis'>>=
+
+foo.tab <- data.frame(Gaussian=kss.gaussian,
+	uniform=kss.uni,
+	t=kss.t,
+	tukey=kss.tukey,
+	lambert=kss.lambert)
+colnames(foo.tab) <- c("normal",
+	"unif.",
+	sprintf("t(%d)",t.df),
+	sprintf("Tukey(%.2f)",tuk.h),
+	sprintf("Lam.W(%.1f)",lam.gam))
+
+	#align=paste0(paste0(rep("l",dim(foo.tab)[2]-1),collapse=""),"|","l"),
+	#align=c(rep("l",dim(foo.tab)[2]),"|","l"),
+	#align=rep("c",dim(foo.tab)[2]+1),
+library(xtable)
+xres <- xtable(foo.tab,
+	digits=c(3,rep(4,dim(foo.tab)[2])),
+	label="tab:ks_stats",
+	align=c("c",rep("c",dim(foo.tab)[2])),
+	caption=paste0("\\txtKS statistic comparing the empirical",
+		" CDF to that of \\apxref{qual_dist}",
+		" over $10^{",log10(n.sim),"}$",
+		" simulations of ",n.obs," days of ",n.stok," assets, with",
+		" maximal \\txtSR of $",zeta.s * sqrt(ope),"\\yrtomhalf$ are",
+		" given for the different returns distributions."))
+#print(xres,include.rownames=TRUE)
+print(xres,include.rownames=FALSE)
+@
+
+%<<'forexample',echo=FALSE,cache=TRUE>>=
+%big.n.stok <- 21
+%big.med <- qqual(0.5,big.n.stok,n.obs,zeta.s)
+%big.sr <- zeta.s * (1 - big.med)
+%@
+%In practical terms, the haircut presents something of an upper bound on the 
+%\txtQual of the \txtMP constructed from sample estimates: one expects that
+%\eg non-stationarity or model mis-specification will only cause further
+%deterioriation of portfolio performance. Considering the haircut provides
+%some guidance on balancing \nlatf and \ssiz versus the estimated \psnropt.
+%For example, given the same \ssiz and \psnropt as above, if one instead
+%had $\nlatf = \Sexpr{big.n.stok}$, the median value of the haircut would be 
+%approximately $\Sexpr{big.med}$, and thus with probability one half, the
+%\txtMP would have \txtSR less than $\Sexpr{big.sr * sqrt(ope)}\yrtomhalf$, 
+%a less than exciting prospect.
+
+<<'means',echo=FALSE,cache=TRUE,results='asis'>>=
+
+ubound <- qbound(n.stok, n.obs, zeta.s, ope)
+
+require(hypergeo)
+
+teff <- 0.5 * n.obs * zeta.s^2
+U <- c(n.stok/2,3/2)
+L <- c((2+n.stok)/2,1/2)
+ub2 <- ope * zeta.s^2 * exp(- teff + sum(lgamma(U)) - sum(lgamma(L)))
+ub2 <- ub2 * hypergeo::genhypergeo(U, L, teff)
+
+aggf <- function(x) {
+	retv <- c(mean(x,na.rm=TRUE),mean(x^2,na.rm=TRUE))
+}
+
+foo.tab <- data.frame(Gaussian=aggf(quals.gaussian),
+	uniform=aggf(quals.uni),
+	t=aggf(quals.t),
+	tukey=aggf(quals.tukey),
+	lambert=aggf(quals.lambert),
+	bound=c(ubound,ub2))
+colnames(foo.tab) <- c("normal",
+	"unif.",
+	sprintf("t(%d)",t.df),
+	sprintf("Tukey(%.2f)",tuk.h),
+	sprintf("Lam.W(%.1f)",lam.gam),
+	"bound")
+
+mean.tab <- foo.tab[1,]
+meansq.tab <- foo.tab[2,]
+colnames(meansq.tab)[length(colnames(meansq.tab))] <- "approx."
+
+library(xtable)
+xres <- xtable(mean.tab,
+	digits=c(1,1,rep(3,dim(mean.tab)[2]-1)),
+	label="tab:means",
+	align=c("c",rep("c",dim(mean.tab)[2]-1),"|c"),
+	caption=paste0("Empirical mean portfolio \\txtQual",
+		" from $10^{",log10(n.sim),"}$",
+		" simulations of ",n.obs," days of ",n.stok," assets, with",
+		" maximal \\txtSR of $",zeta.s * sqrt(ope),"\\yrtomhalf$ are",
+		" given, along with the upper bound from",
+		" \\theoremref{qual_bound}. Units of \\txtQual are `annual',",
+		" \\ie \\yrtomhalf."))
+print(xres,include.rownames=FALSE)
+
+xres2 <- xtable(meansq.tab,
+	digits=c(1,1,rep(3,dim(meansq.tab)[2]-1)),
+	label="tab:meanssq",
+	align=c("c",rep("c",dim(meansq.tab)[2]-1),"|c"),
+	caption=paste0("Empirical mean of \\emph{squared} portfolio \\txtQual",
+		" from $10^{",log10(n.sim),"}$",
+		" simulations of ",n.obs," days of ",n.stok," assets, with",
+		" maximal \\txtSR of $",zeta.s * sqrt(ope),"\\yrtomhalf$ are",
+		" given, along with the approximate value from \\eqnref{hypergeo_extwo}.",
+		" Units of squared \\txtQual are `annual',",
+		" \\ie \\yrto{-1}."))
+print(xres2,include.rownames=FALSE)
+
+mu.gap <- (mean.tab$bound - mean.tab$normal) / (mean.tab$bound)
+@
+
+In \tabref{means}, the empirical mean value of \pql{\sportwopt}, over
+the $\Sexpr{n.sim}$ simulations, is presented for the five returns
+distributions, along with the upper bound given by
+\theoremref{qual_bound}.  It seems that there is a small gap between
+the empirical mean for the case of Gaussian returns, and the
+theoretical upper bound, a gap on the order of 
+$\Sexpr{signif(1e2 * mu.gap,1)}\%$.
+Perhaps this gap is caused by discarding
+the derivative term from \eqnref{crb_three}, or because 
+the sample Markowitz portfolio is not efficient for finite samples.
+
+In \tabref{meanssq}, the empirical mean value of \pqlsq{\sportwopt}, over
+the $\Sexpr{n.sim}$ simulations, is presented for the five returns
+distributions, along with the theoretical value from 
+\eqnref{hypergeo_extwo}, which is valid only under 
+\apxref{qual_dist}. The approximate value is decent, meaning
+an estimate of the variance of \pql{\sportwopt} could be had
+by combining \eqnref{hypergeo_extwo} and the upper bound of
+\theoremref{qual_bound}.
+
+<<'quality_heatmaps',eval=TRUE,echo=FALSE,cache=TRUE>>=
+suppressMessages({
+  require(SharpeR)
+})
+
+ope <- 253
+
+# set everything up
+n.sim3 <- ceiling(1e5/max(1,RUNTIME_PARAM))
+n.per3 <- ceiling(5e3/max(1,RUNTIME_PARAM))
+
+params <- tidyr::crossing(tibble::tribble(~nyr,0.5,1,2,4,8),
+                          tibble::tribble(~p,2,4,8,16),
+                          tibble::tibble(zeta=sqrt(c(0.125,0.25,0.5,1,2)) / sqrt(ope))) %>%
+  mutate(nday=ceiling(ope * nyr)) 
+
+registerDoRNG()
+registerDoFuture()
+
+sims <- params %>% 
+  group_by(nyr,p,zeta,nday) %>%
+    summarize(sims=list(manysim(nsamp=n.sim3,nper=n.per3,nobs=nday,nstok=p,zeta=zeta,genf=genz.gauss))) %>%
+  ungroup() %>%
+  unnest()
+
+# also do ks.test ... 
+ksfunc <- function(sims,df1,df2,zeta,use.ope=ope) {
+  htest <- ks.test(sims,y=pqual, df1=df1, df2=df2, zeta.s=zeta,use.ope=use.ope)
+  data_frame(stat=htest$statistic,pvalue=htest$p.value)
+}
+
+ks.stats <- sims %>%
+  group_by(nyr,p,zeta,nday) %>%
+    summarize(stats=list(ksfunc(ssnr,df1=p,df2=nday,zeta=zeta))) %>%
+  ungroup() %>%
+  unnest() %>%
+  rename(nstock=p,value=stat)
+@
+
+%<<'kstable',echo=FALSE,cache=FALSE,results='asis'>>=
+
+%ks.dat <- ks.stats
+%ks.dat$effsize <- sqrt(ope * ks.dat$nyr) * ks.dat$zeta
+%ks.dat$effsize <- factor(ks.dat$effsize)
+%ks.dat$nstock <- factor(ks.dat$nstock)
+%ks.dat$nyr <- factor(ks.dat$nyr)
+%ks.dat$zeta <- factor(ks.dat$zeta)
+
+%library(xtable)
+%xres <- xtable(ks.dat,
+	%label="tab:throwaway",
+	%caption=paste0("throwaway, look at the data."))
+%print(xres,include.rownames=FALSE,size="tiny")
+%@
+
+
+
+Of course, these simulations are conducted using only a single
+choice of the parameters \ssiz, \nlatf and \psnropt. To check the
+robustness of this approximation to these parameters, 
+$\Sexpr{n.sim3}$ Monte Carlo simulations were conducted for 
+each combination of $\ssiz=\Sexpr{sort(unique(params$nyr))}$ years of daily observations,
+$\nlatf=\Sexpr{sort(unique(params$p))}$, and
+$\psnropt=\Sexpr{sort(unique(params$zeta)) * sqrt(ope)}\yrtomhalf$,
+all under Gaussian returns. The \txtKS test statistic
+is then computed on the empirically observed quantiles of
+portfolio \txtQual, under the distribution of
+\apxref{qual_dist}.  
+%The KS statistic is the maximum absolute deviation
+%of empirical and theoretical CDFs. \cite{Marsaglia:Tsang:Wang:2003:JSSOBK:v08i18}
+
+<<'ksplots',eval=TRUE,echo=FALSE,cache=FALSE,fig.width=5.75,fig.height=4.00,dpi=450,fig.cap=paste0("The \\txtKS statistic for \\apxref{qual_dist} over $10^{",round(log10(n.sim3)),"}$ simulations of Gaussian returns is plotted versus $\\psnropt \\wrapParens{\\nlatf-1}/\\sqrt{\\ssiz}$, with \\psnropt in annualized terms, and \\ssiz measured in years.  There is one line for each combination of $\\ssiz$ and $\\psnropt$. The line color corresponds to the `effect size', $\\sqrt{\\ssiz}\\psnropt$, which is unitless."),eval.after='fig.cap'>>= 
+
+ks.dat <- ks.stats %>%
+  mutate(zeta.an = sqrt(ope) * zeta) %>%
+  mutate(effsize = sqrt(nyr) * zeta.an) %>%
+  mutate(pbyn = zeta.an * (nstock - 1) / sqrt(nyr)) %>%
+  mutate(effect.size = factor(round(effsize,digits=3))) %>%
+  mutate(nyr = factor(nyr)) %>%
+  mutate(zeta.an = factor(zeta.an))
+
+suppressMessages({
+  library(ggplot2)
+})
+
+#ph <- ph + facet_grid(.~zeta.an)
+ph <- ks.dat %>%
+  ggplot(aes(x=pbyn,y=value,group=interaction(nyr,zeta.an))) +
+  geom_line(aes(colour=effect.size)) +
+  labs(x=expression(zeta["*"] * (p-1) / sqrt(n)),y="KS statistic") +
+  guides(colour=guide_legend(title=expression(sqrt(n)*zeta["*"]))) +
+  scale_x_log10()
+#ph <- ph + scale_y_log10()
+print(ph)
+
+@
+
+Plots of the \txtKS statistic are given in \figref{ksplots}, and
+\figref{ksheat}, which suggest that the quality of
+\apxref{qual_dist} is a function of the
+quantity $\psnropt \wrapParens{\nlatf-1}/\sqrt{\ssiz}$. 
+As a rough guide, when
+$\psnropt \wrapParens{\nlatf-1}/\sqrt{\ssiz} \le 5 \yrto{-1}$,
+for daily observations, \apxref{qual_dist} is an acceptable 
+approximation to the distribution of \txtQual of the sample \txtMP.
+
+%While it may be difficult to interpret the
+%absolute value of the \txtKS statistic, it may be instructive to consider the
+%relative value at different values of $\nlatf, \ssiz, \psnropt$.  
+
+<<'ksheat',eval=TRUE,echo=FALSE,cache=FALSE,fig.width=6.00,fig.height=4.25,dpi=450,fig.cap=paste0("The \\txtKS statistic for \\apxref{qual_dist} over $10^{",round(log10(n.sim3)),"}$ simulations of Gaussian returns is indicated, by color, versus \\nlatf, and the `total effect size,' $\\sqrt{\\ssiz}\\psnropt$, which is a unitless quantity. Different facets are for different values of \\ssiz (in years)."),eval.after='fig.cap'>>= 
+
+ks.dat <- ks.stats %>%
+  mutate(zeta.an = sqrt(ope) * zeta) %>%
+  mutate(effsize = round(sqrt(nyr) * zeta.an,digits=3)) %>%
+  mutate(effsize = factor(effsize)) %>%
+  mutate(nstock = factor(nstock)) %>%
+  mutate(nyr = factor(nyr)) 
+
+suppressMessages({
+  library(ggplot2)
+})
+
+ph <- ks.dat %>%
+  rename(years=nyr) %>%
+  ggplot(aes(x=nstock,y=effsize)) +
+  geom_tile(aes(fill=value)) +
+  facet_grid(.~years,labeller=label_both) +
+  scale_fill_gradient2(limits=c(min(ks.dat$value),max(ks.dat$value)),
+                       low="steelblue",high="red") +
+  labs(x="# assets",y="effect size") +
+  guides(fill=guide_legend(title="KS stat"))
+
+#ph <- ph + scale_y_log10()
+print(ph)
+
+@
+
+%UNFOLD
+
+%UNFOLD
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Diversification}%FOLDUP
+\label{sec:diversification}
+
+<<'forexample',echo=FALSE,cache=FALSE>>=
+# reset these, just in case...
+ope <- 253
+n.stok <- 6
+n.yr <- 4
+n.obs <- ceiling(ope * n.yr)
+zeta.s <- 1.25 / sqrt(ope)   # optimal SNR, in daily units
+
+big.n.stok <- 24
+big.zeta <- 1.60 / sqrt(ope)   # optimal SNR, in daily units
+big.qb <- qbound(big.n.stok, n.obs, big.zeta, ope)
+lil.qb <- qbound(n.stok, n.obs, zeta.s, ope)
+@
+
+\theoremref{qual_bound} has implications for the diversification
+benefit. 
+Consider the case of $\nlatf=\Sexpr{n.stok}, \ssiz=\Sexpr{n.obs},
+\psnropt = \Sexpr{sqrt(ope) * zeta.s}\yrtomhalf$ versus some
+superset of this asset universe with 
+$\nlatf=\Sexpr{big.n.stok}, \ssiz=\Sexpr{n.obs},
+\psnropt = \Sexpr{sqrt(ope) * big.zeta}\yrtomhalf$. 
+Since the optimum cannot
+decrease over a larger feasible space, we observe that
+the superset has a higher population \txtSNR, \psnropt, 
+One should not, of course, increase
+the investment universe without \emph{some} concomitant 
+increase in \psnropt.
+However, in this case the bound on expected \txtQual from
+\theoremref{qual_bound} for the smaller asset universe
+is $\Sexpr{signif(lil.qb,2)}\yrtomhalf$,
+while for the superset it is
+$\Sexpr{signif(big.qb,2)}\yrtomhalf$. Diversification
+has possibly caused a \emph{decrease} in expected \txtQual, even 
+though the opportunity exists to increase \txtQual by a fair
+amount.
+
+By the `Fundamental Law of Asset Management,' one vaguely
+expects \psnropt to increase as $\sqrt{\nlatf}$. \cite{grinold1999active}
+If however, \psnropt scales at a rate slower than $\nlatf^{1/4}$,
+then the derivative of the bound in \theoremref{qual_bound}
+will be negative for sufficiently large 
+$\nlatf$: adding assets to the universe causes a decrease in 
+expected \txtQual.  To see why, note that
+\fracc{\sqrt{\ssiz}\psnrsqopt}{\sqrt{\nlatf - 1 + \ssiz\psnrsqopt}}
+has $\psnrsqopt$ in the numerator, and $\sqrt{\nlatf}$ in the denominator;
+if \psnropt grows slower than $\nlatf^{1/4}$ the denominator will
+outpace the numerator.
+
+More formally, let \qbnd be the bound on \txtQual from 
+\theoremref{qual_bound}:
+\begin{equation*}
+\qbnd\defeq\frac{\sqrt{\ssiz}\psnrsqopt}{\sqrt{\nlatf - 1 + \ssiz\psnrsqopt}}.
+\end{equation*}
+By taking the derivative of $\log\qbnd$ with respect to \nlatf, a little
+calculus reveals that 
+\begin{align}
+\nonumber
+\dbyd{\log\qbnd}{\nlatf} \ge 0 
+&\Leftrightarrow
+\frac{\psnropt}{2\ssiz\psnrsqopt + 4\wrapParens{\nlatf - 1}} \le
+\dbyd{\psnropt}{\nlatf},&\\
+&\Leftrightarrow
+\frac{1}{2\ssiz\psnrsqopt + 4\wrapParens{\nlatf - 1}} \le
+\dbyd{\log\psnropt}{\nlatf},&
+\label{eqn:sufficient_growth}
+\end{align}
+%&\Leftrightarrow
+%\frac{1}{\ssiz + 2\fracc{\wrapParens{\nlatf - 1}}{\psnrsqopt}} \le
+%\dbyd{\psnrsqopt}{\nlatf},\\
+The last inequality is implied by the inequality
+$\oneby{4\wrapParens{\nlatf-1}} \le \dbyd{\log\psnropt}{\nlatf}$, 
+with equality holding for $\psnropt = c \wrapParens{\nlatf-1}^{1/4}$.
+
+<<'grow_bound',eval=TRUE,echo=FALSE,cache=TRUE,fig.width=5.00,fig.height=3.25,dpi=450,fig.cap=paste0("The upper bound of \\theoremref{qual_bound} is plotted versus \\nlatf for different scaling laws for \\psnropt.  These scaling laws correspond to $\\psnropt = \\psnr[0]\\nlatf^{\\gamma}$, with $\\gamma$ taking values ",sgammas.summary,".  The constant terms, \\psnr[0], are adjusted so that $\\psnropt =",sqrt(ope) * zeta.s,"\\yrtomhalf$ for $\\nlatf = ",n.stok,"$ for all the lines. The bound uses $\\ssiz=",n.obs,"$, corresponding to ",n.yr," years of daily observations."),eval.after='fig.cap'>>= 
+
+bound.experiment <- function(pow,n.obs,zeta.s,
+                             n.stok=n.stok,ope=ope,plims=c(2,250)) {
+  require(dplyr,quietly=TRUE)
+  require(tidyr,quietly=TRUE)
+	all.ps <- unique(round(exp(seq(log(min(plims)),
+																	log(max(plims)),
+																	length.out=140))))
+	zeta.0 <- zeta.s / (n.stok ^ pow)
+	all.zeta <- zeta.0 * (all.ps ^ pow)
+	all.bnd <- sqrt(ope * n.obs) * all.zeta^2 / sqrt(all.ps - 1 + n.obs * all.zeta^2)
+
+	#population.max=sqrt(ope) * all.zeta,
+	foo.df <- data_frame(p=all.ps,
+                       pow=rep(pow,length(all.bnd)),
+                       bound=all.bnd)
+  retv <- foo.df %>% tidyr::gather(key=Sharpe,value=value,-p,-pow)
+}
+
+#	plims = c(2,250)
+#	melt.df <- NULL
+#	for (ppp in pow) {
+#		addon.df <- bound.experiment(ppp,n.obs,zeta.s,n.stok=n.stok,ope=ope,plims=plims)
+#		if (is.null(melt.df))
+#			melt.df <- addon.df
+#		else
+#			melt.df <- rbind(melt.df,addon.df)
+#	}
+#	#as.numeric.factor <- function(x) {as.numeric(levels(x))[x]}
+#	melt.df$pow <- as.numeric(melt.df$pow)
+#
+#	require(ggplot2)
+#	ph <- ggplot(data=melt.df,aes(x=p,y=value,group=pow,colour=pow))
+#	ph <- ph + geom_line()
+#	ph <- ph + labs(x="# assets",
+#									y="Signal-Noise ratio (annualized)")
+#	ph <- ph + scale_x_log10(limits = c(1,max(plims)))
+#	ph <- ph + scale_y_log10(limits = c(0.5,4),
+#		breaks=2^seq(from=-1,to=2,by=0.5))
+#	print(ph)
+
+bound.plot <- function(pow,n.obs,zeta.s,plims=c(2,250),...) {
+	melt.df <- NULL
+	for (ppp in pow) {
+		addon.df <- bound.experiment(ppp,n.obs,zeta.s,plims=plims,...)
+		if (is.null(melt.df))
+			melt.df <- addon.df
+		else
+			melt.df <- rbind(melt.df,addon.df)
+	}
+	melt.df$gamma <- factor(melt.df$pow)
+
+	require(ggplot2,quietly=TRUE)
+	ph <- ggplot(data=melt.df,aes(x=p,y=value,group=gamma,colour=gamma))
+	ph <- ph + geom_line()
+	ph <- ph + labs(x="# assets",
+									y="Signal-Noise ratio (annualized)")
+	ph <- ph + guides(colour=guide_legend(title=expression(gamma)))
+	ph <- ph + scale_x_log10(limits = c(1,max(plims)))
+	ph <- ph + scale_y_log10(limits = c(0.5,4),
+		breaks=2^seq(from=-1,to=2,by=0.5))
+	return(ph)
+}
+
+#pgammas <- c(0.15,0.20,0.25,0.30)
+#pgammas <- c(0.19,0.22,0.25,0.28)
+#pgammas <- seq(from=0.19,to=0.28,by=0.03)
+pgammas <- seq(from=0.15,to=0.35,by=0.05)
+
+sgammas <- sort(pgammas)
+sgammas.txt <- paste0(paste0(sgammas[1:(length(sgammas)-1)],collapse=', '),", and ",sgammas[length(sgammas)],sep='')
+sgammas.summary <- paste0("between ",sgammas[1]," and
+",sgammas[length(sgammas)])
+
+print(bound.plot(pgammas,n.obs=n.obs,zeta.s=zeta.s,
+	n.stok=n.stok,ope=ope))
+
+@
+
+The decreasing upper bound with respect to growing universe size
+is illustrated in \figref{grow_bound}. Under the assumption
+$\psnropt = \psnr[0]\nlatf^{\gamma}$, the upper bound
+of \theoremref{qual_bound} is plotted versus \nlatf for 
+different values of $\gamma$. 
+The value of
+$\psnr[0]$ is set so that 
+$\psnropt=\Sexpr{sqrt(ope)*zeta.s}\yrtomhalf$ when 
+$\nlatf=\Sexpr{n.stok}$.
+For $\gamma < \oneby{4}$, one sees a local maximum in 
+the upper bound as \nlatf increases, a behavior not seen for
+$\gamma > \oneby{4}$, where the bound on \txtQual
+grows with \nlatf. 
+
+
+%$\psnropt$ and the $0.25, 0.50,$ and $0.75$ quantiles of
+%$\psnropt\pql{\sportwfnc{\mreti}}$, under 
+%\apxref{qual_dist}, are plotted versus \nlatf.
+%The panels represent $\gamma$ values of
+%$\Sexpr{sort(pgammas)[1:(length(pgammas)-1)]},$ and 
+%$\Sexpr{sort(pgammas)[length(pgammas)]}$.
+%The value of
+%$\psnr[0]$ is set so that 
+%$\psnropt=\Sexpr{sqrt(ope)*zeta.s}\yrtomhalf$ when 
+%$\nlatf=\Sexpr{n.stok}$.
+%For $\gamma < 0.25$, one sees a local maximum in 
+%achieved \txtSR as \nlatf increases, a behavior not seen for
+%$\gamma > 0.25$, where achieved \txtSR grows with \nlatf. 
+%For the case of `slow growth' of \psnropt, the diversification 
+%benefit is not seen by the sample \txtMP, rather its practical
+%utility \emph{decreases} because the haircut outpaces the growth
+%of \psnropt. As a practical matter, this may explain why the
+%\txtMP is typically applied to small asset universes.
+
+<<'grow_sqrt',eval=TRUE,echo=FALSE,cache=TRUE,fig.width=5.00,fig.height=3.25,dpi=450,fig.cap=paste0("Some quantiles of the \\txtQual of the \\txtMP, under \\apxref{qual_dist}, are plotted versus \\nlatf for different scaling laws for \\psnropt. The ",length(sgammas)," panels represent different values of $\\gamma$, \\viz ", sgammas.txt, ". The bound uses $\\ssiz=",n.obs,"$, corresponding to ",n.yr," years of daily observations."),eval.after='fig.cap'>>= 
+
+scale.experiment <- function(pow,n.obs,zeta.s,
+                             n.stok=n.stok,ope=ope,plims=c(2,250)) {
+  require(dplyr,quietly=TRUE)
+  require(tidyr,quietly=TRUE)
+	all.ps <- unique(round(exp(seq(log(min(plims)),
+																	log(max(plims)),
+																	length.out=140))))
+	zeta.0 <- zeta.s / (n.stok ^ pow)
+	all.zeta <- zeta.0 * (all.ps ^ pow)
+	all.75 <- qqual(0.75,all.ps,n.obs,all.zeta,use.ope=ope)
+	all.50 <- qqual(0.5,all.ps,n.obs,all.zeta,use.ope=ope)
+	all.25 <- qqual(0.25,all.ps,n.obs,all.zeta,use.ope=ope)
+	foo.df <- data_frame(p=all.ps,
+		`pop. max`=sqrt(ope) * all.zeta,
+		pow=pow,
+		`.75 q`=as.numeric(all.75),
+		`.50 q`=as.numeric(all.50), 
+		`.25 q`=as.numeric(all.25))
+  retv <- foo.df %>%
+    tidyr::gather(key=Sharpe,value=value,-p,-pow)
+}
+
+scale.plot <- function(pow,n.obs,zeta.s,plims=c(2,250),...) {
+	melt.df <- NULL
+	for (ppp in pow) {
+		addon.df <- scale.experiment(ppp,n.obs,zeta.s,plims=plims,...)
+		if (is.null(melt.df))
+			melt.df <- addon.df
+		else
+			melt.df <- rbind(melt.df,addon.df)
+	}
+	#melt.df$pow <- factor(melt.df$pow)
+
+	require(ggplot2,quietly=TRUE)
+	require(dplyr,quietly=TRUE)
+	ph <- melt.df %>%
+    rename(`gamma`=pow) %>%
+    ggplot(aes(x=p,y=value,colour=Sharpe)) +
+      geom_line() +
+      facet_grid(.~`gamma`,labeller=label_both) +
+      labs(x="# assets",
+           y="Signal-Noise ratio (annualized)") +
+      guides(colour=guide_legend(title="SNR")) +
+      scale_x_log10(limits = c(1,max(plims))) +
+      scale_y_log10(limits = c(0.5,4), 
+                    breaks=2^seq(from=-1,to=2,by=0.5))
+	return(ph)
+}
+
+#pgammas <- c(0.15,0.20,0.25,0.30)
+#pgammas <- c(0.19,0.22,0.25,0.28)
+#pgammas <- seq(from=0.19,to=0.28,by=0.03)
+pgammas <- seq(from=0.21,to=0.29,by=0.04)
+
+sgammas <- sort(pgammas)
+sgammas.txt <- paste0(paste0(sgammas[1:(length(sgammas)-1)],collapse=', '),", and ",sgammas[length(sgammas)],sep='')
+
+print(scale.plot(pgammas,n.obs=n.obs,zeta.s=zeta.s,
+	n.stok=n.stok,ope=ope))
+
+@
+
+This relationship between \txtQual and \nlatf for different
+values of $\gamma$ appears not just in the upper bound of
+\theoremref{qual_bound}, but apparently also for most quantiles
+of the distribution given by \apxref{qual_dist}, as
+%This loss in value with respect to growing universe size is
+illustrated in \figref{grow_sqrt}. Again assuming
+$\psnropt = \psnr[0]\nlatf^{\gamma}$, lines of 
+$\psnropt$ and the $0.25, 0.50,$ and $0.75$ quantiles of
+$\psnropt\pql{\sportwfnc{\mreti}}$, under 
+\apxref{qual_dist}, are plotted versus \nlatf.
+The panels represent $\gamma$ values of
+$\Sexpr{sort(pgammas)[1:(length(pgammas)-1)]},$ and 
+$\Sexpr{sort(pgammas)[length(pgammas)]}$.
+Again, the value of
+$\psnr[0]$ is set so that 
+$\psnropt=\Sexpr{sqrt(ope)*zeta.s}\yrtomhalf$ when 
+$\nlatf=\Sexpr{n.stok}$.
+For $\gamma < \oneby{4}$, one sees a local maximum in 
+\txtQual as \nlatf increases, a behavior not seen for
+$\gamma > \oneby{4}$, where quantiles of \txtQual grow with \nlatf. 
+For the case of `slow growth' of \psnropt, the diversification 
+benefit is not seen by the sample \txtMP, rather its practical
+utility \emph{decreases} because the estimation error 
+outpaces the growth of \psnropt. 
+
+%Via the equivalence in \eqnref{sufficient_growth}, for the 
+%bound \qbnd to be growing with respect to \nlatf, it suffices
+%to establish that 
+%$\half \le \wrapParens{\nlatf-1}\dbyd{\log\psnrsqopt}{\nlatf}$.
+%From \eqnref{capm_zetas}, we have
+%\begin{equation*}
+%\begin{split}
+%\half\dbyd{\log\psnrsqopt}{\nlatf} 
+%&= 
+%\frac{\trAB{\vect{\alpha}}{\dbyd{\vect{\alpha}}{\nlatf}} + 
+%\wrapParens{\frac{\sigma_m}{\sigma}}^2 \wrapBracks{
+ %\trAB{\vect{\beta}}{\dbyd{\vect{\beta}}{\nlatf}}\gram{\vect{\alpha}}
+%+ \trAB{\vect{\alpha}}{\dbyd{\vect{\alpha}}{\nlatf}}\gram{\vect{\beta}}
+%- \trAB{\vect{\alpha}}{\vect{\beta}}\wrapParens{
+  %\trAB{\vect{\alpha}}{\dbyd{\vect{\beta}}{\nlatf}} + 
+  %\trAB{\vect{\beta}}{\dbyd{\vect{\alpha}}{\nlatf}}}}}{%
+%\gram{\vect{\alpha}} +
+%\wrapParens{\frac{\sigma_m}{\sigma}}^2 \wrapBracks{%
+%\gram{\vect{\beta}}\gram{\vect{\alpha}} -
+%\wrapParens{\trAB{\vect{\alpha}}{\vect{\beta}}}^2}}
+%+ \frac{\sigma_m^2 \trAB{\vect{\beta}}{\dbyd{\vect{\beta}}{\nlatf}}}{%
+%\sigma^2 + \sigma_m^2\gram{\vect{\beta}}}.
+%\end{split}
+%\end{equation*}
+%2FIX: where you going with this?
+%These plots are built using \apxref{hcut_apx} ...
+
+\subsection{Diversification under CAPM}%FOLDUP
+
+It is not clear how \psnropt `should' scale with \nlatf. It is
+easy to construct a model under which \psnropt scales as
+$\nlatf^{\half}$: assume all assets have independent returns with
+the same \txtSNR. It is also easy to accidentally construct 
+a model under which \psnropt ultimately scales 
+as $\nlatf^{\epsilon}$ for small $\epsilon$, as done here.
+Suppose the \kth{i} asset has expected return
+$\alpha_i$, exposure $\beta_i$ to `the market', and volatility
+$\sigma$. Assume the market return is zero mean with volatility
+$\sigma_m$. Then the squared \txtSNR is
+\begin{align}
+\nonumber
+\psnrsqopt 
+&= 
+\frac{\gram{\vect{\alpha}} +
+\wrapParens{\frac{\sigma_m}{\sigma}}^2 \wrapBracks{%
+\gram{\vect{\beta}}\gram{\vect{\alpha}} -
+\wrapParens{\trAB{\vect{\alpha}}{\vect{\beta}}}^2}}{\sigma^2 +
+\sigma_m^2\gram{\vect{\beta}}},&\\
+&= 
+\frac{\gram{\vect{\alpha}}}{\sigma^2}
+\frac{\sigma^2 + \sigma_m^2 \gram{\vect{\beta}} \fsin[2]{\psi}}{%
+\sigma^2 + \sigma_m^2\gram{\vect{\beta}}},&
+\label{eqn:capm_zetas}
+\end{align}
+where $\psi$ is the angle between the vectors \vect{\alpha}
+and \vect{\beta}.
+Depending on how the sine of $\psi$ grows with universe size, 
+one observes different scaling of \psnropt with respect to \nlatf. When
+the assets all have the same alpha and beta, \ie
+$\vect{\alpha} = \alpha\vone$ and $\vect{\beta} = \beta\vone$,
+the sine is identically zero, and 
+$\psnropt = \sqrt{\fraccp{\nlatf\alpha^2}{\sigma^2 + \nlatf\sigma_m^2\beta^2}}
+< \alpha\beta^{-1}\sigma_m^{-1}$. Thus 
+\psnropt asymptotically scales slower than $\nlatf^{\epsilon}$
+for all $\epsilon > 0$.
+
+On the other hand, when the sine is
+one, \ie when \vect{\alpha} is orthogonal to \vect{\beta},
+$\psnropt = \sqrt{\gram{\vect{\alpha}}} \sigma^{-1}$, which
+grows however the assets are ordered, presumably on the
+order of $\nlatf^{\half}$. Thus under a CAPM model, the
+growth of \psnropt depends on the `alignment' of the
+vectors \vect{\alpha} and \vect{\beta}.
+%UNFOLD
+
+%UNFOLD
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Generalizations}%FOLDUP
+
+\label{sec:generalizations}
+
+\theoremref{qual_bound} is somewhat lacking because it ignores conditioning
+information which may affect the distribution of future returns, and which
+may inform the portfolio manager. Few active managers, it is presumed,
+are holding the unconditional \txtMP based on in-sample data. What is sought
+is a more general theorem that allows more elaborate models of returns,
+and more elaborate, parametrized, trading schemes, with \psnropt redefined 
+as the maximal portfolio \txtQual over the trading schemes, and \nlatf
+redefined as the `degrees of freedom', perhaps the rank of some derivative
+at the optimal parameter, say. Towards that goal, a few generalizations can
+easily be made.
+
+\subsection{Conditional portfolio \txtQual}%FOLDUP
+\label{subsec:cond_portfolio_qual}
+
+The model of stationary mean returns is generalized by one where
+the expected return of the assets is linear in some state
+variables, or `features', \vfact[i], observed prior to the investment
+decision.  \cite{pav2013markowitz,connor1997,herold2004TAA} That
+is, one observes the \nfac-vector $\vfact[i]$ at some time prior to 
+when the investment decision is required to capture \vreti[i+1]. 
+The general model is now
+\begin{align}
+\label{eqn:cond_model_IV}
+\Econd{\vreti[i+1]}{\vfact[i]} &=
+\pRegco \vfact[i], &
+\Varcond{\vreti[i+1]}{\vfact[i]} &=
+\pvsig,
+\end{align}
+where \pRegco is some \bby{\nlatf}{\nfac} matrix. 
+
+Here we bound the \txtQual of portfolios which are
+linear in the features \vfact[i]. That is, the portfolio
+manager allocates their assets proportional to
+$\sportW\vfact[i]$ for some matrix $\sportW$.
+
+Using the law of iterated expectations, the unconditional
+expected value of the returns of the portfolio is
+\begin{equation*}
+\E{\Econd{\trAB{\wrapParens{\sportW\vfact[i]}}{\vreti[i+1]}}{\vfact[i]}}
+= \trace{\tr{\sportW}\pRegco\E{\ogram{\vfact[i]}}}
+= \trace{\tr{\sportW}\pRegco\pfacsig},
+\end{equation*}
+by definition of \pfacsig as the second moment of \vfact[i].
+
+Unfortunately the unconditional variance will, in general,
+involve a term quadratic in the expectation. However, it
+can easily be shown that the unconditional \emph{expected} 
+variance of the portfolio's returns is
+\begin{equation*}
+\E{\qform{\pvsig}{\wrapParens{\sportW\vfact[i]}}} =
+\trace{\qform{\pvsig}{\sportW}\pfacsig}.
+\end{equation*}
+We can then redefine\footnote{If an analysis of the conditional expected
+return divided by risk is required, it is possible one could define
+\pQl{\cdot} as the expected return divided by square root of the unconditional
+second moment. The \txtQual would then be $\ftan{\farcsin{\pQl{\cdot}}}$.
+One could possibly find a \txtCR bound on the expected value of this \pQl{\cdot}.
+This `Pillai-Bartlett' form of \pQl{\cdot} is likely unrequired for low frequency
+settings.} the \txtQual of the portfolio as the
+unconditional mean divided by the unconditional expected risk:
+\begin{equation}
+\pQl{\sportW}\defeq\frac{\trace{\tr{\sportW}\pRegco\pfacsig}}{%
+\sqrt{\trace{\qform{\pvsig}{\sportW}\pfacsig}}}.
+\end{equation}
+When \vfact[i] is a deterministic scalar constant, 
+this coincides with the `usual' definition of \txtQual as being 
+like a \txtSR. However, except possibly for an intercept term, one
+expects \vfact[i] to be random, or at least out of the control of
+the portfolio manager.
+
+Once again, a risk transform can be injected to express
+portfolio optimization as an estimation problem on a sphere:
+\begin{equation}
+\begin{split}
+\pQl{\sportW}
+&=\frac{\trace{\trAB{%
+\wrapParens{\trchol{\pvsig}\sportW\chol{\pfacsig}}}{%
+\wrapParens{\ichol{\pvsig}\pRegco\chol{\pfacsig}}}{%
+}}}{%
+\sqrt{\trace{
+\gram{\wrapParens{\trchol{\pvsig}\sportW\chol{\pfacsig}}}}}},\\
+&=
+\frac{\trAB{\fvec{\trchol{\pvsig}\sportW\chol{\pfacsig}}}{%
+\fvec{\ichol{\pvsig}\pRegco\chol{\pfacsig}}}}{%
+\sqrt{\gram{\fvec{\trchol{\pvsig}\sportW\chol{\pfacsig}}}}}.
+\end{split}
+\end{equation}
+This function is maximized by taking
+\begin{equation}
+\sportW = \pportWopt \defeq \minv{\pvsig}{\pRegco},
+\end{equation}
+which has \txtQual
+\begin{equation}
+\psnropt\defeq\pQl{\pportWopt} =
+\sqrt{\trace{\qiform{\pvsig}{\pRegco}\pfacsig}}.
+\end{equation}
+The square of this quantity, \psnrsqopt, 
+is the `population analogue' of the Hotelling-Lawley trace. \cite{Rencher2002,Muller1984143}
+
+Again we can write
+\begin{equation*}
+\frac{\pQl{\sportW}}{\psnropt} = 
+\trAB{\fnorm{\fvec{\trchol{\pvsig}\sportW\chol{\pfacsig}}}}{%
+\fnorm{\fvec{\ichol{\pvsig}\pRegco\chol{\pfacsig}}}}.
+\end{equation*}
+Thus finding a `good' \sportW becomes an estimation problem on the
+sphere \sphere{\nfac\nlatf - 1}. An analogue
+to \theoremref{qual_bound} can be proved with $\nfac\nlatf$ replacing
+$\nlatf$, by assuming a particular form to the likelihood. We must
+generalize the assumption of Directional Independence, after which
+the theorem proceeds easily.
+
+\begin{assumption}[Conditional Directional Independence]%FOLDUP
+Assume that
+\begin{equation}
+\label{eqn:sane_estimator_cond}
+\E{\fnorm{\fvec{\trchol{\pvsig}\sportWfnc{\mreti,\mfact}}}} = 
+\cfnc{\psnrsqopt} \fnorm{\fvec{\trchol{\pvsig}\pportWopt\chol{\pfacsig}}}
++ \Bterm,
+\end{equation}
+where \Bterm is the bias term, orthogonal to 
+\fnorm{\fvec{\trchol{\pvsig}\pportWopt\chol{\pfacsig}}}.
+\end{assumption}%UNFOLD
+
+\begin{theorem}%FOLDUP
+\label{theorem:qual_bound_two}
+Let one element of \vfact[i] be a deterministic $1$. Suppose the
+vector of the remaining $\nfac-1$ elements of \vfact[i] stacked 
+on top of \vreti[i+1] are multivariate Gaussian.  Let \mreti, 
+\mfact be \bby{\ssiz}{\nlatf} and \bby{\ssiz}{\nfac} matrices
+of \iid observations of the features and returns.
+Let \sportWfnc{\mreti,\mfact} be an estimator 
+%based on 
+%\ssiz \iid observations of multivariate Gaussian returns, \mreti, 
+%and multivariate Gaussian features, \mfact, with one column of \mfact
+%an intercept term, 
+satisfying the assumptions of
+Conditional Directional Independence and Residual Independence. Then
+\begin{equation}
+\E{\pQl{\sportWfnc{\mreti,\mfact}}} 
+\le \frac{\sqrt{\ssiz}\psnrsqopt}{\sqrt{\nfac\nlatf - 1 + \ssiz\psnrsqopt}}.
+\end{equation}
+\end{theorem}%UNFOLD
+\begin{proof}%FOLDUP
+
+We can proceed as in \secref{portfolio_qual}. Let \mreti be the 
+\bby{\ssiz}{\nlatf} matrix of portfolio returns, and let 
+\mfact be the corresponding \bby{\ssiz}{\nfac} matrix of features.
+View the portfolio coefficient \sportW as an estimator, a function of
+the random data, \ie \sportWfnc{\mreti,\mfact}.
+%Assume
+%Directional Independence, with \eqnref{sane_estimator}
+%becoming
+%\begin{equation}
+%\E{\fnorm{\trchol{\pvsig}\sportWfnc{\mreti,\mfact}}} = 
+%\cfnc{\psnrsqopt} \fnorm{\trchol{\pvsig}\pportWopt\chol{\pfacsig}}
+%+ \Bterm.
+%\end{equation}
+Define
+\begin{equation}
+\prskMtx\defeq{\ichol{\pvsig}\pRegco\chol{\pfacsig}}.
+\end{equation}
+Then 
+\begin{equation*}
+\psnrsqopt = \trace{\gramprskMtx}.
+\end{equation*}
+
+We get, analogously to \eqnref{crb_one},
+\begin{equation}
+\oneby{\ssiz}\trace{\qoform{\iFishI[\fvec{\prskMtx}]}{\Drv}}
+\le 1 - \csqfnc{\trace{\gramprskMtx}},
+\end{equation}
+where
+\begin{equation}
+\Drv\defeq
+{\dbyd{\cfnc{\trace{\gramprskMtx}}\frac{\prskMtx}{\sqrt{\trace{\gramprskMtx}}}}{\fvec{\prskMtx}}}.
+\end{equation}
+
+Without loss of generality, we assume it is the first element
+of \vfact[i] that is a deterministic $1$. Then, the log likelihood of 
+the vector of $\vfact[i]$ stacked on top of $\vreti[i+1]$
+is: \cite{pav2013markowitz}
+\begin{equation}
+\label{eqn:cond_llik_one}
+\log \FOOlik{}{\pvsm}{\twobyone{\vfact[i]}{\vreti[i+1]}} = 
+  c_{\nfac+\nlatf} 
+- \half \logdet{\pvsm} 
+- \half \trace{\minv{\pvsm}\ogram{\twobyone{\vfact[i]}{\vreti[i+1]}}},
+\end{equation}
+where \pvsm is the second moment matrix:
+\begin{equation}
+\pvsm \defeq \E{\ogram{\twobyone{\vfact[i]}{\vreti[i+1]}}}
+= \twobytwo{\pfacsig}{\pfacsig\tr{\pRegco}}{\pRegco\pfacsig}{\pvsig +
+\qoform{\pfacsig}{\pRegco}}.
+%\qoform{\pfaccov}{\pRegco}}}.
+\end{equation}
+The inverse of \pvsm has the following, somewhat surprising, form \cite{pav2013markowitz}:
+\begin{equation}
+\minv{\pvsm} 
+= \twobytwo{\minv{\pfacsig} +
+\qiform{\pvsig}{\pRegco}}{-\tr{\pRegco}\minv{\pvsig}}{-\minv{\pvsig}\pRegco}{\minv{\pvsig}}.
+\end{equation}
+A square root of this matrix (a Cholesky factor, up to permutation)
+is:
+\begin{equation}
+\begin{split}
+\minv{\pvsm} &=
+\ogram{%
+\twobytwo{\ichol{\pfacsig}}{-\tr{\pRegco}\ichol{\pvsig}}{\mzero}{\ichol{\pvsig}}
+},\\
+&= \twobytwo{\ichol{\pfacsig}}{\mzero}{\mzero}{\eye}
+\ogram{%
+\twobytwo{\eye}{-\prskMtxU{\trsym}}{\mzero}{\ichol{\pvsig}}}
+\twobytwo{\trichol{\pfacsig}}{\mzero}{\mzero}{\eye}.
+\end{split}
+\end{equation}
+
+By the block determinant formula, 
+\begin{equation}
+\det{\pvsm} 
+= \det{\pfacsig}\det{\pvsig + \qoform{\pfacsig}{\pRegco} -
+\pRegco\pfacsig\minv{\pfacsig}\pfacsig\tr{\pRegco}}
+= \det{\pfacsig}\det{\pvsig}.
+\end{equation}
+Thus, conditional on \pfacsig and \pvsig, the negative log likelihood
+takes the form:
+\begin{multline}
+\label{eqn:cond_llik_two}
+- \log \FOOlik{}{\prskMtx, \pfacsig, \pvsig}{\twobyone{\vfact[i]}{\vreti[i+1]}} = 
+- c_{\nfac+\nlatf}
++ \half \logdet{\pfacsig} 
++ \half \logdet{\pvsig}\\
++ \half \trace{
+\ogram{%
+\twobytwo{\eye}{-\prskMtxU{\trsym}}{\mzero}{\ichol{\pvsig}}}
+\ogram{\twobyone{\trichol{\pfacsig}\vfact[i]}{\vreti[i+1]}}}.
+\end{multline}
+Sweeping the nuisance parameter terms into the constant, as well
+as terms in the trace which are not quadratic in \prskMtx, we
+have 
+\begin{align}
+\label{eqn:cond_llik_three}
+- \log \FOOlik{}{\prskMtx, \pfacsig, \pvsig}{\twobyone{\vfact[i]}{\vreti[i+1]}}
+&= - c'
++ \half \trace{\gramprskMtx 
+\ogram{\wrapParens{\trichol{\pfacsig}\vfact[i]}}},&\\
+&= - c'
++ \half
+\tr{\fvec{\prskMtx}}\fvec{\prskMtx\trichol{\pfacsig}\ogram{\vfact[i]}\ichol{\pfacsig}}.&\\
+&= - c'
++ \half
+\tr{\fvec{\prskMtx}}\wrapParens{%
+\wrapBracks{\trichol{\pfacsig}\ogram{\vfact[i]}\ichol{\pfacsig}}
+ \kron \eye}\fvec{\prskMtx}.&
+\end{align}
+The Fisher Information, then, is
+\begin{equation}
+\FishI[\fvec{\prskMtx}] =
+\E{\wrapParens{%
+\wrapBracks{\trichol{\pfacsig}\ogram{\vfact[i]}\ichol{\pfacsig}}
+ \kron \eye}} = \eye[\nfac\nlatf].
+\end{equation}
+
+The remainder of the proof proceeds exactly as in 
+\secref{portfolio_qual}. 
+\end{proof}%UNFOLD
+
+%\begin{theorem}
+%\label{theorem:qual_bound_two}
+%Let \sportWfnc{\mreti,\mfact} be an estimator based on 
+%\ssiz \iid observations of multivariate Gaussian returns, \mreti, 
+%and multivariate Gaussian features, \mfact, with one column of \mfact
+%an intercept term, satisfying the assumptions of
+%directional independence and residual independence. Then
+%\begin{equation}
+%\E{\pQl{\sportWfnc{\mreti,\mfact}}} 
+%\le \frac{\sqrt{\ssiz}\psnrsqopt}{\sqrt{\nlatf\nfac - 1 + \ssiz\psnrsqopt}}.
+%\end{equation}
+%\end{theorem}
+
+%&= \E{\Cmat\scoro{\prskvec}{\FOOlik{}{\prskvec}{\mreti}}
+
+%\begin{equation}
+%\begin{split}
+%\vfact[i] &\sim \normlaw{\pfacmu, \pfaccov},\\
+%\condtwo{\vreti[i+1]}{\vfact[i]} &\sim \normlaw{\pRegco\vfact[i], \pvsig}.
+%\end{split}
+%\end{equation}
+%Together the unconditional distribution is
+%\begin{equation}
+%\twobyone{\vfact[i]}{\vreti[i+1]} \sim
+%\normlaw{\twobyone{\pfacmu}{\pRegco\pfacmu}, 
+%\twobytwo{\pfaccov}{\pfaccov\tr{\pRegco}}{\pRegco\pfaccov}{\pvsig +
+%\qoform{\pfaccov}{\pRegco}}}.
+%\end{equation}
+
+
+
+
+%In this model, the `Markowitz Coefficient' 
+%$\minvAB{\pvsig}{\pRegco}$, generalizes the \txtMP as
+%the coefficient of the optimal portfolio which is linear in \vfact,
+%under some objective. \cite{pav2013markowitz} How should we define
+%the \txtQual of the Markowitz Coefficient, and can we prove
+%an analogue of \theoremref{qual_bound}?
+%UNFOLD
+
+\subsection{Subspace constraints}%FOLDUP
+
+Consider, now, the case of conditional expectation, as presented in
+\subsecref{cond_portfolio_qual}, but where the portfolio is 
+constrained to be in some lower dimensional subspace. That is, by design, 
+\begin{equation}
+\zerJc \sportWfnc{\mreti,\mfact} = \vzero,
+\end{equation}
+where $\zerJc$ is a \bby{\wrapParens{\nlatf - \nlatfzer}}{\nlatf}
+matrix of rank $\nlatf - \nlatfzer$, that is chosen indpendently
+of the observations of \mreti and \mfact.
+Let the rows of \zerJ span the null space of the rows of
+\zerJc; that is, $\zerJc \tr{\zerJ} = \mzero$, and $\ogram{\zerJ} = \eye$.
+
+We can simply use the results of \subsecref{cond_portfolio_qual}, but
+replacing the assets with the \nlatfzer assets spanned by the rows of
+\zerJ. That is, we can replace the \vreti[i+1] with $\zerJ\vreti[i+1]$,
+and replace \sportWfnc{\mreti,\mfact} with
+$\tr{\zerJ}\minv{\wrapParens{\ogram{\zerJ}}}\sportWfnc{\mreti,\mfact}$
+to arrive at the following analogue of \theoremref{qual_bound_two}:
+
+\begin{theorem}%FOLDUP
+\label{theorem:qual_bound_three}
+Let one element of \vfact[i] be a deterministic $1$. Suppose the
+vector of the remaining $\nfac-1$ elements of \vfact[i] stacked 
+on top of \vreti[i+1] are multivariate Gaussian.  Let \mreti, 
+\mfact be \bby{\ssiz}{\nlatf} and \bby{\ssiz}{\nfac} matrices
+of \iid observations of the features and returns.
+Let \sportWfnc{\mreti,\mfact} be an estimator 
+%based on 
+%\ssiz \iid observations of multivariate Gaussian returns, \mreti, 
+%and multivariate Gaussian features, \mfact, with one column of \mfact
+%an intercept term, 
+satisfying the assumptions of
+directional independence and residual independence, with the constraint
+\begin{equation}
+\zerJc \sportWfnc{\mreti,\mfact} = \vzero,
+\end{equation}
+for \bby{\wrapParens{\nlatf - \nlatfzer}}{\nlatf} matrix \zerJc, which
+is chosen independently of the observed \mreti and \mfact. 
+Let the rows of \zerJ span the null space of the rows of
+\zerJc. 
+
+Then
+\begin{equation}
+\E{\pQl{\sportWfnc{\mreti,\mfact}}} 
+\le \frac{\sqrt{\ssiz}\psnrsqoptG{\zerJ}}{\sqrt{\nfac\nlatfzer - 1 +
+\ssiz\psnrsqoptG{\zerJ}}},
+\end{equation}
+where 
+\begin{equation*}
+\psnrsqoptG{\zerJ}\defeq 
+\trace{\qform{\wrapProj{\pvsig}{\zerJ}}{\pRegco}\pfacsig}.
+\end{equation*}
+\end{theorem}%UNFOLD
+%UNFOLD
+
+\subsection{Hedging constraints}%FOLDUP
+
+Consider, now, the case where one seeks a portfolio whose returns are
+independent, in the probabilistic sense, of the returns of some 
+traded instruments in the investment universe. 
+Independence is a difficult property to
+check or enforce; however, independence implies zero covariation, which
+can be easily formulated and checked. 
+
+Since the portfolio estimator may not deliver a perfectly
+hedged portolio due to misestimation of the covariance matrix, we
+will, with perfect knowledge of \pvsig, consider the \txtQual of the 
+hedged part of the portfolio. The hedged
+part is defined in terms of a risk projection. 
+If \sportw[1] is a feasible portfolio based on the sample,
+then the hedged version of this portfolio is the solution to the
+optimization problem
+\begin{equation}
+\min_{\sportw : \hejG\pvsig\sportw = \vzero} \VAR{\trAB{\wrapParens{\sportw -
+\sportw[1]}}{\vreti[i+1]}},
+\end{equation}
+where $\hejG$ is a \bby{\nlatfhej}{\nlatf} matrix of 
+rank \nlatfhej, the rows of which we wish to `hedge out.'
+
+Using the Lagrange multiplier technique, this can easily be found to
+be solved by 
+\begin{equation}
+\sportw = \sportw[1] - \wrapProj{\pvsig}{\hejG}\pvsig\sportw[1].
+\end{equation}
+Thus we will consider the \txtQual of the portfolio estimator
+\begin{equation*}
+\wrapParens{\eye[\nlatf] - \wrapProj{\pvsig}{\hejG}\pvsig}\sportWfnc{\mreti,\mfact}.
+\end{equation*}
+Note, however, that the row rank of
+$\wrapParens{\eye[\nlatf] - \wrapProj{\pvsig}{\hejG}\pvsig}$ 
+is $\nlatf - \nlatfhej$.  Thus hedging is an instance of a subspace
+constraint and we can apply \theoremref{qual_bound_three} outright.
+
+\begin{theorem}%FOLDUP
+\label{theorem:qual_bound_four}
+Let one element of \vfact[i] be a deterministic $1$. Suppose the
+vector of the remaining $\nfac-1$ elements of \vfact[i] stacked 
+on top of \vreti[i+1] are multivariate Gaussian.  Let \mreti, 
+\mfact be \bby{\ssiz}{\nlatf} and \bby{\ssiz}{\nfac} matrices
+of \iid observations of the features and returns.
+Let \sportWfnc{\mreti,\mfact} be an estimator 
+%based on 
+%\ssiz \iid observations of multivariate Gaussian returns, \mreti, 
+%and multivariate Gaussian features, \mfact, with one column of \mfact
+%an intercept term, 
+satisfying the assumptions of
+directional independence and residual independence. 
+Let \bby{\nlatfhej}{\nlatf} matrix \hejG be chosen
+independently of \mreti and \mfact. 
+
+%2FIX: redefine Deltapsnr to not be confusing.
+Define 
+\begin{equation}
+\Delpsnrsqopt{\eye,\hejG}
+\defeq
+\trace{\qiform{\svsig}{\pRegco}\pfacsig} - 
+\trace{\qform{\wrapProj{\pvsig}{\hejG}}{\pRegco}\pfacsig}.
+\end{equation}
+
+Then
+\begin{equation}
+\E{\pQl{%
+\wrapBracks{\eye[\nlatf] - \wrapProj{\pvsig}{\hejG}\pvsig}\sportWfnc{\mreti,\mfact}}} 
+\le \frac{\sqrt{\ssiz}\Delpsnrsqopt{\eye,\hejG}}{\sqrt{\nfac\wrapParens{\nlatf -
+\nlatfhej} - 1 + \ssiz\Delpsnrsqopt{\eye,\hejG}}}.
+\end{equation}
+\end{theorem}%UNFOLD
+
+%UNFOLD
+
+%UNFOLD
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Examples}%FOLDUP
+
+\subsection{The equal weight puzzle}%FOLDUP
+<<'qlook',echo=FALSE,cache=FALSE>>=
+if (!require(aqfb.data,quietly=TRUE) && require(devtools)) {
+  # get the 10 industry data
+  devtools::install_github('shabbychef/aqfb_data')
+}
+# now look at the data
+library(aqfb.data)
+# need mind10?
+data(mind10)
+ff11.xts <- mind10
+require(SharpeR)
+
+ff11.xts <- na.omit(ff11.xts)
+
+obn.ret <- function(x.xts) {
+	mur.xts <- xts((1/dim(x.xts)[2]) * rowSums(x.xts),order.by=time(x.xts))
+}
+
+mur.xts <- obn.ret(ff11.xts)
+
+sr1 <- SharpeR::as.sr(mur.xts)
+sr2 <- SharpeR::as.sropt(ff11.xts)
+
+ret.TEO <- time(ff11.xts)
+ret.TEO.0 <- as.Date(ret.TEO[1])
+ret.TEO.f <- as.Date(ret.TEO[length(ret.TEO)])
+
+dgu.yr <- 5
+dgqb <- qbound(dim(ff11.xts)[2], dgu.yr, sr2$sropt, use.ope=1)
+# upper tail prob:
+dfp <- pqual(sr1$sr, dim(ff11.xts)[2], dgu.yr, sr2$sropt, use.ope=1, lower.tail=FALSE)
+@
+
+\theoremref{qual_bound} can help us make sense of puzzling findings
+in the literature. For example, in the ``$1/N$'' paper, DeMiguel \etal
+find that the equal-weighting portfolio outperforms, in terms of out-of-sample
+\txtSR (and other measures), the \txtMP and numerous other portfolio
+estimators.  \cite{demiguel2009optimal}
+This finding is supported on a number of real world data
+sets, and a few synthetic ones. One data set used was the returns of
+the 10 industry portfolios and the US equity market portfolio, computed
+by Ken French. 
+% 2FIX: add citation to data.
+
+The monthly returns, from \Sexpr{ret.TEO.0} to 
+\Sexpr{ret.TEO.f}, for these \Sexpr{dim(ff11.xts)[2]} 
+assets were downloaded
+from Kenneth French's data library.  \cite{French10Port}
+%from \emph{Quandl}.  \cite{Quandl}
+The \txtSR of the equal weighted portfolio on the %\Sexpr{dim(ff11.xts)[2]}
+assets, over the \Sexpr{dim(ff11.xts)[1]} months, is around 
+$\Sexpr{sr1$sr}\yrtomhalf$. The \txtSR of the sample \txtMP over
+the \Sexpr{dim(ff11.xts)[2]} assets over the same period is around
+$\Sexpr{sr2$sropt}\yrtomhalf$.  \cite{SharpeR-Manual}
+Now consider a portfolio estimator
+given \Sexpr{dgu.yr} years of observations, as in 
+DeMiguel \etal \cite{demiguel2009optimal}, assuming 
+$\psnropt=\Sexpr{sr2$sropt}\yrtomhalf$. The bound on expected
+value of \pql{\sportwfnc{\mreti}} from \theoremref{qual_bound}
+is only $\Sexpr{dgqb}\yrtomhalf$.  Under \apxref{qual_dist}, 
+the probability that \pql{\sportwfnc{\mreti}} exceeds 
+$\Sexpr{sr1$sr}\yrtomhalf$ in this case is only
+$\Sexpr{dfp}$. It is not surprising that DeMiguel \etal drew
+the conclusions they did, nor that they would be refuted
+by looking at a longer sample, as by Kritzman \etal \cite{defoopt2010}
+
+<<'spantest',echo=FALSE,cache=TRUE>>=
+
+G <- matrix(1,nrow=1,ncol=dim(ff11.xts)[2])
+dsr2 <- SharpeR::as.del_sropt(ff11.xts,G)
+dKRS <- inference(dsr2,type='KRS')
+dMLE <- inference(dsr2,type='MLE')
+dUNB <- inference(dsr2,type='unbiased')
+
+myci <- confint(dsr2)
+
+asqb <- qbound(dim(ff11.xts)[2]-1, dgu.yr, sqrt(dKRS), use.ope=1)
+
+@
+
+One could also use \theoremref{qual_bound_four} here. However,
+the upper bound of that theorem is non-negative, and zero only
+if the quantity \Delpsnrsqopt{\eye,\hejG} is zero.  This is a
+statement regarding unknown population parameters, but we can
+perform inference on this quantity. For example, based on the
+\Sexpr{dim(ff11.xts)[1]} months of data on these 
+\Sexpr{dim(ff11.xts)[2]}, the 95\% confidence interval on
+\Delpsnrsqopt{\eye,\hejG}, where \hejG is the \bby{1}{\Sexpr{dim(ff11.xts)[2]}}
+matrix of all ones, is
+$\asrowvec{\Sexpr{myci^2}}\yrto{-1}$, under the assumption of
+Gaussian returns.  \cite{SharpeR-Manual}
+
+%One could view the touted superiority of the equal weight portfolio
+%over \eg the \txtMP as a veiled claim that there is a single
+%discount factor that rules all asset returns. As stated, this claim
+%is clearly absurd, since \eg an equal weight portfolio on both pairs
+%of leveraged ETFs is clearly inferior to a portfolio equal weight \emph{short}
+%both pairs.  \cite{zhang2010path}
+
+%This highlights
+%the fact that the putative superiority of the equal weight portfolio
+%may be based on two due less to deficiencies in \eg the \txtMP, and more to
+%the 
+
+%The analysis presented here is likely to be optimistic when one
+%considers the \emph{spanning} aspect of this problem.  
+%\cite{giri1964likelihood,HKspan1987,KanZhou2012} That is, the
+%total effect size beyond the equal weighting subspace may be
+%very small. A `proper' analysis would take into account the
+%difference in effect sizes and differences in universe size. 
+%However, the spanning analogue of \theoremref{qual_bound}
+%has not yet been established.
+
+%% 2FIX: talk about the spanning statistics here. is there
+%% any effect to exploit?
+%The result is \Sexpr{dKRS} or
+%\Sexpr{dUNB} or
+%\Sexpr{dMLE}.
+%the upper bound is \Sexpr{asqb}.
+%Show it as:
+%\Sexpr{dsr2}
+%or cis: \Sexpr{myci}.
+
+%UNFOLD
+
+\subsection{Empirical diversification in the S\&P 100}%FOLDUP
+
+<<'sp100_divs',cache=FALSE,eval=TRUE,echo=FALSE>>=
+load('sp100lr.rda')
+
+asof <- 'March 21, 2014'
+
+sp1.TEO <- time(sub.lr)
+sp1.TEO.0 <- as.Date(sp1.TEO[1])
+sp1.TEO.f <- as.Date(sp1.TEO[length(sp1.TEO)])
+
+@
+
+To check how \psnropt \emph{might} scale with \nlatf, the weekly
+log returns of the adjusted close prices of the stocks in the 
+S\&P 100 Index, as of March 21, 2014, were downloaded 
+from \emph{Quandl}.  \cite{Quandl} 
+Adjustments for splits and
+dividends were made in some unspecified way by the upstream source
+of the data, Yahoo Finance. Stocks without a full 5 years of history
+were discarded, leaving \Sexpr{dim(sub.lr)[2]} stocks. 
+Note that selection based on membership in the index at the end of the 
+period adds no small amount of selection bias, which we shall ignore 
+here.
+
+Based on the weekly returns from \Sexpr{sp1.TEO.0} to \Sexpr{sp1.TEO.f},
+estimates of \psnropt were computed, using the `KRS' estimator.
+\cite{kubokawa1993estimation,SharpeR-Manual} 
+This was performed on the first \nlatf assets, with \nlatf ranging from 
+$1$ to $\Sexpr{dim(sub.lr)[2]}$.  The estimate of \psnropt versus \nlatf
+is plotted in \figref{sp100_grow}, with assets added in alphabetical order.
+Because Apple appears at the beginning of this list, it appears that
+\psnropt starts reasonably large, but then actually \emph{decreases}
+when adding assets. This is an artifact of the estimator, since the true
+\psnropt can only increase when adding assets. 
+
+<<'sp100_grow',eval=TRUE,echo=FALSE,cache=TRUE,fig.width=5.00,fig.height=3.25,dpi=450,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names, in alphabetical order, showing the `Apple effect.'"),eval.after='fig.cap'>>= 
+
+foo.df <- data.frame(df=seq(1:length(KRSs)),KRS=KRSs,
+		MLE=MLEs,meanKRS=rowMeans(buncho.KRSs))
+
+require(ggplot2)
+ph <- ggplot(data=foo.df,aes(x=df,y=KRS))
+ph <- ph + geom_line()
+ph <- ph + labs(x="# assets",
+								y=expression(zeta["*"]))
+ph <- ph + scale_x_log10()
+#ph <- ph + scale_y_log10()
+print(ph)
+
+@
+
+%<<'sp100_mid',eval=TRUE,echo=FALSE,cache=FALSE,fig.width=5.75,fig.height=3.75,dpi=450,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names."),eval.after='fig.cap'>>= 
+
+%foo.df <- data.frame(df=(1:length(KRSs)),KRS=KRSs,
+		%MLE=MLEs,meanKRS=rowMeans(buncho.KRSs))
+
+%require(ggplot2)
+%ph <- ggplot(data=foo.df,aes(x=df,y=meanKRS))
+%ph <- ph + geom_line()
+%ph <- ph + labs(x="# assets",
+								%y=expression(zeta["*"]))
+%ph <- ph + scale_x_log10()
+%ph <- ph + scale_y_log10()
+%print(ph)
+
+%@
+
+Since the ordering of assets here is arbitrary, the experiment was repeated
+\Sexpr{dim(buncho.KRSs)[2]} times, with the stocks randomly permuted, and 
+\psnropt estimated as a function of \nlatf. Boxplots, over the
+\Sexpr{dim(buncho.KRSs)[2]} simulations, of the KRS statistic versus
+\nlatf are given in \figref{sp100_box}. There is effectively no 
+diversification benefit observed here beyond the mean effect, which is
+equivalent to holding an equal weight portfolio. Given the 
+conditions under which \txtQual grows with \nlatf outlined in 
+\secref{diversification}, one expects poor performance of 
+directionally independent portfolio estimators
+over even a small subset of the S\&P 100.
+
+<<'sp100_box',eval=TRUE,echo=FALSE,cache=TRUE,fig.width=5.00,fig.height=3.25,dpi=450,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names is shown over ",dim(buncho.KRSs)[2]," permutations of the stocks. There is effectively \\emph{no} diversification benefit here beyond an equal weight portfolio."),eval.after='fig.cap'>>= 
+
+foo.df <- data.frame(df=rep(1:(dim(buncho.KRSs)[1]),dim(buncho.KRSs)[2]),
+	KRS=as.vector(t(buncho.KRSs)))
+foo.df <- foo.df[foo.df$df < 11,]
+
+require(ggplot2)
+ph <- ggplot(data=foo.df,aes(x=factor(df),y=KRS))
+ph <- ph + geom_boxplot()
+ph <- ph + labs(x="# assets",
+								y=expression(zeta["*"]))
+#ph <- ph + scale_x_log10()
+#ph <- ph + scale_y_log10()
+print(ph)
+
+@
+%UNFOLD
+%UNFOLD
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Discussion}%FOLDUP
+
+Care should be taken in the interpretation of \theoremref{qual_bound},
+or its generalizations from \secref{generalizations}.
+It does not claim that the sample \txtMP is somehow `optimal,' nor
+does it make comparative claims about different portfolio estimators
+when presented with the same data.
+The theorem does not imply that somehow `overfitting' to the observed
+data can be mitigated by selecting a less desireable portfolio. 
+It does not claim that sample estimates of the \txtQual of a portfolio
+are useless.  It is trivially
+the case, for example, that if $\pql{\sportw[1]} > \pql{\sportw[2]}$, then,
+with probability greater than half, 
+$\trAB{\sportw[1]}{\svmu} / \sqrt{\qform{\svsig}{\sportw[1]}} > 
+\trAB{\sportw[2]}{\svmu} / \sqrt{\qform{\svsig}{\sportw[2]}}$, where
+the probability is over draws of \svmu and \svsig.
+The theorem does not claim that the expected
+\txtQual of a portfolio estimator is negative. (Indeed, it can not,
+since the portfolio estimator which generates a random portfolio, 
+ignoring the data, has zero expected \txtQual). 
+The theorem makes no claims (\eg providing a Bayesian posterior) about 
+any particular portfolio based on a single sample of the data: it is
+a statement about the expectation of the \emph{estimator} under replication 
+of draws of the sample.
+
+One should recognize, moreover, there are situations where the assumptions
+of the theorem are violated. For example, in some cases a prior 
+bias for positive expected returns, \ie $\pvmu \ge 0$, is warranted,
+and thus a portfolio estimator with a long bias is chosen.
+This can happen when the underlying assets are equities, and
+the eligible universe is based on some minimum longevity, as this 
+introduces a `good' survivorship bias: 
+companies with negative expected return should founder and perish, 
+leaving behind those with more positive $\pmu$. Effectively this
+acts to boost \ssiz somewhat, although the effect is likely small.
+
+There are other reasonable portfolio estimators which violate the 
+assumption of Directional Independence. For example, an estimator
+which performs some dimensionality reduction based on the observed
+data, \mreti and \mfact will not be covered by 
+\theoremref{qual_bound_three} since the subspace is chosen based
+on the sample. However, it might not be covered by 
+\theoremref{qual_bound_two} because the expected \txtQual might
+depend on how \pRegco aligns with the leading eigenvectors of
+\pvsig, say.
+
+\subsection{Future work}%FOLDUP
+
+These findings perhaps raise more questions than they answer:
+%This work leaves unanswered a number of interesting questions:
+\begin{compactenum}
+\item Foremost, the bounds of 
+\theoremref{qual_bound} and \theoremref{qual_bound_two}
+depend on the unknown
+quantity, \psnrsqopt. How can we perform inference, 
+Frequentist or Bayesian, on \pql{\sportwopt}, where \sportwopt is the \txtMP, 
+given the observed information (\viz \svmu and \svsig)? This
+is a problem of enormous practical concern to hundreds of
+quantitative portfolio managers.
+
+Contrast inference on the portfolio \txtQual with inference
+on the population \txtSNR: under Gaussian returns, the
+distribution of \ssrsqopt in terms of \ssiz, \nlatf and \psnrsqopt
+is known. \cite[Theorem 5.2.2]{anderson2003introduction}
+Thus, for example, the quantity
+$\wrapParens{1 - \fracc{\nlatf}{\ssiz}}\ssrsqopt - \fracc{\nlatf}{\ssiz}$
+is an unbiased estimator for \psnrsqopt, \etc 
+Performing inverence on \pql{\sportwopt} is tricky because \psnrsqopt
+is unknown and the error $\sportwopt - \pportwopt$ is likely
+not independent of the error in the estimate \ssropt.
+
+It may be the case, however, that inference on the portfolio
+\txtQual qualifies as an `impossible' estimation-after-selection
+problem. \cite{leeb2006}
+\item While \theoremref{qual_bound} requires Gaussian returns, 
+one expects that the result holds for returns distributions whose 
+likelihood is ``more concave'' than the Gaussian at the MLE.
+Exact conditions for this to hold should be established.
+%\item How is \txtQual affected by the imposition of hedging and
+%other constraints?  \cite{pav2013markowitz} Does dimensionality
+%reduction modify the `degrees of freedom' in the straightforward
+%way? Is there an analogue of the bound for portfolio
+%spanning?  \cite{giri1964likelihood,HKspan1987,KanZhou2012}
+%That is, can we find a bound on $\E{\pql{\sportw[2]} - \pql{\sportw[1]}}$,
+%where \sportw[1] is a portfolio on a subspace of the assets over
+%which \sportw[2] is selected, with the bound depending on the 
+%spanning parameter, $\psnrsqoptG{2} - \psnrsqoptG{1}$?
+\item \theoremref{qual_bound_two} applies to the case of 
+trading strategies where the portfolio is linear in the 
+observable features, \vfact[i]. 
+Can it be used as an approximate bound for trading
+strategies which are nonlinear, complex functions of the features?
+\item What can be said about scaling of \psnropt with respect to
+\nlatf for different models of market returns? Can one establish
+sane sufficient conditions for which \psnropt grows slower than
+$\nlatf^{\oneby{4}}$? What is the analogue of \eqnref{capm_zetas}
+for a multi-factor model of returns?
+\item Can we find a lower bound, or a non-trivial upper bound on the 
+variance of $\pql{\sportwfnc{\mreti}}$? Together these could be used
+to give guarantees about the quantiles of \pql{\sportwfnc{\mreti}}.
+A lower bound on the variance can likely be had via a result of
+Kakarala and Watson. \cite{ANZS:ANZS253} Together with Cantelli's
+Inequality, these would give rough (perhaps useless) upper bounds
+on the 
+\kth{\qlev} quantile of portfolio \txtQual, for $\half < \qlev < 1$.
+%\item The simulations of \secref{apx_distribution} should
+%be repeated with different choices of \ssiz, \nlatf, and \psnropt.
+\item How tight is the bound of \theoremref{qual_bound}, and can 
+it be much improved by directly analyzing the differential
+inequality of \eqnref{crb_three}, rather than discarding
+the derivative term? Or perhaps the bound can be improved by using
+an `intrinsic' \txtCR bound.  \cite{DBLP:conf/icassp/XavierB05}
+\item How good is \apxref{qual_dist}? Can we find the expected
+value of the distribution in \apxref{qual_dist}, and what is the
+gap between it and the bound of \theoremref{qual_bound}?
+Can we find the \emph{exact} distribution of \txtQual of the 
+sample \txtMP under Gaussian returns, 
+perhaps leveraging the work of Bodnar and Okhrin,
+or of Britton-Jones.  \cite{SJOS:SJOS729, BrittenJones1999}
+\item Can the assumption of Directional Independence be weakened?
+Can the \theoremref{qual_bound_two} be generalized to deal with omitted 
+variable bias in \vfact[i]?  
+\item The analysis of \txtQual ignores the `risk-free' or `disastrous'
+rate of return, and all trading costs. Can the expected bounds
+be generalized to include these costs?
+\end{compactenum}
+%UNFOLD
+%UNFOLD
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% bibliography%FOLDUP
+%\nocite{markowitz1952portfolio,markowitz1999early,markowitz2012foundations}
+%\bibliographystyle{jss}
+%\bibliographystyle{siam}
+%\bibliographystyle{ieeetr}
+\bibliographystyle{plainnat}
+%\bibliographystyle{acm}
+\bibliography{SharpeR,rauto}
+%\bibliography{AsymptoticMarkowitz}
+%UNFOLD
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\appendix%FOLDUP
+
+%UNFOLD
+
+%It is trivial to show that for random variable $\vect{y}$,
+%\E{\gram{\wrapParens{\vect{y} - \vect{z}}}} is minimized by
+%$\vect{z} = \E{\vect{y}}$. Moreover, we have
+%\begin{equation*}
+%\begin{split}
+%\E{\gram{\wrapParens{\vect{y} - \E{\vect{y}}}}} 
+%&= \E{\trace{\gram{\wrapParens{\vect{y} - \E{\vect{y}}}}}},\\
+%&= \trace{\E{\ogram{\wrapParens{\vect{y} - \E{\vect{y}}}}}},\\
+%&= \trace{\VAR{\vect{y}}}.
+%\end{split}
+%\end{equation*}
+%Thus, if we take the expectation
+%of \eqnref{cos_law_form}, we can then bound the left hand
+%side from below by the trace of the variance:
+%\begin{equation}
+%\begin{split}
+%\trace{\VAR{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}}} 
+%&\le 2 - 2 \E{\frac{\pql{\sportwfnc{\mreti}}}{\psnropt}},\\
+%&= 2 \wrapParens{1 -
+%\trAB{{\E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}}}}{%
+%\fnorm{\trchol{\pvsig}\pportwopt}}}.
+%\label{eqn:var_bounds}
+%\end{split}
+%\end{equation}
+%By bounding the variance via a \txtCR bound, we can find an
+%upper bound on the expected value of \pql{\sportw}.
+
+%Using the quadratic formula, we have
+%\begin{equation}
+%\cfnc{\gramprskvec} \le \frac{-\ssiz\gramprskvec +
+%\sqrt{\ssiz^2\wrapParens{\gramprskvec}^2 + 2
+%\ssiz\gramprskvec\wrapParens{\nlatf-1}}}{\nlatf - 1}.
+%\end{equation}
+%For $\ssiz\gramprskvec$ large, we have a cancellation of terms.
+%Because the square root function is concave, it is less than its
+%linear approximation about $\ssiz^2\wrapParens{\gramprskvec}^2$. 
+%That is, we have $\sqrt{x + \epsilon} \le \sqrt{x} +
+%\oneby{2\sqrt{x}}\epsilon$.
+%Thus 
+%\begin{equation}
+%\cfnc{\gramprskvec} \le 1. \mbox{oops: 2FIX}
+%\end{equation}
+
+\end{document}
+%for vim modeline: (do not edit)
+% vim:fdm=marker:fmr=FOLDUP,UNFOLD:cms=%%s:syn=rnoweb:ft=rnoweb:et:nu
