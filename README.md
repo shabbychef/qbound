@@ -16,12 +16,14 @@ Then you can build via
 ```r
 knitr::knit('qbound.Rnw')
 ```
+
 2. The doc can be built via docker, which constructs an environment containing the proper
 	 packages. This is most simply achieved via a makefile target:
 ```bash
 make docker_doc
 ```
 The doc will be deposited in `output/qbound.pdf`.
+
 3. The doc can be built via docker with the docker image pulled from docker hub:
  ```bash
 docker pull shabbychef/qbound
