@@ -27,7 +27,7 @@ RUN (apt-get clean -y ; \
 #RUN (apt-get dist-upgrade -y ; \
 #apt-get update -qq ; \
 RUN (DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true apt-get install -q -y --no-install-recommends \ 
-  libgs9 texlive-base texlive-binaries \
+  libblas-dev libgs9 texlive-base texlive-binaries \
 	libcupsimage2 libcups2 curl wget \
 	qpdf pandoc ghostscript \
 	texlive-latex-extra texlive-latex-base texlive-fonts-recommended texlive-fonts-extra latexmk ; \
