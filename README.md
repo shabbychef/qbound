@@ -20,14 +20,29 @@ knitr::knit('qbound.Rnw')
 2. The doc can be built via docker, which constructs an environment containing the proper
 	 packages. This is most simply achieved via a makefile target:
 ```bash
-make docker_doc
+$ make docker_doc
 ```
 The doc will be deposited in `output/qbound.pdf`.
 
 3. The doc can be built via docker with the docker image pulled from docker hub:
  ```bash
-docker pull shabbychef/qbound
-docker run -it --rm -v $(pwd)/output:/srv/output:rw --entrypoint="make" shabbychef/qbound "doc"
+$ docker pull shabbychef/qbound
+$ mkdir ./output
+$ docker run -it --rm -v $(pwd)/output:/srv/output:rw --entrypoint="make" shabbychef/qbound "doc"
+```
+The doc will be deposited in `output/qbound.pdf`. If you go this route, you can
+log in to bash first and modify the `qbound.Rnw` file to change the
+`RUNTIME_PARAM` to something larger than 1. That would look as follows:
+
+ ```bash
+$ docker pull shabbychef/qbound
+$ mkdir ./output
+$ docker run -it --rm -v $(pwd)/output:/srv/output:rw --entrypoint="/bin/bash" shabbychef/qbound "-i"
+root@ddc0bdae65d9:/srv#  echo "you are in docker now; edit the file and run"
+root@ddc0bdae65d9:/srv#  vi qbound.Rnw
+root@ddc0bdae65d9:/srv#  make doc
+root@ddc0bdae65d9:/srv#  exit
+$ ls output/
 ```
 
 

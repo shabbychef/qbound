@@ -108,9 +108,12 @@ doc : $(RESULTS_D)/$(PROJECT).pdf  | $(RESULTS_D) ## build the document by knitt
 		
 $(RESULTS_D) : 
 	mkdir -p $@
+	chmod 755 $@
 
 $(RESULTS_D)/%.pdf : %.pdf
 	cp $< $@
+	echo "in docker, it runs as root, so chmod"
+	chmod 777 $@
 
 # tex extras
 %.bbl : %.bib
