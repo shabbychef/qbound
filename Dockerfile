@@ -36,8 +36,8 @@ RUN (DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true apt-get ins
   chmod -R 777 /usr/local/lib/R/site-library ; \
   sync )
 
-RUN (/usr/local/bin/install2.r knitr devtools doFuture doRNG dplyr ggplot2 hypergeo knitr LambertW quantmod SharpeR tidyr xtable )
-RUN (/usr/local/bin/installGithub.r "shabbychef/aqfb_data" )
+RUN ( /usr/local/bin/install2.r remotes knitr devtools doFuture doRNG dplyr ggplot2 hypergeo knitr LambertW quantmod SharpeR tidyr xtable )
+RUN ( /usr/local/bin/installGithub.r "shabbychef/aqfb_data" )
 
 ADD Makefile /srv/ 
 ADD qbound.Rnw /srv/ 
