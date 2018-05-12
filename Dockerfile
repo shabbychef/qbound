@@ -28,16 +28,16 @@ RUN (apt-get clean -y ; \
 #apt-get update -qq ; \
 RUN (DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true apt-get install -q -y --no-install-recommends \ 
   libblas-dev libgs9 texlive-base texlive-binaries \
-	libcupsimage2 libcups2 curl wget \
-	qpdf pandoc ghostscript \
-	texlive-latex-extra texlive-latex-base texlive-fonts-recommended texlive-fonts-extra latexmk ; \
-	sync ; \
-	mkdir -p /usr/local/lib/R/site-library ; \
-	chmod -R 777 /usr/local/lib/R/site-library ; \
-	sync )
+  libcupsimage2 libcups2 curl wget \
+  qpdf pandoc ghostscript \
+  texlive-latex-extra texlive-latex-base texlive-fonts-recommended texlive-fonts-extra latexmk ; \
+  sync ; \
+  mkdir -p /usr/local/lib/R/site-library ; \
+  chmod -R 777 /usr/local/lib/R/site-library ; \
+  sync )
 
-RUN (/usr/local/bin/install2.r knitr devtools doFuture doRNG dplyr ggplot2 hypergeo knitr LambertW quantmod SharpeR tidyr xtable ; \
-	/usr/local/bin/r -l 'devtools' -e 'options(unzip="internal");install_github("shabbychef/aqfb_data");' ) 
+RUN (/usr/local/bin/install2.r knitr devtools doFuture doRNG dplyr ggplot2 hypergeo knitr LambertW quantmod SharpeR tidyr xtable )
+RUN (/usr/local/bin/installGithub.r "shabbychef/aqfb_data" )
 
 ADD Makefile /srv/ 
 ADD qbound.Rnw /srv/ 
@@ -64,4 +64,4 @@ CMD ["-i"]
 # UNFOLD
 
 #for vim modeline: (do not edit)
-# vim:nu:fdm=marker:fmr=FOLDUP,UNFOLD:cms=#%s:syn=Dockerfile:ft=Dockerfile:fo=croql
+# vim:et:nu:fdm=marker:fmr=FOLDUP,UNFOLD:cms=#%s:syn=Dockerfile:ft=Dockerfile:fo=croql
