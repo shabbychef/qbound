@@ -130,8 +130,10 @@ lseq <- function(from,to,length.out) {
 # by convention the value 1 should take the longest time,
 # while larger values should result in quicker execution
 # (for low fidelity simulations)
+# takes the value from the environment variable of the same name,
+# or 1 if missing.
 
-RUNTIME_PARAM <- 1
+RUNTIME_PARAM <- max(1,as.numeric(Sys.getenv('RUNTIME_PARAM')),na.rm=TRUE)
 @
     
 % SYMPY preamble%FOLDUP

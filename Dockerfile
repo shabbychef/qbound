@@ -3,7 +3,7 @@
 #
 # docker build --rm -t shabbychef/qbound .
 #
-# docker run -it --rm --volume $(pwd):/srv:rw fromo-crancheck
+# docker run -it --rm --volume $(pwd):/srv:rw shabbychef/qbound
 #
 # Created: 2018.05.08
 # Copyright: Steven E. Pav, 2018
@@ -47,6 +47,9 @@ ADD *.sty /srv/
 ADD sp100lr.rda /srv/ 
 
 RUN mkdir -p /srv/cache /srv/figure ;
+
+# larger values build the doc quicker with lower resolution simulations.
+ENV RUNTIME_PARAM 1
 
 #RUN groupadd -g 1000 spav && useradd -g spav -u 1000 spav;
 #USER spav

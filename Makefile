@@ -58,9 +58,13 @@ STY_FILES    =
 #aspell
 ASPELL_FLAGS = 
 
+# for running in docker this gets passed to the knit
+# and controls speed of build. larger is faster.
+RUNTIME_PARAM 		?= 1
+
 GID 							?= $$UID
 DOCKER_RUN_FLAGS 		= --user $$UID:$(GID)
-DOCKER_ENV 				 = -e FOO_ENV='foo'
+DOCKER_ENV 				 = -e FOO_ENV='foo' -e RUNTIME_PARAM=$(RUNTIME_PARAM)
 
 DOCKER 						?= $(shell which docker)
 DOCKER_IMG 				 = .docker_img
