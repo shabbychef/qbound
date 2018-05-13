@@ -12,32 +12,22 @@
 
 #####################################################
 # preamble# FOLDUP
-FROM shabbychef/crancheck
+FROM shabbychef/knitrer
 MAINTAINER Steven E. Pav, shabbychef@gmail.com
 # UNFOLD
 
 ENV DOCKERFILE_REFRESHED_AT 2018.05.08
-# see http://crosbymichael.com/dockerfile-best-practices.html
-#RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt/sources.list
 
 RUN (apt-get clean -y ; \
- apt-get update -y -qq; \
- apt-get update --fix-missing );
-
-#RUN (apt-get dist-upgrade -y ; \
-#apt-get update -qq ; \
-RUN (DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true apt-get install -q -y --no-install-recommends \ 
-  libblas-dev libgs9 texlive-base texlive-binaries \
-  libcupsimage2 libcups2 curl wget \
-  qpdf pandoc ghostscript \
-  texlive-latex-extra texlive-latex-base texlive-fonts-recommended texlive-fonts-extra latexmk ; \
+  apt-get update -y -qq; \
+  apt-get update --fix-missing ; \
+  DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true apt-get install -q -y --no-install-recommends libblas-dev ; \
   sync ; \
   mkdir -p /usr/local/lib/R/site-library ; \
   chmod -R 777 /usr/local/lib/R/site-library ; \
-  sync )
-
-RUN ( /usr/local/bin/install2.r remotes knitr devtools doFuture doRNG dplyr ggplot2 hypergeo knitr LambertW quantmod SharpeR tidyr xtable )
-RUN ( /usr/local/bin/installGithub.r "shabbychef/aqfb_data" )
+  sync ; \
+  /usr/local/bin/install2.r remotes knitr devtools doFuture doRNG dplyr ggplot2 hypergeo knitr LambertW quantmod SharpeR tidyr xtable ; \
+  /usr/local/bin/installGithub.r "shabbychef/aqfb_data" )
 
 ADD Makefile /srv/ 
 ADD qbound.Rnw /srv/ 
