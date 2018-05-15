@@ -52,3 +52,9 @@ controlled via the environment variable of the same name:
 $ RUNTIME_PARAM=50 make docker_doc
 ```
 
+### Screencast
+
+Watch me stumble around building the doc in an 
+[![asciicast](https://asciinema.org/a/8k4fCHXljwLC6fx00LSJe7FfN.png)](https://asciinema.org/a/8k4fCHXljwLC6fx00LSJe7FfN).
+
+
