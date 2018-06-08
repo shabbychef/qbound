@@ -38,6 +38,10 @@ ADD sp100lr.rda /srv/
 
 RUN mkdir -p /srv/cache /srv/figure ;
 
+RUN mkdir -p /srv/Definitions 
+ADD mdpi.Rnw /srv/ 
+ADD Definitions/* /srv/Definitions/
+
 # larger values build the doc quicker with lower resolution simulations.
 ENV RUNTIME_PARAM 1
 

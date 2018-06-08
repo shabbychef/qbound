@@ -197,7 +197,7 @@ superclean: realclean cleancache
 
 docker_img : $(DOCKER_IMG) ## build the docker image
 
-DOCKER_DEPS 			= Makefile $(PROJECT).R $(PROJECT).Rnw $(wildcard *.bib) $(wildcard *.sty) sp100lr.rda 
+DOCKER_DEPS 			= Makefile $(PROJECT).R $(PROJECT).Rnw mdpi.Rnw $(wildcard *.bib) $(wildcard *.sty) sp100lr.rda 
 
 $(DOCKER_IMG) : Dockerfile $(DOCKER_DEPS)
 	tar -czh . | $(DOCKER) build --rm -t $(DOCKER_NAME) -
