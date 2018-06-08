@@ -22,7 +22,7 @@ ASPELL  		:= $(shell which aspell)
 
 RLIB         = /usr/lib64/R
 
-TEXINPADD    = .:$(RLIB)/share/texmf/tex/latex
+TEXINPADD    = .:./Definitions:$(RLIB)/share/texmf/tex/latex
 
 PRETEX       = TEXINPUTS=$(TEXINPADD):$$TEXINPUTS
 PREBIB       = BSTINPUTS=$(TEXINPADD):$$BSTINPUTS \
@@ -44,6 +44,8 @@ BIB_SOURCE   = $(PROJECT).bib
 DVI_TARGET   = $(PROJECT).dvi
 PDF_TARGET   = $(PROJECT).pdf
 BBLS         = $(PROJECT).bbl
+
+MDPI_PDF 		 = mdpi.pdf
 
 #SAVE
 # tracked projects
@@ -100,6 +102,8 @@ all : $(PROJECT).pdf  ## build the document by knitting source code
 .PHONY   : doc
 
 doc : $(RESULTS_D)/$(PROJECT).pdf  | $(RESULTS_D) ## build the document by knitting source code, for use in docker
+
+mdpi : $(RESULTS_D)/$(MDPI_PDF) | $(RESULTS_D) ## build the mdpi published document by knitting source code, for use in docker
 
 %.tex : %.Rnw $(R_DEPS)
 		Rscript -e 'require(knitr);knit("$<")'
@@ -199,11 +203,15 @@ $(DOCKER_IMG) : Dockerfile $(DOCKER_DEPS)
 	tar -czh . | $(DOCKER) build --rm -t $(DOCKER_NAME) -
 	touch $@
 
-.PHONY : docker_doc
+.PHONY : docker_doc docker_mdpi
 
 docker_doc : $(DOCKER_IMG)  ## use docker to build the document
 	$(DOCKER) run -it --rm $(DOCKER_ENV) -v $$(pwd)/$(RESULTS_D):/srv/$(RESULTS_D):rw --entrypoint="make" $(DOCKER_NAME) \
 		"doc"
+
+docker_mdpi : $(DOCKER_IMG)  ## use docker to build the mdpi published document
+	$(DOCKER) run -it --rm $(DOCKER_ENV) -v $$(pwd)/$(RESULTS_D):/srv/$(RESULTS_D):rw --entrypoint="make" $(DOCKER_NAME) \
+		"mdpi"
 
 docker_R : $(DOCKER_IMG)  ## use docker to run R in this context.
 	$(DOCKER) run -it --rm $(DOCKER_ENV) -v $$(pwd)/$(RESULTS_D):/srv/$(RESULTS_D):rw --entrypoint="R" $(DOCKER_NAME) 

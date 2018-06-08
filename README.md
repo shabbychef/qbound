@@ -52,6 +52,19 @@ controlled via the environment variable of the same name:
 $ RUNTIME_PARAM=50 make docker_doc
 ```
 
+## Published Version
+
+The version as published in the MDPI Journal of Risk and Financial Management
+can be made via a separate target:
+
+```bash
+$ make docker_mdpi
+# or
+$ docker pull shabbychef/qbound
+$ mkdir ./output
+$ docker run -it --rm -v $(pwd)/output:/srv/output:rw -e RUNTIME_PARAM=50 --entrypoint="make" shabbychef/qbound "mdpi"
+```
+
 ### Screencast
 
 Watch me stumble around building the doc:
