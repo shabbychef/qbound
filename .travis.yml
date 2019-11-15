@@ -4,7 +4,7 @@ services: docker
 tex-config:
 - tex-scheme=full
 - push-type=branch
-- build-pattern=posthoc.tex
+- build-pattern=qbound.tex
 - packages=lipsum, blindtext, framed
 env:
   global:
