@@ -7,6 +7,7 @@
 %\VignetteKeyword{Markowitz}
 %\VignettePackage{MarkowitzR}
 
+\batchmode
 % front matter%FOLDUP
 \usepackage[hyphens]{url}
 \usepackage{amsmath}
@@ -39,6 +40,7 @@
 %\usepackage[authoryear]{natbib}
 %\usepackage[iso]{datetime}
 %\usepackage{datetime}
+\usepackage{gitinfo2}
 
 %%http://choorucode.com/2010/05/05/how-to-add-draft-watermark-in-latex/
 %\usepackage{draftwatermark}
@@ -432,8 +434,8 @@ RUNTIME_PARAM <- max(1,as.numeric(Sys.getenv('RUNTIME_PARAM')),na.rm=TRUE)
 Ramakrishna Kakarala for sharing his research.
 The code to build this document is available at
 \href{http://www.github.com/shabbychef/qbound}{\normalfont\texttt{www.github.com/shabbychef/qbound}}.
-}
-}
+This revision was built from commit \texttt{\gitHash} of that repo.
+}}
 %\date{\today, \currenttime}
 
 \maketitle
