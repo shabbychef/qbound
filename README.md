@@ -1,6 +1,8 @@
 
 # Bounds on Portfolio Quality
 
+[![Build Status](https://travis-ci.org/shabbychef/qbound.svg?branch=master)](https://travis-ci.org/shabbychef/qbound)
+
 This repo holds the code to rebuild the paper, "Bounds on Portfolio Quality." 
 There are a few ways to build the paper:
 
@@ -54,8 +56,7 @@ $ RUNTIME_PARAM=50 make docker_doc
 
 ## Published Version
 
-The version as published in the MDPI Journal of Risk and Financial Management
-can be made via a separate target:
+The version that I had sent to an MDPI journal can be made via a separate target:
 
 ```bash
 $ make docker_mdpi
@@ -64,6 +65,8 @@ $ docker pull shabbychef/qbound
 $ mkdir ./output
 $ docker run -it --rm -v $(pwd)/output:/srv/output:rw -e RUNTIME_PARAM=50 --entrypoint="make" shabbychef/qbound "mdpi"
 ```
+
+Don't ask why I never paid to have the article published in that journal.
 
 ### Screencast
 
