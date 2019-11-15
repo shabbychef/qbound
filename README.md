@@ -71,5 +71,5 @@ Don't ask why I never paid to have the article published in that journal.
 ### Screencast
 
 Watch me stumble around building the doc:
-[![asciicast](https://asciinema.org/a/nianUC5GtAQgJeO7eB2Zu3FyJ.png)][https://asciinema.org/a/nianUC5GtAQgJeO7eB2Zu3FyJ).
+[![asciicast](https://asciinema.org/a/nianUC5GtAQgJeO7eB2Zu3FyJ.png)](https://asciinema.org/a/nianUC5GtAQgJeO7eB2Zu3FyJ).
 
