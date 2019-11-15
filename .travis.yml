@@ -1,0 +1,15 @@
+sudo: required
+language: generic
+services: docker
+tex-config:
+- tex-scheme=full
+- push-type=branch
+- build-pattern=posthoc.tex
+- packages=lipsum, blindtext, framed
+env:
+  global:
+  - IS_TRAVIS=true
+  - secure: woiUfb5X1oKrsQeuI5Jt2svVZdvsuuZSTB2NqmEy2QLfwTDVfVnIbVmsFEjwFl8OHlhik/2tPIyPmM5yG/fn+N+aku1F/0/0QLd33KFZtyF6J/aC3VYsPpHoCNFZSiXt5q71j93YS5eyQEed9ynm0qgKPabsZFoNhtY0u9HH/yFJXZi9xoREzQ+RnQDrAKyQOYl/ZmcwU9E8LA/LimtxylRcOZgiNbSLsd7sFodKB7tPrIHvQMyrKwkwqrSnQrMYnRS41LHEoeppxV0YrIyVaAtZ39SzqRh/UpuLth6axBlGLtiOiLoievDAk8BBqMSoBo43neUPsd+xWcb9XZPcnI4h+jm5mgpdFdhHRYqiuN2suRXeJSjtSq6FsL0NWBn48uPtZyHv94yjh/MDhQF4hm3/iGqY00cR42qJXcSkyRA2wHQ2EuyTjJyj7Tah0rEgVILq2OiJJvMzgWm4ts/fNWv9NDkFgOMeQaDwHIPzC2VyA1zxq29u1JdjRSssU492d8yFL/KG8Op8OQhIgAh9Bepy7cDBp9vAQwUzriAylFB0EmLkJQONCps3mvSEBqovv0S0B7FEayhaFyfowEsfsYkjtolWFvFGZmN17h622R4bYckFx8wCjPbHZSZAyUe5tbULip+uvJDu6NgIVlD5U+Ba47rsnD1kulfExGMMPxs=
+script:
+- chmod +x .travis/travis-texbuild.sh
+- ".travis/travis-texbuild.sh"
