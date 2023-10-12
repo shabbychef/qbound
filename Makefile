@@ -140,6 +140,9 @@ $(RESULTS_D)/%.pdf : %.pdf
 %.spell : %.tex
 	$(ASPELL) $(ASPELL_FLAGS) --dont-tex-check-comments -t -l < $< | sort | uniq | $(PAGER)
 
+%.count : %.tex
+	texcount $< -inc -incbib -sum -1 | grep -v errors | grep -P '[0-9]' > $@
+
 # check duplicate words
 %.dup : %.tex
 	perl -an -F/\\s+/ -e 'BEGIN { $$last = q[]; $$line = 0; $$prevline = q[];}\

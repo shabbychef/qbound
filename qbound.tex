@@ -112,6 +112,9 @@
 
 %compactitem and such:
 \usepackage[newitem,newenum,increaseonly]{paralist}
+\usepackage{totcount}
+\regtotcounter{figure}
+\regtotcounter{table}
 
 \makeatletter
 \makeatother
@@ -122,6 +125,7 @@
 \providecommand{\sideWarning}[1][0.5]{\marginpar{\hfill\includegraphics[width=#1\marginparwidth]{warning}}}
 
 % knitr setup%FOLDUP
+
 
 
 
@@ -425,16 +429,20 @@
 \begin{document}
 
 \title{Bounds on Portfolio Quality}
-\author{Steven E. Pav \thanks{\email{steven@gilgamath.com} The author thanks
-Ramakrishna Kakarala for sharing his research.
-The code to build this document is available at
-\href{http://www.github.com/shabbychef/qbound}{\normalfont\texttt{www.github.com/shabbychef/qbound}}.
-This revision was built from commit \texttt{\gitHash} of that repo.
-}}
+\author{Steven E. Pav \thanks{Gilgamath Consulting.\\
+\email{steven@gilgamath.com}\\
+2132 15th Ave.\\
+San Francisco, CA 94116}
+}
 %\date{\today, \currenttime}
 
 \maketitle
 %UNFOLD
+
+Paper has \total{figure} figures, \total{table} tables, and approximately 
+\input{qbound.count} words.
+
+\newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}%FOLDUP
@@ -461,6 +469,17 @@ case where mean returns are linear in some observable
 features, subspace constraints (\ie dimensionality reduction),
 and hedging constraints.
 \end{abstract}%UNFOLD
+
+Keywords: Sharpe Ratio, Markowitz Portfolio, Portfolio Selection, Quantitative
+Finance.\\
+
+Key Messages:
+\begin{compactenum}
+\item An upper bound on the expected Sharpe ratio of a portfolio is given.
+\item The bound considers true effect size, observation history and number of decisions.
+\item The upper bound quantifies ``overfitting'' in portfolio selection problems.
+\end{compactenum}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}%FOLDUP
@@ -1186,7 +1205,7 @@ because the sample size is so large.
 
 \begin{knitrout}\small
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}[h]
-\includegraphics[width=0.975\textwidth,height=0.691\textwidth]{figure/qboundhaircutting-1} \caption{Q-Q plot of $10^{6}$ simulated \txtQual values versus \apxref{qual_dist} is shown. Units are `annual', \ie \yrtomhalf. Since the number of samples is very large, only a subset of $10^{3}$ points, uniformly selected by sample quantile, are plotted.}\label{fig:haircutting}
+\includegraphics[width=0.975\textwidth,height=0.691\textwidth]{figure/qboundhaircutting-1} \caption[Q-Q plot of $10^{6}$ simulated \txtQual values versus \apxref{qual_dist} is shown]{Q-Q plot of $10^{6}$ simulated \txtQual values versus \apxref{qual_dist} is shown.}\label{fig:haircutting}
 \end{figure}
 
 \end{knitrout}
@@ -1377,7 +1396,7 @@ portfolio \txtQual, under the distribution of
 
 \begin{knitrout}\small
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}[h]
-\includegraphics[width=0.99\textwidth,height=0.495\textwidth]{figure/qboundksplots-1} \caption{The \txtKS statistic for \apxref{qual_dist} over $10^{6}$ simulations of Gaussian returns is plotted versus $\psnropt \wrapParens{\nlatf-1}/\sqrt{\ssiz}$, with \psnropt in annualized terms, and \ssiz measured in years.  There is one line for each combination of $\ssiz$ and $\psnropt$. The line color corresponds to the `effect size', $\sqrt{\ssiz}\psnropt$, which is unitless.}\label{fig:ksplots}
+\includegraphics[width=0.99\textwidth,height=0.495\textwidth]{figure/qboundksplots-1} \caption[The \txtKS statistic for \apxref{qual_dist} over $10^{6}$ simulations of Gaussian returns is plotted versus $\psnropt \wrapParens{\nlatf-1}/\sqrt{\ssiz}$, with \psnropt in annualized terms, and \ssiz measured in years]{The \txtKS statistic for \apxref{qual_dist} over $10^{6}$ simulations of Gaussian returns is plotted versus $\psnropt \wrapParens{\nlatf-1}/\sqrt{\ssiz}$, with \psnropt in annualized terms, and \ssiz measured in years.}\label{fig:ksplots}
 \end{figure}
 
 \end{knitrout}
@@ -1397,7 +1416,7 @@ approximation to the distribution of \txtQual of the sample \txtMP.
 
 \begin{knitrout}\small
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}[h]
-\includegraphics[width=0.99\textwidth,height=0.495\textwidth]{figure/qboundksheat-1} \caption[The \txtKS statistic for \apxref{qual_dist} over $10^{6}$ simulations of Gaussian returns is indicated, by color, versus \nlatf, and the `total effect size,' $\sqrt{\ssiz}\psnropt$, which is a unitless quantity]{The \txtKS statistic for \apxref{qual_dist} over $10^{6}$ simulations of Gaussian returns is indicated, by color, versus \nlatf, and the `total effect size,' $\sqrt{\ssiz}\psnropt$, which is a unitless quantity. Different facets are for different values of \ssiz (in years).}\label{fig:ksheat}
+\includegraphics[width=0.99\textwidth,height=0.495\textwidth]{figure/qboundksheat-1} \caption[The \txtKS statistic for \apxref{qual_dist} over $10^{6}$ simulations of Gaussian returns is indicated, by color, versus \nlatf, and the `total effect size,' $\sqrt{\ssiz}\psnropt$, which is a unitless quantity, with facets for different values of \ssiz (in years)]{The \txtKS statistic for \apxref{qual_dist} over $10^{6}$ simulations of Gaussian returns is indicated, by color, versus \nlatf, and the `total effect size,' $\sqrt{\ssiz}\psnropt$, which is a unitless quantity, with facets for different values of \ssiz (in years).}\label{fig:ksheat}
 \end{figure}
 
 \end{knitrout}
@@ -1473,8 +1492,7 @@ with equality holding for $\psnropt = c \wrapParens{\nlatf-1}^{1/4}$.
 
 \begin{knitrout}\small
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}[h]
-\includegraphics[width=0.99\textwidth,height=0.495\textwidth]{figure/qboundgrow_bound-1} \caption{The upper bound of \theoremref{qual_bound} is plotted versus \nlatf for different scaling laws for \psnropt.  These scaling laws correspond to $\psnropt = \psnr[0]\nlatf^{\gamma}$, with $\gamma$ taking values between 0.15 and
-0.35.  The constant terms, \psnr[0], are adjusted so that $\psnropt =1.25\yrtomhalf$ for $\nlatf = 6$ for all the lines. The bound uses $\ssiz=1012$, corresponding to 4 years of daily observations.}\label{fig:grow_bound}
+\includegraphics[width=0.99\textwidth,height=0.495\textwidth]{figure/qboundgrow_bound-1} \caption[]{The upper bound of \theoremref{qual_bound} is plotted versus \nlatf for different scaling laws, corresponding to $\psnropt = \psnr[0]\nlatf^{\gamma}$, with $\gamma$ taking values between 0.15 and 0.35.}\label{fig:grow_bound}
 \end{figure}
 
 \end{knitrout}
@@ -1515,7 +1533,7 @@ grows with \nlatf.
 
 \begin{knitrout}\small
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}[h]
-\includegraphics[width=0.99\textwidth,height=0.495\textwidth]{figure/qboundgrow_sqrt-1} \caption[Some quantiles of the \txtQual of the \txtMP, under \apxref{qual_dist}, are plotted versus \nlatf for different scaling laws for \psnropt]{Some quantiles of the \txtQual of the \txtMP, under \apxref{qual_dist}, are plotted versus \nlatf for different scaling laws for \psnropt. The 3 panels represent different values of $\gamma$, \viz 0.21, 0.25, and 0.29. The bound uses $\ssiz=1012$, corresponding to 4 years of daily observations.}\label{fig:grow_sqrt}
+\includegraphics[width=0.99\textwidth,height=0.495\textwidth]{figure/qboundgrow_sqrt-1} \caption[Some quantiles of the \txtQual of the \txtMP, under \apxref{qual_dist}, are plotted versus \nlatf for different scaling laws for \psnropt, with panels for different values of $\gamma$, \viz 0.21, 0.25, and 0.29]{Some quantiles of the \txtQual of the \txtMP, under \apxref{qual_dist}, are plotted versus \nlatf for different scaling laws for \psnropt, with panels for different values of $\gamma$, \viz 0.21, 0.25, and 0.29.}\label{fig:grow_sqrt}
 \end{figure}
 
 \end{knitrout}
@@ -2218,7 +2236,7 @@ over even a small subset of the S\&P 100.
 
 \begin{knitrout}\small
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}[h]
-\includegraphics[width=0.99\textwidth,height=0.495\textwidth]{figure/qboundsp100_box-1} \caption[Growth of estimated \psnropt versus \nlatf for the S\&P 100 Index names is shown over 1000 permutations of the stocks]{Growth of estimated \psnropt versus \nlatf for the S\&P 100 Index names is shown over 1000 permutations of the stocks. There is effectively \emph{no} diversification benefit here beyond an equal weight portfolio.}\label{fig:sp100_box}
+\includegraphics[width=0.99\textwidth,height=0.495\textwidth]{figure/qboundsp100_box-1} \caption[Growth of estimated \psnropt versus \nlatf for the S\&P 100 Index names is shown over 1000 permutations of the stocks, showing that there is effectively \emph{no} diversification benefit here beyond an equal weight portfolio]{Growth of estimated \psnropt versus \nlatf for the S\&P 100 Index names is shown over 1000 permutations of the stocks, showing that there is effectively \emph{no} diversification benefit here beyond an equal weight portfolio.}\label{fig:sp100_box}
 \end{figure}
 
 \end{knitrout}
@@ -2369,6 +2387,11 @@ be generalized to include these costs?
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \appendix%FOLDUP
+
+\section{Declaration of Interests}
+
+The authors report no conflicts of interest.
+The authors alone are responsible for the content and writing of the paper.
 
 %UNFOLD
 

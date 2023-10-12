@@ -62,6 +62,9 @@
 
 %compactitem and such:
 \usepackage[newitem,newenum,increaseonly]{paralist}
+\usepackage{totcount}
+\regtotcounter{figure}
+\regtotcounter{table}
 
 \makeatletter
 \makeatother
@@ -160,11 +163,11 @@ library(quantmod)
 options("getSymbols.warning4.0"=FALSE)
 
 library(SharpeR)
+@
+<<'plot_stuff'>>=
+#sqrt_yr <- scales::comma_format(suffix=expression(yr^(-1/2)))
+sqrt_yr <- scales::label_math(.x/sqrt(yr))
 
-gen_norm <- rnorm
-lseq <- function(from,to,length.out) { 
-	exp(seq(log(from),log(to),length.out = length.out))
-}
 @
 
 <<'check_libraries',include=FALSE,cache=FALSE>>=
@@ -497,16 +500,20 @@ ope <- 253
 \begin{document}
 
 \title{Bounds on Portfolio Quality}
-\author{Steven E. Pav \thanks{\email{steven@gilgamath.com} The author thanks
-Ramakrishna Kakarala for sharing his research.
-The code to build this document is available at
-\href{http://www.github.com/shabbychef/qbound}{\normalfont\texttt{www.github.com/shabbychef/qbound}}.
-This revision was built from commit \texttt{\gitHash} of that repo.
-}}
+\author{Steven E. Pav \thanks{Gilgamath Consulting.\\
+\email{steven@gilgamath.com}\\
+2132 15th Ave.\\
+San Francisco, CA 94116}
+}
 %\date{\today, \currenttime}
 
 \maketitle
 %UNFOLD
+
+Paper has \total{figure} figures, \total{table} tables, and approximately 
+\input{qbound.count} words.
+
+\newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}%FOLDUP
@@ -533,6 +540,17 @@ case where mean returns are linear in some observable
 features, subspace constraints (\ie dimensionality reduction),
 and hedging constraints.
 \end{abstract}%UNFOLD
+
+Keywords: Sharpe Ratio, Markowitz Portfolio, Portfolio Selection, Quantitative
+Finance.\\
+
+Key Messages:
+\begin{compactenum}
+\item An upper bound on the expected Sharpe ratio of a portfolio is given.
+\item The bound considers true effect size, observation history and number of decisions.
+\item The upper bound quantifies ``overfitting'' in portfolio selection problems.
+\end{compactenum}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}%FOLDUP
@@ -1517,7 +1535,7 @@ options(digits=2)
 @
 
 
-<<'haircutting',dependson=c('haircut_study'),fig.cap=paste0("Q-Q plot of $10^{",round(log10(n.sim)),"}$ simulated \\txtQual values versus \\apxref{qual_dist} is shown. Units are `annual', \\ie \\yrtomhalf. Since the number of samples is very large, only a subset of $10^{",round(log10(max.ps)),"}$ points, uniformly selected by sample quantile, are plotted.")>>=
+<<'haircutting',dependson=c('haircut_study','plot_stuff'),fig.cap=paste0("Q-Q plot of $10^{",round(log10(n.sim)),"}$ simulated \\txtQual values versus \\apxref{qual_dist} is shown.")>>=
 # qqplot;
 
 # via qqplot;
@@ -1547,7 +1565,10 @@ xydf <- as.data.frame(qqplot(x=qqual(pvs,n.stok,n.obs,zeta.s,use.ope=ope),
 ph <- ggplot(data=xydf,mapping=aes(x=x, y=y)) +
   geom_point() +
   geom_abline(intercept=0, slope=1, color="red") + 
-  labs(x="Theoretical Approximate Quantiles", y="Sample Quantiles")
+  scale_x_continuous(labels=sqrt_yr) + 
+  scale_y_continuous(labels=sqrt_yr) + 
+  labs(x="Theoretical Approximate Quantiles", y="Sample Quantiles",
+       caption=paste0('Subset of only ',max.ps,' points, uniformly selected by sample quantile are plotted.'))
 
 #ph <- ph + geom_smooth(method="lm", se=FALSE)	
 print(ph)
@@ -1851,7 +1872,7 @@ portfolio \txtQual, under the distribution of
 %The KS statistic is the maximum absolute deviation
 %of empirical and theoretical CDFs. \cite{Marsaglia:Tsang:Wang:2003:JSSOBK:v08i18}
 
-<<'ksplots',dependson=c('quality_heatmaps'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("The \\txtKS statistic for \\apxref{qual_dist} over $10^{",round(log10(n.sim3)),"}$ simulations of Gaussian returns is plotted versus $\\psnropt \\wrapParens{\\nlatf-1}/\\sqrt{\\ssiz}$, with \\psnropt in annualized terms, and \\ssiz measured in years.  There is one line for each combination of $\\ssiz$ and $\\psnropt$. The line color corresponds to the `effect size', $\\sqrt{\\ssiz}\\psnropt$, which is unitless."),eval.after='fig.cap'>>= 
+<<'ksplots',dependson=c('quality_heatmaps'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("The \\txtKS statistic for \\apxref{qual_dist} over $10^{",round(log10(n.sim3)),"}$ simulations of Gaussian returns is plotted versus $\\psnropt \\wrapParens{\\nlatf-1}/\\sqrt{\\ssiz}$, with \\psnropt in annualized terms, and \\ssiz measured in years."),eval.after='fig.cap'>>= 
 
 ks.dat <- ks.stats %>%
   mutate(zeta.an = sqrt(ope) * zeta) %>%
@@ -1890,7 +1911,7 @@ approximation to the distribution of \txtQual of the sample \txtMP.
 %absolute value of the \txtKS statistic, it may be instructive to consider the
 %relative value at different values of $\nlatf, \ssiz, \psnropt$.  
 
-<<'ksheat',dependson=c('quality_heatmaps'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("The \\txtKS statistic for \\apxref{qual_dist} over $10^{",round(log10(n.sim3)),"}$ simulations of Gaussian returns is indicated, by color, versus \\nlatf, and the `total effect size,' $\\sqrt{\\ssiz}\\psnropt$, which is a unitless quantity. Different facets are for different values of \\ssiz (in years)."),eval.after='fig.cap'>>= 
+<<'ksheat',dependson=c('quality_heatmaps'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("The \\txtKS statistic for \\apxref{qual_dist} over $10^{",round(log10(n.sim3)),"}$ simulations of Gaussian returns is indicated, by color, versus \\nlatf, and the `total effect size,' $\\sqrt{\\ssiz}\\psnropt$, which is a unitless quantity, with facets for different values of \\ssiz (in years)."),eval.after='fig.cap'>>= 
 
 ks.dat <- ks.stats %>%
   mutate(zeta.an = sqrt(ope) * zeta) %>%
@@ -1998,7 +2019,9 @@ The last inequality is implied by the inequality
 $\oneby{4\wrapParens{\nlatf-1}} \le \dbyd{\log\psnropt}{\nlatf}$, 
 with equality holding for $\psnropt = c \wrapParens{\nlatf-1}^{1/4}$.
 
-<<'grow_bound',fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("The upper bound of \\theoremref{qual_bound} is plotted versus \\nlatf for different scaling laws for \\psnropt.  These scaling laws correspond to $\\psnropt = \\psnr[0]\\nlatf^{\\gamma}$, with $\\gamma$ taking values ",sgammas.summary,".  The constant terms, \\psnr[0], are adjusted so that $\\psnropt =",sqrt(ope) * zeta.s,"\\yrtomhalf$ for $\\nlatf = ",n.stok,"$ for all the lines. The bound uses $\\ssiz=",n.obs,"$, corresponding to ",n.yr," years of daily observations."),eval.after='fig.cap'>>= 
+<<'grow_bound',dependson=c('plot_stuff'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.scap='',fig.cap=paste0("The upper bound of \\theoremref{qual_bound} is plotted versus \\nlatf for different scaling laws, corresponding to $\\psnropt = \\psnr[0]\\nlatf^{\\gamma}$, with $\\gamma$ taking values ",sgammas.summary,"."),eval.after='fig.cap'>>= 
+
+
 
 bound.experiment <- function(pow,n.obs,zeta.s,
                              n.stok=n.stok,ope=ope,plims=c(2,250)) {
@@ -2040,10 +2063,10 @@ bound.experiment <- function(pow,n.obs,zeta.s,
 #		breaks=2^seq(from=-1,to=2,by=0.5))
 #	print(ph)
 
-bound.plot <- function(pow,n.obs,zeta.s,plims=c(2,250),...) {
+bound.plot <- function(pow,n.obs,zeta.s,n.stok,plims=c(2,250),...) {
 	melt.df <- NULL
 	for (ppp in pow) {
-		addon.df <- bound.experiment(ppp,n.obs,zeta.s,plims=plims,...)
+		addon.df <- bound.experiment(ppp,n.obs,zeta.s,plims=plims,n.stok=n.stok,...)
 		if (is.null(melt.df))
 			melt.df <- addon.df
 		else
@@ -2052,14 +2075,13 @@ bound.plot <- function(pow,n.obs,zeta.s,plims=c(2,250),...) {
 	melt.df$gamma <- factor(melt.df$pow)
 
 	require(ggplot2,quietly=TRUE)
-	ph <- ggplot(data=melt.df,aes(x=p,y=value,group=gamma,colour=gamma))
-	ph <- ph + geom_line()
-	ph <- ph + labs(x="# assets",
-									y="Signal-Noise ratio (annualized)")
-	ph <- ph + guides(colour=guide_legend(title=expression(gamma)))
-	ph <- ph + scale_x_log10(limits = c(1,max(plims)))
-	ph <- ph + scale_y_log10(limits = c(0.5,4),
-		breaks=2^seq(from=-1,to=2,by=0.5))
+	ph <- ggplot(data=melt.df,aes(x=p,y=value,group=gamma,colour=gamma)) +
+    geom_line() +
+    scale_x_log10(limits = c(1,max(plims))) +
+    scale_y_log10(limits = c(0.5,4),breaks=2^seq(from=-1,to=2,by=0.5),labels=sqrt_yr) +
+    guides(colour=guide_legend(title=expression(gamma))) +
+    labs(x="# assets",y="Signal-Noise ratio",
+         caption=paste0("Using n=",n.obs,". Constant terms are set so all lines have the same SNR at p=",n.stok,"."))
 	return(ph)
 }
 
@@ -2070,8 +2092,7 @@ pgammas <- seq(from=0.15,to=0.35,by=0.05)
 
 sgammas <- sort(pgammas)
 sgammas.txt <- paste0(paste0(sgammas[1:(length(sgammas)-1)],collapse=', '),", and ",sgammas[length(sgammas)],sep='')
-sgammas.summary <- paste0("between ",sgammas[1]," and
-",sgammas[length(sgammas)])
+sgammas.summary <- paste0("between ",sgammas[1]," and ",sgammas[length(sgammas)])
 
 print(bound.plot(pgammas,n.obs=n.obs,zeta.s=zeta.s,
 	n.stok=n.stok,ope=ope))
@@ -2112,7 +2133,7 @@ grows with \nlatf.
 %of \psnropt. As a practical matter, this may explain why the
 %\txtMP is typically applied to small asset universes.
 
-<<'grow_sqrt',fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("Some quantiles of the \\txtQual of the \\txtMP, under \\apxref{qual_dist}, are plotted versus \\nlatf for different scaling laws for \\psnropt. The ",length(sgammas)," panels represent different values of $\\gamma$, \\viz ", sgammas.txt, ". The bound uses $\\ssiz=",n.obs,"$, corresponding to ",n.yr," years of daily observations."),eval.after='fig.cap'>>= 
+<<'grow_sqrt',dependson=c('plot_stuff'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("Some quantiles of the \\txtQual of the \\txtMP, under \\apxref{qual_dist}, are plotted versus \\nlatf for different scaling laws for \\psnropt, with panels for different values of $\\gamma$, \\viz ", sgammas.txt, "."), eval.after='fig.cap'>>= 
 
 scale.experiment <- function(pow,n.obs,zeta.s,
                              n.stok=n.stok,ope=ope,plims=c(2,250)) {
@@ -2154,12 +2175,11 @@ scale.plot <- function(pow,n.obs,zeta.s,plims=c(2,250),...) {
     ggplot(aes(x=p,y=value,colour=Sharpe)) +
       geom_line() +
       facet_grid(.~`gamma`,labeller=label_both) +
-      labs(x="# assets",
-           y="Signal-Noise ratio (annualized)") +
       guides(colour=guide_legend(title="SNR")) +
       scale_x_log10(limits = c(1,max(plims))) +
-      scale_y_log10(limits = c(0.5,4), 
-                    breaks=2^seq(from=-1,to=2,by=0.5))
+      scale_y_log10(limits = c(0.5,4),breaks=2^seq(from=-1,to=2,by=0.5),labels=sqrt_yr) +
+      labs(x="# assets",y="Signal-Noise ratio",
+           caption=paste0("Using n=",n.obs,", corresponding to ",n.yr," years of daily observations."))
 	return(ph)
 }
 
@@ -2894,18 +2914,17 @@ Because Apple appears at the beginning of this list, it appears that
 when adding assets. This is an artifact of the estimator, since the true
 \psnropt can only increase when adding assets. 
 
-<<'sp100_grow',dependson=c('sp100_divs'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names, in alphabetical order, showing the `Apple effect.'"),eval.after='fig.cap'>>= 
+<<'sp100_grow',dependson=c('sp100_divs','plot_stuff'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names, in alphabetical order, showing the `Apple effect.'"),eval.after='fig.cap'>>= 
 
 foo.df <- data.frame(df=seq(1:length(KRSs)),KRS=KRSs,
 		MLE=MLEs,meanKRS=rowMeans(buncho.KRSs))
 
 require(ggplot2)
-ph <- ggplot(data=foo.df,aes(x=df,y=KRS))
-ph <- ph + geom_line()
-ph <- ph + labs(x="# assets",
-								y=expression(zeta["*"]))
-ph <- ph + scale_x_log10()
-#ph <- ph + scale_y_log10()
+ph <- ggplot(data=foo.df,aes(x=df,y=KRS)) +
+  geom_line() +
+  scale_x_log10() +
+  scale_y_continuous(labels=sqrt_yr) + 
+  labs(x="# assets",y=expression(zeta["*"]))
 print(ph)
 
 @
@@ -2938,19 +2957,17 @@ conditions under which \txtQual grows with \nlatf outlined in
 directionally independent portfolio estimators
 over even a small subset of the S\&P 100.
 
-<<'sp100_box',dependson=c('sp100_divs'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names is shown over ",dim(buncho.KRSs)[2]," permutations of the stocks. There is effectively \\emph{no} diversification benefit here beyond an equal weight portfolio."),eval.after='fig.cap'>>= 
+<<'sp100_box',dependson=c('sp100_divs','plot_stuff'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names is shown over ",dim(buncho.KRSs)[2]," permutations of the stocks, showing that there is effectively \\emph{no} diversification benefit here beyond an equal weight portfolio."),eval.after='fig.cap'>>= 
 
 foo.df <- data.frame(df=rep(1:(dim(buncho.KRSs)[1]),dim(buncho.KRSs)[2]),
 	KRS=as.vector(t(buncho.KRSs)))
 foo.df <- foo.df[foo.df$df < 11,]
 
 require(ggplot2)
-ph <- ggplot(data=foo.df,aes(x=factor(df),y=KRS))
-ph <- ph + geom_boxplot()
-ph <- ph + labs(x="# assets",
-								y=expression(zeta["*"]))
-#ph <- ph + scale_x_log10()
-#ph <- ph + scale_y_log10()
+ph <- ggplot(data=foo.df,aes(x=factor(df),y=KRS)) +
+  geom_boxplot() + 
+  scale_y_continuous(labels=sqrt_yr) + 
+  labs(x="# assets", y=expression(zeta["*"]))
 print(ph)
 
 @
@@ -3101,6 +3118,11 @@ be generalized to include these costs?
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \appendix%FOLDUP
+
+\section{Declaration of Interests}
+
+The authors report no conflicts of interest.
+The authors alone are responsible for the content and writing of the paper.
 
 %UNFOLD
 
