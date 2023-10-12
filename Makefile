@@ -183,6 +183,7 @@ realclean: $(patsubst %,%.realclean,$(PROJECTS))
 cleancache: 
 		echo "killing knitr cache! ack!"
 		-rm -rf cache
+		-rm -rf quality_heatmaps.csv
 
 superclean: realclean cleancache
 

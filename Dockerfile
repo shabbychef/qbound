@@ -26,7 +26,7 @@ RUN (apt-get clean -y ; \
   mkdir -p /usr/local/lib/R/site-library ; \
   chmod -R 777 /usr/local/lib/R/site-library ; \
   sync ; \
-  /usr/local/bin/install2.r remotes knitr devtools doFuture doRNG dplyr ggplot2 hypergeo knitr LambertW quantmod SharpeR tidyr xtable ; \
+  /usr/local/bin/install2.r remotes knitr devtools doFuture doRNG future.apply dplyr ggplot2 hypergeo knitr LambertW quantmod SharpeR tidyr xtable viridis ; \
   /usr/local/bin/installGithub.r "shabbychef/aqfb_data" )
 
 ADD Makefile /srv/ 

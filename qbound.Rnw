@@ -75,6 +75,30 @@
 
 <<'preamble', include=FALSE, warning=FALSE, message=FALSE>>=
 library(knitr)
+library(ggplot2)
+
+theme_set(theme_minimal(base_size=12))
+theme_update(legend.position="bottom")
+
+if (require(viridis,quietly=TRUE)) {
+  scale_colour_discrete <- function(...) {
+    require(viridis,quietly=TRUE)
+    scale_color_viridis(discrete=TRUE,end=0.85,option='D',...)
+  }
+  scale_fill_discrete <- function(...) {
+    require(viridis,quietly=TRUE)
+    scale_fill_viridis(discrete=TRUE,end=0.85,option='D',...)
+  }
+  # wait, can I also default for continuous cases?
+  scale_colour_continuous <- function(...) {
+    require(viridis,quietly=TRUE)
+    scale_color_viridis(discrete=FALSE,end=0.85,option='D',...)
+  }
+  scale_fill_continuous <- function(...) {
+    require(viridis,quietly=TRUE)
+    scale_fill_viridis(discrete=FALSE,end=0.85,option='D',...)
+  }
+}
 
 # set the knitr options ... for everyone!
 # if you unset this, then vignette build bonks. oh, joy.
@@ -82,13 +106,39 @@ library(knitr)
 opts_knit$set(eval.after='fig.cap')
 # for a package vignette, you do want to echo.
 # opts_chunk$set(echo=FALSE,warning=FALSE,message=FALSE)
-opts_chunk$set(warning=FALSE,message=FALSE)
+opts_chunk$set(echo=FALSE,warning=FALSE,message=FALSE)
 #opts_chunk$set(results="asis")
 opts_chunk$set(cache=TRUE,cache.path="cache/qbound")
 
 #opts_chunk$set(fig.path="figure/",dev=c("pdf","cairo_ps"))
 opts_chunk$set(fig.path="figure/qbound",dev=c("pdf"))
-opts_chunk$set(fig.width=5,fig.height=4,dpi=64)
+#opts_chunk$set(fig.width=5,fig.height=4,dpi=64)
+
+# stolen from my book:
+resol <- 7
+aspr <- 1.41
+opts_chunk$set(fig.width=resol,
+               fig.height=resol / aspr,
+               out.width="0.975\\textwidth",
+               out.height=sprintf('%.3f\\textwidth',0.975/aspr),
+               dpi=450)
+
+
+# a more compact figure use
+# fig.width=cfg_width,fig.height=cfg_height,out.width=cot_width,out.height=cot_height,
+cfg_width <- resol
+cfg_height <- resol / 2
+cot_width <- "0.975\\textwidth"
+cot_height <- "0.4875\\textwidth"
+
+# a wide figure use
+# fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,
+wfg_width <- 1.2 * resol
+wfg_height <- 0.6 * resol
+wot_width <- "0.99\\textwidth"
+wot_height <- "0.495\\textwidth"
+
+opts_chunk$set(fig.pos='h')
 
 # doing this means that png files are made of figures;
 # the savings is small, and it looks like shit:
@@ -104,14 +154,7 @@ options(width=64,digits=2)
 opts_chunk$set(size="small")
 opts_chunk$set(tidy=TRUE,tidy.opts=list(width.cutoff=50,keep.blank.line=TRUE))
 
-compile.time <- Sys.time()
-
 # from the environment
-
-# only recompute if FORCE_RECOMPUTE=True w/out case match.
-FORCE_RECOMPUTE <- 
-	(toupper(Sys.getenv('FORCE_RECOMPUTE',unset='False')) == "TRUE")
-
 
 library(quantmod)
 options("getSymbols.warning4.0"=FALSE)
@@ -123,9 +166,30 @@ lseq <- function(from,to,length.out) {
 	exp(seq(log(from),log(to),length.out = length.out))
 }
 @
+
+<<'check_libraries',include=FALSE,cache=FALSE>>=
+library(knitr)
+library(ggplot2)
+library(future.apply)
+library(dplyr)
+library(ggplot2)
+library(hypergeo)
+library(LambertW)
+library(quantmod)
+library(SharpeR)
+library(tidyr)
+library(readr)
+library(xtable)
+library(viridis)
+if (!require(tsrsa,quietly=TRUE) && require(remotes)) {
+  # get the 10 industry data
+  remotes::install_github('shabbychef/tsrsa/rpkg')
+}
+@
+
 %UNFOLD
 
-<<'runtime', include=FALSE, warning=FALSE, message=FALSE, cache=TRUE>>=
+<<'runtime'>>=
 # compiler flags!
 
 # you can manipulate the 'runtime' by setting this variable.
@@ -136,6 +200,9 @@ lseq <- function(from,to,length.out) {
 # or 1 if missing.
 
 RUNTIME_PARAM <- max(1,as.numeric(Sys.getenv('RUNTIME_PARAM')),na.rm=TRUE)
+@
+<<'consts'>>=
+ope <- 253
 @
     
 % SYMPY preamble%FOLDUP
@@ -859,7 +926,7 @@ is a unitless quantity. If \psnropt is measured in trading days, then \ssiz shou
 be the number of trading days; if \psnropt is measured in 
 `annualized' terms, then \ssiz should be the number of years.
 
-<<'prelook',eval=TRUE,echo=FALSE,cache=TRUE>>=
+<<'prelook'>>=
 qbound <- function(p, n, zeta.s, use.ope=1) {
 	# the upper bound on quality of the theorem.
 	n.zet <- sqrt(n) * zeta.s
@@ -1168,7 +1235,7 @@ which is exactly the upper bound of \theoremref{qual_bound}!
 
 \subsection{Monte Carlo simulations}%FOLDUP
 
-<<'haircut_study_setup',eval=TRUE,echo=FALSE,cache=TRUE>>=
+<<'haircut_study_setup'>>=
 suppressMessages({
 	library(SharpeR)
   library(dplyr)
@@ -1203,27 +1270,56 @@ make_genz.t <- function(df) {
 	adjust <- sqrt(1/true.v)
 	function(n) { adjust * rt(n,df=df) }
 }
+
+## these now puke when passing to parallel, so rewrite them, sorry.
+#make_genz.tukeyh <- function(h) {
+	#require(LambertW,quietly=TRUE)
+	#Gauss_input <- create_LambertW_input("normal", beta=c(0,1))
+	#params <- list(delta = c(h))
+	#LW.Gauss <- create_LambertW_output(LambertW.input = Gauss_input, theta = params)
+	##get the moments of this distribution
+	#moms <- mLambertW(theta=list(beta=c(0,1),delta = h,gamma = 0,alpha = 1),distname=c("normal"))
+	#function(n) {
+		#Z <- LW.Gauss$r(n)
+		#Z <- (1 / moms$sd) * (Z - moms$mean)
+		#Z
+	#}
+#}
+#make_genz.lambertw <- function(gam) {
+	#require(LambertW,quietly=TRUE)
+	#Gauss_input = create_LambertW_input("normal", beta=c(0,1))
+	#params = list(delta = c(0), gamma=c(gam), alpha = 1)
+	#LW.Gauss = create_LambertW_output(LambertW.input = Gauss_input, theta = params)
+	##get the moments of this distribution
+	#moms <- mLambertW(theta=list(beta=c(0,1),delta = 0,gamma = gam, alpha = 1), distname=c("normal"))
+	#function(n) {
+		#Z <- LW.Gauss$r(n)
+		#Z <- (1 / moms$sd) * (Z - moms$mean)
+		#Z
+	#}
+#}
+
 make_genz.tukeyh <- function(h) {
-	require(LambertW,quietly=TRUE)
-	Gauss_input <- create_LambertW_input("normal", beta=c(0,1))
-	params <- list(delta = c(h))
-	LW.Gauss <- create_LambertW_output(LambertW.input = Gauss_input, theta = params)
-	#get the moments of this distribution
-	moms <- mLambertW(theta=list(beta=c(0,1),delta = h,gamma = 0,alpha = 1),distname=c("normal"))
 	function(n) {
+    require(LambertW,quietly=TRUE)
+    Gauss_input <- create_LambertW_input("normal", beta=c(0,1))
+    params <- list(delta = c(h))
+    LW.Gauss <- create_LambertW_output(LambertW.input = Gauss_input, theta = params)
+    #get the moments of this distribution
+    moms <- mLambertW(theta=list(beta=c(0,1),delta = h,gamma = 0,alpha = 1),distname=c("normal"))
 		Z <- LW.Gauss$r(n)
 		Z <- (1 / moms$sd) * (Z - moms$mean)
 		Z
 	}
 }
 make_genz.lambertw <- function(gam) {
-	require(LambertW,quietly=TRUE)
-	Gauss_input = create_LambertW_input("normal", beta=c(0,1))
-	params = list(delta = c(0), gamma=c(gam), alpha = 1)
-	LW.Gauss = create_LambertW_output(LambertW.input = Gauss_input, theta = params)
-	#get the moments of this distribution
-	moms <- mLambertW(theta=list(beta=c(0,1),delta = 0,gamma = gam, alpha = 1), distname=c("normal"))
 	function(n) {
+    require(LambertW,quietly=TRUE)
+    Gauss_input = create_LambertW_input("normal", beta=c(0,1))
+    params = list(delta = c(0), gamma=c(gam), alpha = 1)
+    LW.Gauss = create_LambertW_output(LambertW.input = Gauss_input, theta = params)
+    #get the moments of this distribution
+    moms <- mLambertW(theta=list(beta=c(0,1),delta = 0,gamma = gam, alpha = 1), distname=c("normal"))
 		Z <- LW.Gauss$r(n)
 		Z <- (1 / moms$sd) * (Z - moms$mean)
 		Z
@@ -1264,9 +1360,9 @@ sample.haircut <- function(n,p,zeta.s,genf=genz.gauss,...) {
 
 # test
 #sample.haircut(1000,10,zeta.s=0.1)
-
+@
+<<'haircut_study',dependson=c('runtime','consts','haircut_study_setup')>>=
 # set everything up
-ope <- 253
 
 n.sim <- ceiling(1e6/max(1,RUNTIME_PARAM))
 n.per <- ceiling(1e3/max(1,RUNTIME_PARAM))
@@ -1293,17 +1389,12 @@ repsim <- function(nsamp, nobs, nstok, zeta.s, genf, rseed=NULL) {
 #repsim(nsamp=100,zeta=0.1,nstok=5,nobs=100,genf=genz.gauss)
 
 suppressMessages({
-  library(doRNG)
-	registerDoRNG()
-  # https://cran.r-project.org/web/packages/doFuture/vignettes/doFuture.html
-  library(doFuture)
-  registerDoFuture()
+  library(future.apply)
 })
 
 manysim <- function(nsamp, genf, nobs=n.obs, nstok=n.stok, zeta=zeta.s, nper=n.per, rseed=1234) {
-  require(doFuture)
-  registerDoFuture()
-  plan(multiprocess)
+  require(future.apply)
+  plan(multisession, gc = TRUE, workers = 100)
 
 	quals <- future_lapply(1:ceiling(nsamp/nper),
 												 FUN=function(...) {
@@ -1335,7 +1426,7 @@ quals.tukey <- manysim(n.sim,genf=make_genz.tukeyh(tuk.h))$ssnr
 quals.lambert <- manysim(n.sim,genf=make_genz.lambertw(lam.gam))$ssnr
 @
 
-<<'hcut_qtile',echo=FALSE,cache=FALSE>>=
+<<'hcut_qtile'>>=
 # print(summary(quals.gaussian))
 # haircut approximation in the equation above
 qqual <- function(p, df1, df2, zeta.s, use.ope=1, lower.tail=TRUE) {
@@ -1387,8 +1478,7 @@ can be computed exactly.
 The Q-Q plot in \figref{haircutting} confirms that 
 \apxref{qual_dist} is very good for this choice of $\ssiz, \nlatf, \psnropt$.
 
-<<'kstestit',eval=TRUE,cache=TRUE,echo=FALSE>>=
-
+<<'kstestit',dependson=c('haircut_study','hcut_qtile')>>=
 x <- quals.gaussian
 x <- x[!is.na(x)]
 sim.ks <- ks.test(x, y=pqual, df1=n.stok, df2=n.obs,
@@ -1410,7 +1500,7 @@ kss.tukey <- get.stat(quals.tukey)
 kss.lambert <- get.stat(quals.lambert)
 @
 
-<<'damnoptions1',eval=TRUE,cache=FALSE,echo=FALSE>>=
+<<'damnoptions1',eval=TRUE,cache=FALSE>>=
 options(digits=3)
 @
 Rather than rely on `proof by graph', the \txtKS test was
@@ -1422,12 +1512,12 @@ over the $\Sexpr{n.sim}$ simulations.
 While this seems small, the computed p-value under the null underflows to \Sexpr{ksp}
 because the sample size is so large.
 
-<<'damnoptions2',eval=TRUE,cache=FALSE,echo=FALSE>>=
+<<'damnoptions2',eval=TRUE,cache=FALSE>>=
 options(digits=2)
 @
 
 
-<<'haircutting',echo=FALSE,cache=TRUE,fig.width=5.00,fig.height=3.0,dpi=450,fig.cap=paste0("Q-Q plot of $10^{",round(log10(n.sim)),"}$ simulated \\txtQual values versus \\apxref{qual_dist} is shown. Units are `annual', \\ie \\yrtomhalf. Since the number of samples is very large, only a subset of $10^{",round(log10(max.ps)),"}$ points, uniformly selected by sample quantile, are plotted.")>>=
+<<'haircutting',dependson=c('haircut_study'),fig.cap=paste0("Q-Q plot of $10^{",round(log10(n.sim)),"}$ simulated \\txtQual values versus \\apxref{qual_dist} is shown. Units are `annual', \\ie \\yrtomhalf. Since the number of samples is very large, only a subset of $10^{",round(log10(max.ps)),"}$ points, uniformly selected by sample quantile, are plotted.")>>=
 # qqplot;
 
 # via qqplot;
@@ -1441,7 +1531,7 @@ suppressMessages({
   library(ggplot2)
 })
 
-max.ps <- 1e4
+max.ps <- 1e3
 if (length(quals.gaussian) > max.ps) {
 	pvs <- ppoints(max.ps)
 	subquals <- quantile(quals.gaussian, probs=pvs)
@@ -1509,7 +1599,7 @@ distributions are presented in \tabref{ks_stats}.
 For this choice of \ssiz, \nlatf, \psnropt, the approximation is
 very good, across the tested returns distributions.
 
-<<'qtiles',echo=FALSE,cache=TRUE,results='asis'>>=
+<<'qtiles',dependson=c('haircut_study'),results='asis'>>=
 
 qs <- c(0.1,0.25,0.5,0.75,0.95,0.975,0.99,0.995)
 qs <- sort(1 - qs)
@@ -1547,7 +1637,7 @@ xres <- xtable(foo.tab,
 print(xres,include.rownames=FALSE)
 @
 
-<<'ks_table',echo=FALSE,cache=TRUE,results='asis'>>=
+<<'ks_table',dependson=c('kstestit'),results='asis'>>=
 
 foo.tab <- data.frame(Gaussian=kss.gaussian,
 	uniform=kss.uni,
@@ -1578,7 +1668,7 @@ xres <- xtable(foo.tab,
 print(xres,include.rownames=FALSE)
 @
 
-%<<'forexample',echo=FALSE,cache=TRUE>>=
+%<<'forexample'>>=
 %big.n.stok <- 21
 %big.med <- qqual(0.5,big.n.stok,n.obs,zeta.s)
 %big.sr <- zeta.s * (1 - big.med)
@@ -1594,7 +1684,7 @@ print(xres,include.rownames=FALSE)
 %\txtMP would have \txtSR less than $\Sexpr{big.sr * sqrt(ope)}\yrtomhalf$, 
 %a less than exciting prospect.
 
-<<'means',echo=FALSE,cache=TRUE,results='asis'>>=
+<<'means',dependson=c('haircut_study','hcut_qtile'),results='asis'>>=
 
 ubound <- qbound(n.stok, n.obs, zeta.s, ope)
 
@@ -1677,46 +1767,59 @@ an estimate of the variance of \pql{\sportwopt} could be had
 by combining \eqnref{hypergeo_extwo} and the upper bound of
 \theoremref{qual_bound}.
 
-<<'quality_heatmaps',eval=TRUE,echo=FALSE,cache=TRUE>>=
+<<'quality_heatmaps',dependson=c('runtime','consts','haircut_study_setup')>>=
 suppressMessages({
   require(SharpeR)
+  require(readr)
 })
 
-ope <- 253
-
 # set everything up
-n.sim3 <- ceiling(1e5/max(1,RUNTIME_PARAM))
-n.per3 <- ceiling(5e3/max(1,RUNTIME_PARAM))
+n.sim3 <- ceiling(1e6/max(1,RUNTIME_PARAM))
+n.per3 <- ceiling(5e4/max(1,RUNTIME_PARAM))
 
 params <- tidyr::crossing(tibble::tribble(~nyr,0.5,1,2,4,8),
                           tibble::tribble(~p,2,4,8,16),
                           tibble::tibble(zeta=sqrt(c(0.125,0.25,0.5,1,2)) / sqrt(ope))) %>%
   mutate(nday=ceiling(ope * nyr)) 
 
-registerDoRNG()
-registerDoFuture()
+RERUN_QH <- FALSE
+stashf <- 'quality_heatmaps.csv'
 
-sims <- params %>% 
-  group_by(nyr,p,zeta,nday) %>%
-    summarize(sims=list(manysim(nsamp=n.sim3,nper=n.per3,nobs=nday,nstok=p,zeta=zeta,genf=genz.gauss))) %>%
-  ungroup() %>%
-  unnest()
+if (RERUN_QH || !file.exists(stashf)) {
+  sims <- params %>% 
+    group_by(nyr,p,zeta,nday) %>%
+      summarize(sims=list(manysim(nsamp=n.sim3,nper=n.per3,nobs=nday,nstok=p,zeta=zeta,genf=genz.gauss))) %>%
+    ungroup() %>%
+    unnest()
 
-# also do ks.test ... 
-ksfunc <- function(sims,df1,df2,zeta,use.ope=ope) {
-  htest <- ks.test(sims,y=pqual, df1=df1, df2=df2, zeta.s=zeta,use.ope=use.ope)
-  data_frame(stat=htest$statistic,pvalue=htest$p.value)
+  # also do ks.test ... 
+  ksfunc <- function(sims,df1,df2,zeta,use.ope=ope) {
+    htest <- ks.test(sims,y=pqual, df1=df1, df2=df2, zeta.s=zeta,use.ope=use.ope)
+    data_frame(stat=htest$statistic,pvalue=htest$p.value)
+  }
+
+  ks.stats <- sims %>%
+    group_by(nyr,p,zeta,nday) %>%
+      summarize(stats=list(ksfunc(ssnr,df1=p,df2=nday,zeta=zeta))) %>%
+    ungroup() %>%
+    unnest() %>%
+    mutate(nsims=n.sim3) %>%
+    rename(nstock=p,value=stat)
+
+  rm(sims)
+
+  ks.stats %>%
+    readr::write_csv(stashf)
+} else {
+  ks.stats <- readr::read_csv(stashf)
+  n.sim3 <- ks.stats %>%
+    distinct(nsims) %>%
+    pull(nsims)
 }
 
-ks.stats <- sims %>%
-  group_by(nyr,p,zeta,nday) %>%
-    summarize(stats=list(ksfunc(ssnr,df1=p,df2=nday,zeta=zeta))) %>%
-  ungroup() %>%
-  unnest() %>%
-  rename(nstock=p,value=stat)
 @
 
-%<<'kstable',echo=FALSE,cache=FALSE,results='asis'>>=
+%<<'kstable',results='asis'>>=
 
 %ks.dat <- ks.stats
 %ks.dat$effsize <- sqrt(ope * ks.dat$nyr) * ks.dat$zeta
@@ -1748,7 +1851,7 @@ portfolio \txtQual, under the distribution of
 %The KS statistic is the maximum absolute deviation
 %of empirical and theoretical CDFs. \cite{Marsaglia:Tsang:Wang:2003:JSSOBK:v08i18}
 
-<<'ksplots',eval=TRUE,echo=FALSE,cache=FALSE,fig.width=5.75,fig.height=4.00,dpi=450,fig.cap=paste0("The \\txtKS statistic for \\apxref{qual_dist} over $10^{",round(log10(n.sim3)),"}$ simulations of Gaussian returns is plotted versus $\\psnropt \\wrapParens{\\nlatf-1}/\\sqrt{\\ssiz}$, with \\psnropt in annualized terms, and \\ssiz measured in years.  There is one line for each combination of $\\ssiz$ and $\\psnropt$. The line color corresponds to the `effect size', $\\sqrt{\\ssiz}\\psnropt$, which is unitless."),eval.after='fig.cap'>>= 
+<<'ksplots',dependson=c('quality_heatmaps'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("The \\txtKS statistic for \\apxref{qual_dist} over $10^{",round(log10(n.sim3)),"}$ simulations of Gaussian returns is plotted versus $\\psnropt \\wrapParens{\\nlatf-1}/\\sqrt{\\ssiz}$, with \\psnropt in annualized terms, and \\ssiz measured in years.  There is one line for each combination of $\\ssiz$ and $\\psnropt$. The line color corresponds to the `effect size', $\\sqrt{\\ssiz}\\psnropt$, which is unitless."),eval.after='fig.cap'>>= 
 
 ks.dat <- ks.stats %>%
   mutate(zeta.an = sqrt(ope) * zeta) %>%
@@ -1787,7 +1890,7 @@ approximation to the distribution of \txtQual of the sample \txtMP.
 %absolute value of the \txtKS statistic, it may be instructive to consider the
 %relative value at different values of $\nlatf, \ssiz, \psnropt$.  
 
-<<'ksheat',eval=TRUE,echo=FALSE,cache=FALSE,fig.width=6.00,fig.height=4.25,dpi=450,fig.cap=paste0("The \\txtKS statistic for \\apxref{qual_dist} over $10^{",round(log10(n.sim3)),"}$ simulations of Gaussian returns is indicated, by color, versus \\nlatf, and the `total effect size,' $\\sqrt{\\ssiz}\\psnropt$, which is a unitless quantity. Different facets are for different values of \\ssiz (in years)."),eval.after='fig.cap'>>= 
+<<'ksheat',dependson=c('quality_heatmaps'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("The \\txtKS statistic for \\apxref{qual_dist} over $10^{",round(log10(n.sim3)),"}$ simulations of Gaussian returns is indicated, by color, versus \\nlatf, and the `total effect size,' $\\sqrt{\\ssiz}\\psnropt$, which is a unitless quantity. Different facets are for different values of \\ssiz (in years)."),eval.after='fig.cap'>>= 
 
 ks.dat <- ks.stats %>%
   mutate(zeta.an = sqrt(ope) * zeta) %>%
@@ -1823,9 +1926,8 @@ print(ph)
 \section{Diversification}%FOLDUP
 \label{sec:diversification}
 
-<<'forexample',echo=FALSE,cache=FALSE>>=
+<<'forexample',dependson=c('consts','hcut_qtile')>>=
 # reset these, just in case...
-ope <- 253
 n.stok <- 6
 n.yr <- 4
 n.obs <- ceiling(ope * n.yr)
@@ -1896,7 +1998,7 @@ The last inequality is implied by the inequality
 $\oneby{4\wrapParens{\nlatf-1}} \le \dbyd{\log\psnropt}{\nlatf}$, 
 with equality holding for $\psnropt = c \wrapParens{\nlatf-1}^{1/4}$.
 
-<<'grow_bound',eval=TRUE,echo=FALSE,cache=TRUE,fig.width=5.00,fig.height=3.25,dpi=450,fig.cap=paste0("The upper bound of \\theoremref{qual_bound} is plotted versus \\nlatf for different scaling laws for \\psnropt.  These scaling laws correspond to $\\psnropt = \\psnr[0]\\nlatf^{\\gamma}$, with $\\gamma$ taking values ",sgammas.summary,".  The constant terms, \\psnr[0], are adjusted so that $\\psnropt =",sqrt(ope) * zeta.s,"\\yrtomhalf$ for $\\nlatf = ",n.stok,"$ for all the lines. The bound uses $\\ssiz=",n.obs,"$, corresponding to ",n.yr," years of daily observations."),eval.after='fig.cap'>>= 
+<<'grow_bound',fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("The upper bound of \\theoremref{qual_bound} is plotted versus \\nlatf for different scaling laws for \\psnropt.  These scaling laws correspond to $\\psnropt = \\psnr[0]\\nlatf^{\\gamma}$, with $\\gamma$ taking values ",sgammas.summary,".  The constant terms, \\psnr[0], are adjusted so that $\\psnropt =",sqrt(ope) * zeta.s,"\\yrtomhalf$ for $\\nlatf = ",n.stok,"$ for all the lines. The bound uses $\\ssiz=",n.obs,"$, corresponding to ",n.yr," years of daily observations."),eval.after='fig.cap'>>= 
 
 bound.experiment <- function(pow,n.obs,zeta.s,
                              n.stok=n.stok,ope=ope,plims=c(2,250)) {
@@ -2010,7 +2112,7 @@ grows with \nlatf.
 %of \psnropt. As a practical matter, this may explain why the
 %\txtMP is typically applied to small asset universes.
 
-<<'grow_sqrt',eval=TRUE,echo=FALSE,cache=TRUE,fig.width=5.00,fig.height=3.25,dpi=450,fig.cap=paste0("Some quantiles of the \\txtQual of the \\txtMP, under \\apxref{qual_dist}, are plotted versus \\nlatf for different scaling laws for \\psnropt. The ",length(sgammas)," panels represent different values of $\\gamma$, \\viz ", sgammas.txt, ". The bound uses $\\ssiz=",n.obs,"$, corresponding to ",n.yr," years of daily observations."),eval.after='fig.cap'>>= 
+<<'grow_sqrt',fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("Some quantiles of the \\txtQual of the \\txtMP, under \\apxref{qual_dist}, are plotted versus \\nlatf for different scaling laws for \\psnropt. The ",length(sgammas)," panels represent different values of $\\gamma$, \\viz ", sgammas.txt, ". The bound uses $\\ssiz=",n.obs,"$, corresponding to ",n.yr," years of daily observations."),eval.after='fig.cap'>>= 
 
 scale.experiment <- function(pow,n.obs,zeta.s,
                              n.stok=n.stok,ope=ope,plims=c(2,250)) {
@@ -2198,7 +2300,7 @@ easily be made.
 The model of stationary mean returns is generalized by one where
 the expected return of the assets is linear in some state
 variables, or `features', \vfact[i], observed prior to the investment
-decision.  \cite{pav2013markowitz,connor1997,herold2004TAA} That
+decision.  \cite{pav_the_book,connor1997,herold2004TAA} That
 is, one observes the \nfac-vector $\vfact[i]$ at some time prior to 
 when the investment decision is required to capture \vreti[i+1]. 
 The general model is now
@@ -2626,22 +2728,27 @@ Then
 \section{Examples}%FOLDUP
 
 \subsection{The equal weight puzzle}%FOLDUP
-<<'qlook',echo=FALSE,cache=FALSE>>=
-if (!require(aqfb.data,quietly=TRUE) && require(devtools)) {
+<<'qlook',dependson=c('hcut_qtile')>>=
+if (!require(tsrsa,quietly=TRUE) && require(remotes)) {
   # get the 10 industry data
-  devtools::install_github('shabbychef/aqfb_data')
+  remotes::install_github('shabbychef/tsrsa/rpkg')
 }
+
 # now look at the data
-library(aqfb.data)
+library(tsrsa)
 # need mind10?
 data(mind10)
 ff11.xts <- mind10
 require(SharpeR)
 
 ff11.xts <- na.omit(ff11.xts)
+time(ff11.xts) <- as.Date(time(ff11.xts))
 
 obn.ret <- function(x.xts) {
-	mur.xts <- xts((1/dim(x.xts)[2]) * rowSums(x.xts),order.by=time(x.xts))
+	#mur.xts <- xts((1/dim(x.xts)[2]) * rowSums(x.xts),order.by=time(x.xts))
+	mur.xts <- xts(rowMeans(x.xts),order.by=as.Date(time(x.xts)))
+  colnames(mur.xts) <- 'Average'
+  return(mur.xts)
 }
 
 mur.xts <- obn.ret(ff11.xts)
@@ -2679,7 +2786,7 @@ The \txtSR of the equal weighted portfolio on the %\Sexpr{dim(ff11.xts)[2]}
 assets, over the \Sexpr{dim(ff11.xts)[1]} months, is around 
 $\Sexpr{sr1$sr}\yrtomhalf$. The \txtSR of the sample \txtMP over
 the \Sexpr{dim(ff11.xts)[2]} assets over the same period is around
-$\Sexpr{sr2$sropt}\yrtomhalf$.  \cite{SharpeR-Manual}
+$\Sexpr{sr2$sropt}\yrtomhalf$.  
 Now consider a portfolio estimator
 given \Sexpr{dgu.yr} years of observations, as in 
 DeMiguel \etal \cite{demiguel2009optimal}, assuming 
@@ -2692,7 +2799,7 @@ $\Sexpr{dfp}$. It is not surprising that DeMiguel \etal drew
 the conclusions they did, nor that they would be refuted
 by looking at a longer sample, as by Kritzman \etal \cite{defoopt2010}
 
-<<'spantest',echo=FALSE,cache=TRUE>>=
+<<'spantest',dependson=c('hcut_qtile')>>=
 
 G <- matrix(1,nrow=1,ncol=dim(ff11.xts)[2])
 dsr2 <- SharpeR::as.del_sropt(ff11.xts,G)
@@ -2716,7 +2823,7 @@ perform inference on this quantity. For example, based on the
 \Delpsnrsqopt{\eye,\hejG}, where \hejG is the \bby{1}{\Sexpr{dim(ff11.xts)[2]}}
 matrix of all ones, is
 $\asrowvec{\Sexpr{myci^2}}\yrto{-1}$, under the assumption of
-Gaussian returns.  \cite{SharpeR-Manual}
+Gaussian returns.  
 
 %One could view the touted superiority of the equal weight portfolio
 %over \eg the \txtMP as a veiled claim that there is a single
@@ -2753,7 +2860,7 @@ Gaussian returns.  \cite{SharpeR-Manual}
 
 \subsection{Empirical diversification in the S\&P 100}%FOLDUP
 
-<<'sp100_divs',cache=FALSE,eval=TRUE,echo=FALSE>>=
+<<'sp100_divs'>>=
 load('sp100lr.rda')
 
 asof <- 'March 21, 2014'
@@ -2778,7 +2885,7 @@ here.
 
 Based on the weekly returns from \Sexpr{sp1.TEO.0} to \Sexpr{sp1.TEO.f},
 estimates of \psnropt were computed, using the `KRS' estimator.
-\cite{kubokawa1993estimation,SharpeR-Manual} 
+\cite{kubokawa1993estimation,pav_the_book} 
 This was performed on the first \nlatf assets, with \nlatf ranging from 
 $1$ to $\Sexpr{dim(sub.lr)[2]}$.  The estimate of \psnropt versus \nlatf
 is plotted in \figref{sp100_grow}, with assets added in alphabetical order.
@@ -2787,7 +2894,7 @@ Because Apple appears at the beginning of this list, it appears that
 when adding assets. This is an artifact of the estimator, since the true
 \psnropt can only increase when adding assets. 
 
-<<'sp100_grow',eval=TRUE,echo=FALSE,cache=TRUE,fig.width=5.00,fig.height=3.25,dpi=450,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names, in alphabetical order, showing the `Apple effect.'"),eval.after='fig.cap'>>= 
+<<'sp100_grow',dependson=c('sp100_divs'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names, in alphabetical order, showing the `Apple effect.'"),eval.after='fig.cap'>>= 
 
 foo.df <- data.frame(df=seq(1:length(KRSs)),KRS=KRSs,
 		MLE=MLEs,meanKRS=rowMeans(buncho.KRSs))
@@ -2803,7 +2910,7 @@ print(ph)
 
 @
 
-%<<'sp100_mid',eval=TRUE,echo=FALSE,cache=FALSE,fig.width=5.75,fig.height=3.75,dpi=450,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names."),eval.after='fig.cap'>>= 
+%<<'sp100_mid',eval=TRUE,cache=FALSE,fig.width=5.75,fig.height=3.75,dpi=450,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names."),eval.after='fig.cap'>>= 
 
 %foo.df <- data.frame(df=(1:length(KRSs)),KRS=KRSs,
 		%MLE=MLEs,meanKRS=rowMeans(buncho.KRSs))
@@ -2831,7 +2938,7 @@ conditions under which \txtQual grows with \nlatf outlined in
 directionally independent portfolio estimators
 over even a small subset of the S\&P 100.
 
-<<'sp100_box',eval=TRUE,echo=FALSE,cache=TRUE,fig.width=5.00,fig.height=3.25,dpi=450,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names is shown over ",dim(buncho.KRSs)[2]," permutations of the stocks. There is effectively \\emph{no} diversification benefit here beyond an equal weight portfolio."),eval.after='fig.cap'>>= 
+<<'sp100_box',dependson=c('sp100_divs'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names is shown over ",dim(buncho.KRSs)[2]," permutations of the stocks. There is effectively \\emph{no} diversification benefit here beyond an equal weight portfolio."),eval.after='fig.cap'>>= 
 
 foo.df <- data.frame(df=rep(1:(dim(buncho.KRSs)[1]),dim(buncho.KRSs)[2]),
 	KRS=as.vector(t(buncho.KRSs)))

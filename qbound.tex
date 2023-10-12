@@ -1,6 +1,6 @@
-\documentclass[10pt,a4paper,english]{article}\usepackage[]{graphicx}\usepackage[]{color}
-%% maxwidth is the original width if it is less than linewidth
-%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\documentclass[10pt,a4paper,english]{article}\usepackage[]{graphicx}\usepackage[]{xcolor}
+% maxwidth is the original width if it is less than linewidth
+% otherwise use linewidth (to make sure the graphics do not exceed the margin)
 \makeatletter
 \def\maxwidth{ %
   \ifdim\Gin@nat@width>\linewidth
@@ -124,7 +124,11 @@
 % knitr setup%FOLDUP
 
 
+
+
+
 %UNFOLD
+
 
 
     
@@ -1153,6 +1157,7 @@ which is exactly the upper bound of \theoremref{qual_bound}!
 
 
 
+
 The accuracy of \apxref{qual_dist} is checked by 
 Monte Carlo simulations: $\ensuremath{10^{6}}$ simulations were performed
 of construction of the \txtMP 
@@ -1180,10 +1185,9 @@ because the sample size is so large.
 
 
 \begin{knitrout}\small
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}
-\includegraphics[width=\maxwidth]{figure/qboundhaircutting-1} \caption{Q-Q plot of $10^{6}$ simulated \txtQual values versus \apxref{qual_dist} is shown. Units are `annual', \ie \yrtomhalf. Since the number of samples is very large, only a subset of $10^{4}$ points, uniformly selected by sample quantile, are plotted.}\label{fig:haircutting}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}[h]
+\includegraphics[width=0.975\textwidth,height=0.691\textwidth]{figure/qboundhaircutting-1} \caption{Q-Q plot of $10^{6}$ simulated \txtQual values versus \apxref{qual_dist} is shown. Units are `annual', \ie \yrtomhalf. Since the number of samples is very large, only a subset of $10^{3}$ points, uniformly selected by sample quantile, are plotted.}\label{fig:haircutting}
 \end{figure}
-
 
 \end{knitrout}
 
@@ -1232,8 +1236,8 @@ distributions are presented in \tabref{ks_stats}.
 For this choice of \ssiz, \nlatf, \psnropt, the approximation is
 very good, across the tested returns distributions.
 
-% latex table generated in R 3.3.2 by xtable 1.8-2 package
-% Wed May  9 22:25:17 2018
+% latex table generated in R 4.1.2 by xtable 1.8-4 package
+% Thu Oct 12 18:19:48 2023
 \begin{table}[ht]
 \centering
 \begin{tabular}{r|ccccc|c}
@@ -1255,8 +1259,8 @@ q.tile & normal & unif. & t(4) & Tukey(0.15) & Lam.W(-0.2) & approx. \\
 \end{table}
 
 
-% latex table generated in R 3.3.2 by xtable 1.8-2 package
-% Wed May  9 22:25:17 2018
+% latex table generated in R 4.1.2 by xtable 1.8-4 package
+% Thu Oct 12 18:19:48 2023
 \begin{table}[ht]
 \centering
 \begin{tabular}{ccccc}
@@ -1271,7 +1275,7 @@ normal & unif. & t(4) & Tukey(0.15) & Lam.W(-0.2) \\
 \end{table}
 
 
-%<<'forexample',echo=FALSE,cache=TRUE>>=
+%<<'forexample'>>=
 %big.n.stok <- 21
 %big.med <- qqual(0.5,big.n.stok,n.obs,zeta.s)
 %big.sr <- zeta.s * (1 - big.med)
@@ -1287,8 +1291,8 @@ normal & unif. & t(4) & Tukey(0.15) & Lam.W(-0.2) \\
 %\txtMP would have \txtSR less than $big.sr * sqrt(ope)\yrtomhalf$, 
 %a less than exciting prospect.
 
-% latex table generated in R 3.3.2 by xtable 1.8-2 package
-% Wed May  9 22:25:17 2018
+% latex table generated in R 4.1.2 by xtable 1.8-4 package
+% Thu Oct 12 18:19:48 2023
 \begin{table}[ht]
 \centering
 \begin{tabular}{ccccc|c}
@@ -1301,8 +1305,8 @@ normal & unif. & t(4) & Tukey(0.15) & Lam.W(-0.2) & bound \\
 \caption{Empirical mean portfolio \txtQual from $10^{6}$ simulations of 1012 days of 6 assets, with maximal \txtSR of $1.25\yrtomhalf$ are given, along with the upper bound from \theoremref{qual_bound}. Units of \txtQual are `annual', \ie \yrtomhalf.} 
 \label{tab:means}
 \end{table}
-% latex table generated in R 3.3.2 by xtable 1.8-2 package
-% Wed May  9 22:25:17 2018
+% latex table generated in R 4.1.2 by xtable 1.8-4 package
+% Thu Oct 12 18:19:48 2023
 \begin{table}[ht]
 \centering
 \begin{tabular}{ccccc|c}
@@ -1339,7 +1343,7 @@ by combining \eqnref{hypergeo_extwo} and the upper bound of
 
 
 
-%<<'kstable',echo=FALSE,cache=FALSE,results='asis'>>=
+%<<'kstable',results='asis'>>=
 
 %ks.dat <- ks.stats
 %ks.dat$effsize <- sqrt(ope * ks.dat$nyr) * ks.dat$zeta
@@ -1360,7 +1364,7 @@ by combining \eqnref{hypergeo_extwo} and the upper bound of
 Of course, these simulations are conducted using only a single
 choice of the parameters \ssiz, \nlatf and \psnropt. To check the
 robustness of this approximation to these parameters, 
-$\ensuremath{10^{5}}$ Monte Carlo simulations were conducted for 
+$\ensuremath{10^{6}}$ Monte Carlo simulations were conducted for 
 each combination of $\ssiz=0.5, 1, 2, 4, 8$ years of daily observations,
 $\nlatf=2, 4, 8, 16$, and
 $\psnropt=0.35, 0.5, 0.71, 1, 1.41\yrtomhalf$,
@@ -1372,10 +1376,9 @@ portfolio \txtQual, under the distribution of
 %of empirical and theoretical CDFs. \cite{Marsaglia:Tsang:Wang:2003:JSSOBK:v08i18}
 
 \begin{knitrout}\small
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}
-\includegraphics[width=\maxwidth]{figure/qboundksplots-1} \caption{The \txtKS statistic for \apxref{qual_dist} over $10^{5}$ simulations of Gaussian returns is plotted versus $\psnropt \wrapParens{\nlatf-1}/\sqrt{\ssiz}$, with \psnropt in annualized terms, and \ssiz measured in years.  There is one line for each combination of $\ssiz$ and $\psnropt$. The line color corresponds to the `effect size', $\sqrt{\ssiz}\psnropt$, which is unitless.}\label{fig:ksplots}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}[h]
+\includegraphics[width=0.99\textwidth,height=0.495\textwidth]{figure/qboundksplots-1} \caption{The \txtKS statistic for \apxref{qual_dist} over $10^{6}$ simulations of Gaussian returns is plotted versus $\psnropt \wrapParens{\nlatf-1}/\sqrt{\ssiz}$, with \psnropt in annualized terms, and \ssiz measured in years.  There is one line for each combination of $\ssiz$ and $\psnropt$. The line color corresponds to the `effect size', $\sqrt{\ssiz}\psnropt$, which is unitless.}\label{fig:ksplots}
 \end{figure}
-
 
 \end{knitrout}
 
@@ -1393,10 +1396,9 @@ approximation to the distribution of \txtQual of the sample \txtMP.
 %relative value at different values of $\nlatf, \ssiz, \psnropt$.  
 
 \begin{knitrout}\small
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}
-\includegraphics[width=\maxwidth]{figure/qboundksheat-1} \caption[The \txtKS statistic for \apxref{qual_dist} over $10^{5}$ simulations of Gaussian returns is indicated, by color, versus \nlatf, and the `total effect size,' $\sqrt{\ssiz}\psnropt$, which is a unitless quantity]{The \txtKS statistic for \apxref{qual_dist} over $10^{5}$ simulations of Gaussian returns is indicated, by color, versus \nlatf, and the `total effect size,' $\sqrt{\ssiz}\psnropt$, which is a unitless quantity. Different facets are for different values of \ssiz (in years).}\label{fig:ksheat}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}[h]
+\includegraphics[width=0.99\textwidth,height=0.495\textwidth]{figure/qboundksheat-1} \caption[The \txtKS statistic for \apxref{qual_dist} over $10^{6}$ simulations of Gaussian returns is indicated, by color, versus \nlatf, and the `total effect size,' $\sqrt{\ssiz}\psnropt$, which is a unitless quantity]{The \txtKS statistic for \apxref{qual_dist} over $10^{6}$ simulations of Gaussian returns is indicated, by color, versus \nlatf, and the `total effect size,' $\sqrt{\ssiz}\psnropt$, which is a unitless quantity. Different facets are for different values of \ssiz (in years).}\label{fig:ksheat}
 \end{figure}
-
 
 \end{knitrout}
 
@@ -1470,11 +1472,10 @@ $\oneby{4\wrapParens{\nlatf-1}} \le \dbyd{\log\psnropt}{\nlatf}$,
 with equality holding for $\psnropt = c \wrapParens{\nlatf-1}^{1/4}$.
 
 \begin{knitrout}\small
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}
-\includegraphics[width=\maxwidth]{figure/qboundgrow_bound-1} \caption{The upper bound of \theoremref{qual_bound} is plotted versus \nlatf for different scaling laws for \psnropt.  These scaling laws correspond to $\psnropt = \psnr[0]\nlatf^{\gamma}$, with $\gamma$ taking values between 0.15 and
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}[h]
+\includegraphics[width=0.99\textwidth,height=0.495\textwidth]{figure/qboundgrow_bound-1} \caption{The upper bound of \theoremref{qual_bound} is plotted versus \nlatf for different scaling laws for \psnropt.  These scaling laws correspond to $\psnropt = \psnr[0]\nlatf^{\gamma}$, with $\gamma$ taking values between 0.15 and
 0.35.  The constant terms, \psnr[0], are adjusted so that $\psnropt =1.25\yrtomhalf$ for $\nlatf = 6$ for all the lines. The bound uses $\ssiz=1012$, corresponding to 4 years of daily observations.}\label{fig:grow_bound}
 \end{figure}
-
 
 \end{knitrout}
 
@@ -1513,10 +1514,9 @@ grows with \nlatf.
 %\txtMP is typically applied to small asset universes.
 
 \begin{knitrout}\small
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}
-\includegraphics[width=\maxwidth]{figure/qboundgrow_sqrt-1} \caption[Some quantiles of the \txtQual of the \txtMP, under \apxref{qual_dist}, are plotted versus \nlatf for different scaling laws for \psnropt]{Some quantiles of the \txtQual of the \txtMP, under \apxref{qual_dist}, are plotted versus \nlatf for different scaling laws for \psnropt. The 3 panels represent different values of $\gamma$, \viz 0.21, 0.25, and 0.29. The bound uses $\ssiz=1012$, corresponding to 4 years of daily observations.}\label{fig:grow_sqrt}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}[h]
+\includegraphics[width=0.99\textwidth,height=0.495\textwidth]{figure/qboundgrow_sqrt-1} \caption[Some quantiles of the \txtQual of the \txtMP, under \apxref{qual_dist}, are plotted versus \nlatf for different scaling laws for \psnropt]{Some quantiles of the \txtQual of the \txtMP, under \apxref{qual_dist}, are plotted versus \nlatf for different scaling laws for \psnropt. The 3 panels represent different values of $\gamma$, \viz 0.21, 0.25, and 0.29. The bound uses $\ssiz=1012$, corresponding to 4 years of daily observations.}\label{fig:grow_sqrt}
 \end{figure}
-
 
 \end{knitrout}
 
@@ -1644,7 +1644,7 @@ easily be made.
 The model of stationary mean returns is generalized by one where
 the expected return of the assets is linear in some state
 variables, or `features', \vfact[i], observed prior to the investment
-decision.  \cite{pav2013markowitz,connor1997,herold2004TAA} That
+decision.  \cite{pav_the_book,connor1997,herold2004TAA} That
 is, one observes the \nfac-vector $\vfact[i]$ at some time prior to 
 when the investment decision is required to capture \vreti[i+1]. 
 The general model is now
@@ -2086,24 +2086,24 @@ by Ken French.
 % 2FIX: add citation to data.
 
 The monthly returns, from 1927-01-01 to 
-2016-12-01, for these 10 
+2020-12-01, for these 10 
 assets were downloaded
 from Kenneth French's data library.  \cite{French10Port}
 %from \emph{Quandl}.  \cite{Quandl}
 The \txtSR of the equal weighted portfolio on the %10
-assets, over the 1080 months, is around 
-$0.66\yrtomhalf$. The \txtSR of the sample \txtMP over
+assets, over the 1128 months, is around 
+$0.67\yrtomhalf$. The \txtSR of the sample \txtMP over
 the 10 assets over the same period is around
-$0.89\yrtomhalf$.  \cite{SharpeR-Manual}
+$0.86\yrtomhalf$.  
 Now consider a portfolio estimator
 given 5 years of observations, as in 
 DeMiguel \etal \cite{demiguel2009optimal}, assuming 
-$\psnropt=0.89\yrtomhalf$. The bound on expected
+$\psnropt=0.86\yrtomhalf$. The bound on expected
 value of \pql{\sportwfnc{\mreti}} from \theoremref{qual_bound}
-is only $0.49\yrtomhalf$.  Under \apxref{qual_dist}, 
+is only $0.46\yrtomhalf$.  Under \apxref{qual_dist}, 
 the probability that \pql{\sportwfnc{\mreti}} exceeds 
-$0.66\yrtomhalf$ in this case is only
-$0.16$. It is not surprising that DeMiguel \etal drew
+$0.67\yrtomhalf$ in this case is only
+$0.1$. It is not surprising that DeMiguel \etal drew
 the conclusions they did, nor that they would be refuted
 by looking at a longer sample, as by Kritzman \etal \cite{defoopt2010}
 
@@ -2114,12 +2114,12 @@ the upper bound of that theorem is non-negative, and zero only
 if the quantity \Delpsnrsqopt{\eye,\hejG} is zero.  This is a
 statement regarding unknown population parameters, but we can
 perform inference on this quantity. For example, based on the
-1080 months of data on these 
+1128 months of data on these 
 10, the 95\% confidence interval on
 \Delpsnrsqopt{\eye,\hejG}, where \hejG is the \bby{1}{10}
 matrix of all ones, is
-$\asrowvec{0.07, 0.54}\yrto{-1}$, under the assumption of
-Gaussian returns.  \cite{SharpeR-Manual}
+$\asrowvec{0.04, 0.45}\yrto{-1}$, under the assumption of
+Gaussian returns.  
 
 %One could view the touted superiority of the equal weight portfolio
 %over \eg the \txtMP as a veiled claim that there is a single
@@ -2172,7 +2172,7 @@ here.
 
 Based on the weekly returns from 2009-03-27 to 2014-04-04,
 estimates of \psnropt were computed, using the `KRS' estimator.
-\cite{kubokawa1993estimation,SharpeR-Manual} 
+\cite{kubokawa1993estimation,pav_the_book} 
 This was performed on the first \nlatf assets, with \nlatf ranging from 
 $1$ to $96$.  The estimate of \psnropt versus \nlatf
 is plotted in \figref{sp100_grow}, with assets added in alphabetical order.
@@ -2182,14 +2182,13 @@ when adding assets. This is an artifact of the estimator, since the true
 \psnropt can only increase when adding assets. 
 
 \begin{knitrout}\small
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}
-\includegraphics[width=\maxwidth]{figure/qboundsp100_grow-1} \caption[Growth of estimated \psnropt versus \nlatf for the S\&P 100 Index names, in alphabetical order, showing the `Apple effect.']{Growth of estimated \psnropt versus \nlatf for the S\&P 100 Index names, in alphabetical order, showing the `Apple effect.'}\label{fig:sp100_grow}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}[h]
+\includegraphics[width=0.99\textwidth,height=0.495\textwidth]{figure/qboundsp100_grow-1} \caption[Growth of estimated \psnropt versus \nlatf for the S\&P 100 Index names, in alphabetical order, showing the `Apple effect.']{Growth of estimated \psnropt versus \nlatf for the S\&P 100 Index names, in alphabetical order, showing the `Apple effect.'}\label{fig:sp100_grow}
 \end{figure}
-
 
 \end{knitrout}
 
-%<<'sp100_mid',eval=TRUE,echo=FALSE,cache=FALSE,fig.width=5.75,fig.height=3.75,dpi=450,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names."),eval.after='fig.cap'>>= 
+%<<'sp100_mid',eval=TRUE,cache=FALSE,fig.width=5.75,fig.height=3.75,dpi=450,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names."),eval.after='fig.cap'>>= 
 
 %foo.df <- data.frame(df=(1:length(KRSs)),KRS=KRSs,
 		%MLE=MLEs,meanKRS=rowMeans(buncho.KRSs))
@@ -2218,10 +2217,9 @@ directionally independent portfolio estimators
 over even a small subset of the S\&P 100.
 
 \begin{knitrout}\small
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}
-\includegraphics[width=\maxwidth]{figure/qboundsp100_box-1} \caption[Growth of estimated \psnropt versus \nlatf for the S\&P 100 Index names is shown over 1000 permutations of the stocks]{Growth of estimated \psnropt versus \nlatf for the S\&P 100 Index names is shown over 1000 permutations of the stocks. There is effectively \emph{no} diversification benefit here beyond an equal weight portfolio.}\label{fig:sp100_box}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}[h]
+\includegraphics[width=0.99\textwidth,height=0.495\textwidth]{figure/qboundsp100_box-1} \caption[Growth of estimated \psnropt versus \nlatf for the S\&P 100 Index names is shown over 1000 permutations of the stocks]{Growth of estimated \psnropt versus \nlatf for the S\&P 100 Index names is shown over 1000 permutations of the stocks. There is effectively \emph{no} diversification benefit here beyond an equal weight portfolio.}\label{fig:sp100_box}
 \end{figure}
-
 
 \end{knitrout}
 %UNFOLD

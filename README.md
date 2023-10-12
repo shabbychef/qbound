@@ -8,11 +8,11 @@ There are a few ways to build the paper:
 
 1. Build it locally on your computer via `knitr` and `R`. This will require
 the following packages:
-`knitr`, `devtools`, `doFuture`, `doRNG`, `dplyr`, `ggplot2`, `hypergeo`, `knitr`, `LambertW`, 
-`quantmod`, `SharpeR`, `tidyr`, `xtable`, 
-and `aqfb.data`, which is available from github via
+`knitr`, `remotes`, `future.apply`, `dplyr`, `ggplot2`, `hypergeo`, `knitr`, `LambertW`, 
+`quantmod`, `SharpeR`, `tidyr`, `xtable`, `viridis`, 
+and `tsrsa`, which is available from github via
 ```r
-install_github("shabbychef/aqfb_data")
+remotes::install_github("shabbychef/tsrsa/rpkg")
 ```
 Then you can build via
 ```r
