@@ -36,7 +36,8 @@
 % see http://tex.stackexchange.com/a/3034/2530
 \PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
 \usepackage{hyperref}
-\usepackage[square,numbers]{natbib}
+%\usepackage[square,numbers]{natbib}
+\usepackage{apacite}
 %\usepackage[authoryear]{natbib}
 %\usepackage[iso]{datetime}
 %\usepackage{datetime}
@@ -3110,7 +3111,8 @@ be generalized to include these costs?
 %\bibliographystyle{jss}
 %\bibliographystyle{siam}
 %\bibliographystyle{ieeetr}
-\bibliographystyle{plainnat}
+%\bibliographystyle{plainnat}
+\bibliographystyle{apacite}
 %\bibliographystyle{acm}
 \bibliography{SharpeR,rauto}
 %\bibliography{AsymptoticMarkowitz}
