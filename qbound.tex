@@ -1,4 +1,4 @@
-\documentclass[10pt,a4paper,english]{article}\usepackage[]{graphicx}\usepackage[]{xcolor}
+\documentclass[10pt,a4paper,english]{article}\usepackage[]{graphicx}\usepackage[]{color}
 % maxwidth is the original width if it is less than linewidth
 % otherwise use linewidth (to make sure the graphics do not exceed the margin)
 \makeatletter
@@ -12,6 +12,9 @@
 \makeatother
 
 \definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\makeatletter
+\@ifundefined{AddToHook}{}{\AddToHook{package/xcolor/after}{\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}}}
+\makeatother
 \newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
 \newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
 \newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
@@ -46,9 +49,24 @@
 \definecolor{messagecolor}{rgb}{0, 0, 0}
 \definecolor{warningcolor}{rgb}{1, 0, 1}
 \definecolor{errorcolor}{rgb}{1, 0, 0}
+\makeatletter
+\@ifundefined{AddToHook}{}{\AddToHook{package/xcolor/after}{
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+}}
+\makeatother
 \newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
 
 \usepackage{alltt}
+% for MF
+% to move figures to end of doc 
+\usepackage[nomarkers,tablesfirst]{endfloat}
+% to make it double spaced
+\usepackage{setspace}
+\doublespacing
+
 
 % now ignored, I think:
 %\VignetteEngine{knitr::knitr}
@@ -1050,29 +1068,54 @@ degrees of freedom.
 %UNFOLD
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Approximate distribution of the \txtQual of the \txtMP}%FOLDUP
-\label{sec:apx_distribution}
+%\section{Approximate distribution of the \txtQual of the \txtMP}%FOLDUP
+%\label{sec:apx_distribution}
 
-Here we establish an approximate distribution of the 
-quantity $\fracc{\pql{\sportw}}{\psnropt} = \cos\spang$
-for the sample \txtMP, $\sportwopt \defeq \minvAB{\svsig}{\svmu},$
-with $\svsig, \svmu$ the usual sample estimates of \pvsig and
-\pvmu. The approximation is constructed by assuming that
-misestimation of \pvsig contributes no error to the portfolio.
+%Here we establish an approximate distribution of the 
+%quantity $\fracc{\pql{\sportw}}{\psnropt} = \cos\spang$
+%for the sample \txtMP, $\sportwopt \defeq \minvAB{\svsig}{\svmu},$
+%with $\svsig, \svmu$ the usual sample estimates of \pvsig and
+%\pvmu. The approximation is constructed by assuming that
+%misestimation of \pvsig contributes no error to the portfolio.
 
-Assuming that $\svsig = \pvsig$, then
-\begin{equation}
-\trchol{\pvsig}\sportwopt = \ichol{\pvsig}\svmu = 
-\ichol{\pvsig}\pvmu + \oneby{\sqrt{\ssiz}}\zvc,
-\end{equation}
-where $\zvc \sim \normlaw{\vzero, \eye}$. 
-%Then we should have
+%Assuming that $\svsig = \pvsig$, then
 %\begin{equation}
-%\pql{\sportwfnc{\mreti}} = \psnropt \frac{\norm{\ichol{\pvsig}\pvmu} + \oneby{\sqrt{\ssiz}}z_1}{%
-%\sqrt{\normUL{2}{2}{\ichol{\pvsig}\pvmu} + \oneby{\ssiz}\sum_{1 \le i \le \nlatf} z_i^2}},
+%\trchol{\pvsig}\sportwopt = \ichol{\pvsig}\svmu = 
+%\ichol{\pvsig}\pvmu + \oneby{\sqrt{\ssiz}}\zvc,
+%\end{equation}
+%where $\zvc \sim \normlaw{\vzero, \eye}$. 
+%%Then we should have
+%%\begin{equation}
+%%\pql{\sportwfnc{\mreti}} = \psnropt \frac{\norm{\ichol{\pvsig}\pvmu} + \oneby{\sqrt{\ssiz}}z_1}{%
+%%\sqrt{\normUL{2}{2}{\ichol{\pvsig}\pvmu} + \oneby{\ssiz}\sum_{1 \le i \le \nlatf} z_i^2}},
+%%\end{equation}
+%%where the $z_i$ are independent standard normal random variables.
+%%Equivalently,
+%%\begin{equation}
+%%\label{apx:qual_beta}
+%%\pqlsq{\sportwfnc{\mreti}} \sim 
+%%\psnrsqopt \nctbetalaw{\ssiz\psnrsqopt}{\half}{\half[\nlatf-1]},
+%%\end{equation}
+%%where \nctbetalaw{\nctp}{p}{q} is a non-central Beta distribution 
+%%with non-centrality \nctp, and `shape' parameters $p$ and $q$.
+%%\cite{walck:1996}
+%Then, with $\fracc{\pql{\sportwfnc{\mreti}}}{\psnropt} =
+%\fcos{\spangfnc{\mreti}}$, we should have
+%\begin{equation}
+%\fcot{\spangfnc{\mreti}} =  \frac{\norm{\ichol{\pvsig}\pvmu} + \oneby{\sqrt{\ssiz}}z_1}{%
+%\sqrt{\oneby{\ssiz}\sum_{2 \le i \le \nlatf} z_i^2}},
 %\end{equation}
 %where the $z_i$ are independent standard normal random variables.
-%Equivalently,
+%This can be expressed as
+%\begin{equation}
+%\label{apx:qual_dist}
+%\ftan{\farcsin{\frac{\pql{\sportwfnc{\mreti}}}{\psnropt}}}
+%\sim \oneby{\sqrt{\nlatf - 1}}\nctlaw{\sqrt{\ssiz}\psnropt,\nlatf-1},
+%\end{equation}
+%where \nctlaw{\nctp,\nu} is a non-central \tstat-distribution with 
+%non-centrality parameter $\nctp$ and $\nu$ degrees of freedom.
+
+%\apxref{qual_dist} implies the following approximation:
 %\begin{equation}
 %\label{apx:qual_beta}
 %\pqlsq{\sportwfnc{\mreti}} \sim 
@@ -1081,218 +1124,153 @@ where $\zvc \sim \normlaw{\vzero, \eye}$.
 %where \nctbetalaw{\nctp}{p}{q} is a non-central Beta distribution 
 %with non-centrality \nctp, and `shape' parameters $p$ and $q$.
 %\cite{walck:1996}
-Then, with $\fracc{\pql{\sportwfnc{\mreti}}}{\psnropt} =
-\fcos{\spangfnc{\mreti}}$, we should have
-\begin{equation}
-\fcot{\spangfnc{\mreti}} =  \frac{\norm{\ichol{\pvsig}\pvmu} + \oneby{\sqrt{\ssiz}}z_1}{%
-\sqrt{\oneby{\ssiz}\sum_{2 \le i \le \nlatf} z_i^2}},
-\end{equation}
-where the $z_i$ are independent standard normal random variables.
-This can be expressed as
-\begin{equation}
-\label{apx:qual_dist}
-\ftan{\farcsin{\frac{\pql{\sportwfnc{\mreti}}}{\psnropt}}}
-\sim \oneby{\sqrt{\nlatf - 1}}\nctlaw{\sqrt{\ssiz}\psnropt,\nlatf-1},
-\end{equation}
-where \nctlaw{\nctp,\nu} is a non-central \tstat-distribution with 
-non-centrality parameter $\nctp$ and $\nu$ degrees of freedom.
-
-\apxref{qual_dist} implies the following approximation:
-\begin{equation}
-\label{apx:qual_beta}
-\pqlsq{\sportwfnc{\mreti}} \sim 
-\psnrsqopt \nctbetalaw{\ssiz\psnrsqopt}{\half}{\half[\nlatf-1]},
-\end{equation}
-where \nctbetalaw{\nctp}{p}{q} is a non-central Beta distribution 
-with non-centrality \nctp, and `shape' parameters $p$ and $q$.
-\cite{walck:1996}
-However, by describing the distribution of the 
-\emph{square} of \pql{\sportwfnc{\mreti}}, we cannot easily model the 
-(sometimes significant) probability that it 
-is negative.
-This form, does, however, give bounds on the variance
-of \pql{\sportwfnc{\mreti}} under the 
-approximation of \apxref{qual_dist}, since
-the moments of the non-central Beta are known.
-\cite[sec 30.3]{walck:1996} Under \apxref{qual_dist},
-we have
-\begin{equation}
-\label{eqn:hypergeo_extwo}
-\E{\pqlsq{\sportwfnc{\mreti}}} = 
-\psnrsqopt \exp{-\half[\ssiz\psnrsqopt]}
-\GAMhalfrat{3}{1}
-\GAMhalfrat{\nlatf}{\nlatf+2}
-\HyperF{2}{2}{\half[\nlatf], \half[3] ; \half, \half[2 + \nlatf];
-\half[\ssiz\psnrsqopt]},
-\end{equation}
-where \HyperF{2}{2}{\cdot,\cdot;\cdot,\cdot;\cdot} is the Generalized
-Hypergeometric function. \cite[sec 16.2]{NIST_handbook} This
-is a rough upper bound on the variance of \pqlsq{\sportwfnc{\mreti}};
-a lower bound can be had using the upper bound on the mean
-from \theoremref{qual_bound}.
-
-%Another way of expressing \apxref{qual_dist} is via a non-central
-%\tstat{}-distribution:
+%However, by describing the distribution of the 
+%\emph{square} of \pql{\sportwfnc{\mreti}}, we cannot easily model the 
+%(sometimes significant) probability that it 
+%is negative.
+%This form, does, however, give bounds on the variance
+%of \pql{\sportwfnc{\mreti}} under the 
+%approximation of \apxref{qual_dist}, since
+%the moments of the non-central Beta are known.
+%\cite[sec 30.3]{walck:1996} Under \apxref{qual_dist},
+%we have
 %\begin{equation}
-%\label{apx:hcut_apx}
-%\ftan{\farcsin{\frac{\pql{\sportwfnc{\mreti}}}{\psnropt}}} 
-%\sim \oneby{\sqrt{\nlatf - 1}}\nctlaw{\sqrt{\ssiz}\psnropt,\nlatf-1},
+%\label{eqn:hypergeo_extwo}
+%\E{\pqlsq{\sportwfnc{\mreti}}} = 
+%\psnrsqopt \exp{-\half[\ssiz\psnrsqopt]}
+%\GAMhalfrat{3}{1}
+%\GAMhalfrat{\nlatf}{\nlatf+2}
+%\HyperF{2}{2}{\half[\nlatf], \half[3] ; \half, \half[2 + \nlatf];
+%\half[\ssiz\psnrsqopt]},
 %\end{equation}
-%where \nctlaw{\nctp,\nu} is a non-central \tstat-distribution with 
-%non-centrality parameter $\nctp$ and $\nu$ degrees of freedom.
-%Again, this is an approximation for the case of Gaussian returns
-%assuming no mis-estimation of the covariance matrix.
-Because the median value of the non-central 
-\tstat{}-distribution is approximately equal to the 
-non-centrality parameter, \cite{Johnson:1940,kramer_paik_1979}
-the median value of \pql{\sportwfnc{\mreti}} for
-the sample \txtMP, via \apxref{qual_dist}, is approximately
-\begin{equation}
-\label{apx:hcut50_apx}
-m \approx \psnropt \fsin{\farctan{\frac{\sqrt{\ssiz}\psnropt}{\sqrt{\nlatf-1}}}}
-= \frac{\sqrt{\ssiz}\psnrsqopt}{\sqrt{\nlatf - 1 + \ssiz \psnrsqopt}},
-\end{equation}
-which is exactly the upper bound of \theoremref{qual_bound}!
+%where \HyperF{2}{2}{\cdot,\cdot;\cdot,\cdot;\cdot} is the Generalized
+%Hypergeometric function. \cite[sec 16.2]{NIST_handbook} This
+%is a rough upper bound on the variance of \pqlsq{\sportwfnc{\mreti}};
+%a lower bound can be had using the upper bound on the mean
+%from \theoremref{qual_bound}.
 
-%Thus 
+%%Another way of expressing \apxref{qual_dist} is via a non-central
+%%\tstat{}-distribution:
+%%\begin{equation}
+%%\label{apx:hcut_apx}
+%%\ftan{\farcsin{\frac{\pql{\sportwfnc{\mreti}}}{\psnropt}}} 
+%%\sim \oneby{\sqrt{\nlatf - 1}}\nctlaw{\sqrt{\ssiz}\psnropt,\nlatf-1},
+%%\end{equation}
+%%where \nctlaw{\nctp,\nu} is a non-central \tstat-distribution with 
+%%non-centrality parameter $\nctp$ and $\nu$ degrees of freedom.
+%%Again, this is an approximation for the case of Gaussian returns
+%%assuming no mis-estimation of the covariance matrix.
+%Because the median value of the non-central 
+%\tstat{}-distribution is approximately equal to the 
+%non-centrality parameter, \cite{Johnson:1940,kramer_paik_1979}
+%the median value of \pql{\sportwfnc{\mreti}} for
+%the sample \txtMP, via \apxref{qual_dist}, is approximately
 %\begin{equation}
-%\label{apx:hcut_apx}
-%\ftan{\farcsin{\frac{\pql{\sportwfnc{\mreti}}}{\psnropt}}} 
-%\sim \oneby{\sqrt{\nlatf - 1}}\nctlaw{\sqrt{\ssiz}\psnropt,\nlatf-1}.
+%\label{apx:hcut50_apx}
+%m \approx \psnropt \fsin{\farctan{\frac{\sqrt{\ssiz}\psnropt}{\sqrt{\nlatf-1}}}}
+%= \frac{\sqrt{\ssiz}\psnrsqopt}{\sqrt{\nlatf - 1 + \ssiz \psnrsqopt}},
 %\end{equation}
-%This can also be expressed as
-%\begin{equation}
-%\label{apx:qual_beta}
-%\pqlsq{\sportwfnc{\mreti}} 
-%= \psnrsqopt \frac{\nctvar^2}{\wrapParens{\nlatf-1} + \nctvar^2}
-%= \psnrsqopt b,
-%\end{equation}
-%where $\nctvar\sim\nctlaw{\sqrt{\ssiz}\psnropt,\nlatf-1}$, and
-%$b\sim\nctbetalaw{\ssiz\psnrsqopt}{\half[\nlatf-1]}{\half}$,
-%a non-central beta distribution. \cite[39.1]{HastingsPeacock3rd}
+%which is exactly the upper bound of \theoremref{qual_bound}!
 
-\subsection{Monte Carlo simulations}%FOLDUP
+%%Thus 
+%%\begin{equation}
+%%\label{apx:hcut_apx}
+%%\ftan{\farcsin{\frac{\pql{\sportwfnc{\mreti}}}{\psnropt}}} 
+%%\sim \oneby{\sqrt{\nlatf - 1}}\nctlaw{\sqrt{\ssiz}\psnropt,\nlatf-1}.
+%%\end{equation}
+%%This can also be expressed as
+%%\begin{equation}
+%%\label{apx:qual_beta}
+%%\pqlsq{\sportwfnc{\mreti}} 
+%%= \psnrsqopt \frac{\nctvar^2}{\wrapParens{\nlatf-1} + \nctvar^2}
+%%= \psnrsqopt b,
+%%\end{equation}
+%%where $\nctvar\sim\nctlaw{\sqrt{\ssiz}\psnropt,\nlatf-1}$, and
+%%$b\sim\nctbetalaw{\ssiz\psnrsqopt}{\half[\nlatf-1]}{\half}$,
+%%a non-central beta distribution. \cite[39.1]{HastingsPeacock3rd}
 
-
-
-
-
-
-The accuracy of \apxref{qual_dist} is checked by 
-Monte Carlo simulations: $\ensuremath{10^{6}}$ simulations were performed
-of construction of the \txtMP 
-using $\ssiz=1012$ (4 years of daily observations), 
-$\nlatf=6$ and $\psnropt=1.25\yrtomhalf$;
-the returns are normally distributed.
-Since the population \txtMP is known, the portfolio \txtQual 
-can be computed exactly.
-The Q-Q plot in \figref{haircutting} confirms that 
-\apxref{qual_dist} is very good for this choice of $\ssiz, \nlatf, \psnropt$.
+% \subsection{Monte Carlo simulations}%FOLDUP
 
 
 
 
-Rather than rely on `proof by graph', the \txtKS test was
-computed for the values of \txtQual generated under Gaussian returns.
-\cite{Marsaglia:Tsang:Wang:2003:JSSOBK:v08i18}
-The statistic, the maximal difference between empirical CDF and
-theoretical CDF under the approximation, was computed to be 0.005
-over the $\ensuremath{10^{6}}$ simulations.
-While this seems small, the computed p-value under the null underflows to 0
-because the sample size is so large.
+
+
+%The accuracy of \apxref{qual_dist} is checked by 
+%Monte Carlo simulations: $n.sim$ simulations were performed
+%of construction of the \txtMP 
+%using $\ssiz=n.obs$ (n.yr years of daily observations), 
+%$\nlatf=n.stok$ and $\psnropt=zeta.s * sqrt(ope)\yrtomhalf$;
+%the returns are normally distributed.
+%Since the population \txtMP is known, the portfolio \txtQual 
+%can be computed exactly.
+%The Q-Q plot in \figref{haircutting} confirms that 
+%\apxref{qual_dist} is very good for this choice of $\ssiz, \nlatf, \psnropt$.
 
 
 
 
-\begin{knitrout}\small
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}[h]
-\includegraphics[width=0.975\textwidth,height=0.691\textwidth]{figure/qboundhaircutting-1} \caption[Q-Q plot of $10^{6}$ simulated \txtQual values versus \apxref{qual_dist} is shown]{Q-Q plot of $10^{6}$ simulated \txtQual values versus \apxref{qual_dist} is shown.}\label{fig:haircutting}
-\end{figure}
-
-\end{knitrout}
-
-%% 2FIX: these are for the 'haircut', not 'quality'
-%The median value of the haircut over the $n.sim$ simulations
-%is $median(quals.gaussian)$, meaning that in more than half the simulations,
-%the sample portfolio has `lost' more than 
-%$round(100 * median(quals.gaussian))$\% of the optimal population \txtSR.
-%Put another way, with probability around one half, 
-%the population \txtSR of the sample \txtMP is less than 
-%$(1 - median(quals.gaussian)) * zeta.s * sqrt(ope)\yrtomhalf$.
-%Note that the median value under \apxref{qual_dist}
-%is correct to $n.digs$ digits.
-
-%For the case where
-%$\ssiz=n.obs$ (n.yr years of daily observations), 
-%$\nlatf=n.stok$ and $\psnropt=zeta.s * sqrt(ope)\yrtomhalf$, 
-%the t-approximation is very good indeed. 
-
-%Since the Gaussian distribution is a poor model for real returns, 
-The experiment is then repeated using returns drawn 
-from a uniform distribution, 
-a \tstat{}-distribution with $4$ degrees of freedom, 
-from a Tukey $h$-distribution with parameter $h=0.15$, 
-and from a Lambert W $\times$ Gaussian
-with parameter $\gamma=-0.2$.  \cite{2009arXiv0912.4554G,2010arXiv1010.2265G}
-Returns are generated by first generating \iid \nlatf-variate draws
-from a zero mean, identity covariance distribution whose marginals
-follow the so-named laws, then scaling and shifting to have the
-appropriate \psnropt. For each simulation, the \pvsig is a random
-draw from a Wishart random variable.
-
-The uniform distribution is not a realistic model of market returns,
-but is included to check the approximation on platykurtic returns.
-The \tstat{} and more exotic distributions are more realistic
-models of market returns, and are leptokurtotic. The 
-Lambert W has non-zero skew. 
-Again, $\ensuremath{10^{6}}$ simulations are performed under each of these 
-distributions with the same values of $\ssiz, \nlatf, \psnropt$ as
-above. 
-Some of the empirical quantiles from these simulations are
-shown in \tabref{qtiles},
-along with the approximate quantiles from \apxref{qual_dist}. 
-The \txtKS test statistics for the different
-distributions are presented in \tabref{ks_stats}.
-For this choice of \ssiz, \nlatf, \psnropt, the approximation is
-very good, across the tested returns distributions.
-
-% latex table generated in R 4.1.2 by xtable 1.8-4 package
-% Thu Oct 12 18:19:48 2023
-\begin{table}[ht]
-\centering
-\begin{tabular}{r|ccccc|c}
-  \hline
-q.tile & normal & unif. & t(4) & Tukey(0.15) & Lam.W(-0.2) & approx. \\ 
-  \hline
-0.005 & -0.0443 & -0.0509 & -0.0443 & -0.0412 & -0.0453 & -0.0450 \\ 
-  0.010 & 0.0995 & 0.0911 & 0.0973 & 0.0980 & 0.0965 & 0.0996 \\ 
-  0.025 & 0.2891 & 0.2867 & 0.2907 & 0.2915 & 0.2880 & 0.2928 \\ 
-  0.050 & 0.4367 & 0.4345 & 0.4375 & 0.4377 & 0.4355 & 0.4397 \\ 
-  0.250 & 0.7860 & 0.7854 & 0.7872 & 0.7862 & 0.7854 & 0.7890 \\ 
-  0.500 & 0.9527 & 0.9525 & 0.9532 & 0.9527 & 0.9522 & 0.9550 \\ 
-  0.750 & 1.0705 & 1.0706 & 1.0707 & 1.0705 & 1.0701 & 1.0721 \\ 
-  0.900 & 1.1430 & 1.1431 & 1.1435 & 1.1429 & 1.1428 & 1.1442 \\ 
-   \hline
-\end{tabular}
-\caption{Empirical quantiles of portfolio \txtQual from $10^{6}$ simulations of 1012 days of 6 assets, with maximal \txtSR of $1.25\yrtomhalf$ are given, along with the approximate quantiles from \apxref{qual_dist}. Units of \txtQual are `annual', \ie \yrtomhalf.} 
-\label{tab:qtiles}
-\end{table}
+%Rather than rely on `proof by graph', the \txtKS test was
+%computed for the values of \txtQual generated under Gaussian returns.
+%\cite{Marsaglia:Tsang:Wang:2003:JSSOBK:v08i18}
+%The statistic, the maximal difference between empirical CDF and
+%theoretical CDF under the approximation, was computed to be kss.gaussian
+%over the $n.sim$ simulations.
+%While this seems small, the computed p-value under the null underflows to ksp
+%because the sample size is so large.
 
 
-% latex table generated in R 4.1.2 by xtable 1.8-4 package
-% Thu Oct 12 18:19:48 2023
-\begin{table}[ht]
-\centering
-\begin{tabular}{ccccc}
-  \hline
-normal & unif. & t(4) & Tukey(0.15) & Lam.W(-0.2) \\ 
-  \hline
-0.0046 & 0.0055 & 0.0037 & 0.0047 & 0.0058 \\ 
-   \hline
-\end{tabular}
-\caption{\txtKS statistic comparing the empirical CDF to that of \apxref{qual_dist} over $10^{6}$ simulations of 1012 days of 6 assets, with maximal \txtSR of $1.25\yrtomhalf$ are given for the different returns distributions.} 
-\label{tab:ks_stats}
-\end{table}
+
+
+
+
+%%% 2FIX: these are for the 'haircut', not 'quality'
+%%The median value of the haircut over the $n.sim$ simulations
+%%is $median(quals.gaussian)$, meaning that in more than half the simulations,
+%%the sample portfolio has `lost' more than 
+%%$round(100 * median(quals.gaussian))$\% of the optimal population \txtSR.
+%%Put another way, with probability around one half, 
+%%the population \txtSR of the sample \txtMP is less than 
+%%$(1 - median(quals.gaussian)) * zeta.s * sqrt(ope)\yrtomhalf$.
+%%Note that the median value under \apxref{qual_dist}
+%%is correct to $n.digs$ digits.
+
+%%For the case where
+%%$\ssiz=n.obs$ (n.yr years of daily observations), 
+%%$\nlatf=n.stok$ and $\psnropt=zeta.s * sqrt(ope)\yrtomhalf$, 
+%%the t-approximation is very good indeed. 
+
+%%Since the Gaussian distribution is a poor model for real returns, 
+%The experiment is then repeated using returns drawn 
+%from a uniform distribution, 
+%a \tstat{}-distribution with $t.df$ degrees of freedom, 
+%from a Tukey $h$-distribution with parameter $h=tuk.h$, 
+%and from a Lambert W $\times$ Gaussian
+%with parameter $\gamma=lam.gam$.  \cite{2009arXiv0912.4554G,2010arXiv1010.2265G}
+%Returns are generated by first generating \iid \nlatf-variate draws
+%from a zero mean, identity covariance distribution whose marginals
+%follow the so-named laws, then scaling and shifting to have the
+%appropriate \psnropt. For each simulation, the \pvsig is a random
+%draw from a Wishart random variable.
+
+%The uniform distribution is not a realistic model of market returns,
+%but is included to check the approximation on platykurtic returns.
+%The \tstat{} and more exotic distributions are more realistic
+%models of market returns, and are leptokurtotic. The 
+%Lambert W has non-zero skew. 
+%Again, $n.sim$ simulations are performed under each of these 
+%distributions with the same values of $\ssiz, \nlatf, \psnropt$ as
+%above. 
+%Some of the empirical quantiles from these simulations are
+%shown in \tabref{qtiles},
+%along with the approximate quantiles from \apxref{qual_dist}. 
+%The \txtKS test statistics for the different
+%distributions are presented in \tabref{ks_stats}.
+%For this choice of \ssiz, \nlatf, \psnropt, the approximation is
+%very good, across the tested returns distributions.
+
+
+
 
 
 %<<'forexample'>>=
@@ -1311,55 +1289,27 @@ normal & unif. & t(4) & Tukey(0.15) & Lam.W(-0.2) \\
 %\txtMP would have \txtSR less than $big.sr * sqrt(ope)\yrtomhalf$, 
 %a less than exciting prospect.
 
-% latex table generated in R 4.1.2 by xtable 1.8-4 package
-% Thu Oct 12 18:19:48 2023
-\begin{table}[ht]
-\centering
-\begin{tabular}{ccccc|c}
-  \hline
-normal & unif. & t(4) & Tukey(0.15) & Lam.W(-0.2) & bound \\ 
-  \hline
-0.9 & 0.898 & 0.899 & 0.899 & 0.898 & 0.932 \\ 
-   \hline
-\end{tabular}
-\caption{Empirical mean portfolio \txtQual from $10^{6}$ simulations of 1012 days of 6 assets, with maximal \txtSR of $1.25\yrtomhalf$ are given, along with the upper bound from \theoremref{qual_bound}. Units of \txtQual are `annual', \ie \yrtomhalf.} 
-\label{tab:means}
-\end{table}
-% latex table generated in R 4.1.2 by xtable 1.8-4 package
-% Thu Oct 12 18:19:48 2023
-\begin{table}[ht]
-\centering
-\begin{tabular}{ccccc|c}
-  \hline
-normal & unif. & t(4) & Tukey(0.15) & Lam.W(-0.2) & approx. \\ 
-  \hline
-0.9 & 0.864 & 0.865 & 0.864 & 0.863 & 0.868 \\ 
-   \hline
-\end{tabular}
-\caption{Empirical mean of \emph{squared} portfolio \txtQual from $10^{6}$ simulations of 1012 days of 6 assets, with maximal \txtSR of $1.25\yrtomhalf$ are given, along with the approximate value from \eqnref{hypergeo_extwo}. Units of squared \txtQual are `annual', \ie \yrto{-1}.} 
-\label{tab:meanssq}
-\end{table}
 
 
-In \tabref{means}, the empirical mean value of \pql{\sportwopt}, over
-the $\ensuremath{10^{6}}$ simulations, is presented for the five returns
-distributions, along with the upper bound given by
-\theoremref{qual_bound}.  It seems that there is a small gap between
-the empirical mean for the case of Gaussian returns, and the
-theoretical upper bound, a gap on the order of 
-$4\%$.
-Perhaps this gap is caused by discarding
-the derivative term from \eqnref{crb_three}, or because 
-the sample Markowitz portfolio is not efficient for finite samples.
+%In \tabref{means}, the empirical mean value of \pql{\sportwopt}, over
+%the $n.sim$ simulations, is presented for the five returns
+%distributions, along with the upper bound given by
+%\theoremref{qual_bound}.  It seems that there is a small gap between
+%the empirical mean for the case of Gaussian returns, and the
+%theoretical upper bound, a gap on the order of 
+%$signif(1e2 * mu.gap,1)\%$.
+%Perhaps this gap is caused by discarding
+%the derivative term from \eqnref{crb_three}, or because 
+%the sample Markowitz portfolio is not efficient for finite samples.
 
-In \tabref{meanssq}, the empirical mean value of \pqlsq{\sportwopt}, over
-the $\ensuremath{10^{6}}$ simulations, is presented for the five returns
-distributions, along with the theoretical value from 
-\eqnref{hypergeo_extwo}, which is valid only under 
-\apxref{qual_dist}. The approximate value is decent, meaning
-an estimate of the variance of \pql{\sportwopt} could be had
-by combining \eqnref{hypergeo_extwo} and the upper bound of
-\theoremref{qual_bound}.
+%In \tabref{meanssq}, the empirical mean value of \pqlsq{\sportwopt}, over
+%the $n.sim$ simulations, is presented for the five returns
+%distributions, along with the theoretical value from 
+%\eqnref{hypergeo_extwo}, which is valid only under 
+%\apxref{qual_dist}. The approximate value is decent, meaning
+%an estimate of the variance of \pql{\sportwopt} could be had
+%by combining \eqnref{hypergeo_extwo} and the upper bound of
+%\theoremref{qual_bound}.
 
 
 
@@ -1381,46 +1331,36 @@ by combining \eqnref{hypergeo_extwo} and the upper bound of
 
 
 
-Of course, these simulations are conducted using only a single
-choice of the parameters \ssiz, \nlatf and \psnropt. To check the
-robustness of this approximation to these parameters, 
-$\ensuremath{10^{6}}$ Monte Carlo simulations were conducted for 
-each combination of $\ssiz=0.5, 1, 2, 4, 8$ years of daily observations,
-$\nlatf=2, 4, 8, 16$, and
-$\psnropt=0.35, 0.5, 0.71, 1, 1.41\yrtomhalf$,
-all under Gaussian returns. The \txtKS test statistic
-is then computed on the empirically observed quantiles of
-portfolio \txtQual, under the distribution of
-\apxref{qual_dist}.  
-%The KS statistic is the maximum absolute deviation
-%of empirical and theoretical CDFs. \cite{Marsaglia:Tsang:Wang:2003:JSSOBK:v08i18}
+%Of course, these simulations are conducted using only a single
+%choice of the parameters \ssiz, \nlatf and \psnropt. To check the
+%robustness of this approximation to these parameters, 
+%$n.sim3$ Monte Carlo simulations were conducted for 
+%each combination of $\ssiz=sort(unique(params$nyr))$ years of daily observations,
+%$\nlatf=sort(unique(params$p))$, and
+%$\psnropt=sort(unique(params$zeta)) * sqrt(ope)\yrtomhalf$,
+%all under Gaussian returns. The \txtKS test statistic
+%is then computed on the empirically observed quantiles of
+%portfolio \txtQual, under the distribution of
+%\apxref{qual_dist}.  
+%%The KS statistic is the maximum absolute deviation
+%%of empirical and theoretical CDFs. \cite{Marsaglia:Tsang:Wang:2003:JSSOBK:v08i18}
 
-\begin{knitrout}\small
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}[h]
-\includegraphics[width=0.99\textwidth,height=0.495\textwidth]{figure/qboundksplots-1} \caption[The \txtKS statistic for \apxref{qual_dist} over $10^{6}$ simulations of Gaussian returns is plotted versus $\psnropt \wrapParens{\nlatf-1}/\sqrt{\ssiz}$, with \psnropt in annualized terms, and \ssiz measured in years]{The \txtKS statistic for \apxref{qual_dist} over $10^{6}$ simulations of Gaussian returns is plotted versus $\psnropt \wrapParens{\nlatf-1}/\sqrt{\ssiz}$, with \psnropt in annualized terms, and \ssiz measured in years.}\label{fig:ksplots}
-\end{figure}
 
-\end{knitrout}
 
 Plots of the \txtKS statistic are given in \figref{ksplots}, and
-\figref{ksheat}, which suggest that the quality of
-\apxref{qual_dist} is a function of the
-quantity $\psnropt \wrapParens{\nlatf-1}/\sqrt{\ssiz}$. 
-As a rough guide, when
-$\psnropt \wrapParens{\nlatf-1}/\sqrt{\ssiz} \le 5 \yrto{-1}$,
-for daily observations, \apxref{qual_dist} is an acceptable 
-approximation to the distribution of \txtQual of the sample \txtMP.
+%\figref{ksheat}, which suggest that the quality of
+%\apxref{qual_dist} is a function of the
+%quantity $\psnropt \wrapParens{\nlatf-1}/\sqrt{\ssiz}$. 
+%As a rough guide, when
+%$\psnropt \wrapParens{\nlatf-1}/\sqrt{\ssiz} \le 5 \yrto{-1}$,
+%for daily observations, \apxref{qual_dist} is an acceptable 
+%approximation to the distribution of \txtQual of the sample \txtMP.
 
-%While it may be difficult to interpret the
-%absolute value of the \txtKS statistic, it may be instructive to consider the
-%relative value at different values of $\nlatf, \ssiz, \psnropt$.  
+%%While it may be difficult to interpret the
+%%absolute value of the \txtKS statistic, it may be instructive to consider the
+%%relative value at different values of $\nlatf, \ssiz, \psnropt$.  
 
-\begin{knitrout}\small
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}[h]
-\includegraphics[width=0.99\textwidth,height=0.495\textwidth]{figure/qboundksheat-1} \caption[The \txtKS statistic for \apxref{qual_dist} over $10^{6}$ simulations of Gaussian returns is indicated, by color, versus \nlatf, and the `total effect size,' $\sqrt{\ssiz}\psnropt$, which is a unitless quantity, with facets for different values of \ssiz (in years)]{The \txtKS statistic for \apxref{qual_dist} over $10^{6}$ simulations of Gaussian returns is indicated, by color, versus \nlatf, and the `total effect size,' $\sqrt{\ssiz}\psnropt$, which is a unitless quantity, with facets for different values of \ssiz (in years).}\label{fig:ksheat}
-\end{figure}
 
-\end{knitrout}
 
 %UNFOLD
 
@@ -2357,13 +2297,13 @@ it be much improved by directly analyzing the differential
 inequality of \eqnref{crb_three}, rather than discarding
 the derivative term? Or perhaps the bound can be improved by using
 an `intrinsic' \txtCR bound.  \cite{DBLP:conf/icassp/XavierB05}
-\item How good is \apxref{qual_dist}? Can we find the expected
-value of the distribution in \apxref{qual_dist}, and what is the
-gap between it and the bound of \theoremref{qual_bound}?
-Can we find the \emph{exact} distribution of \txtQual of the 
-sample \txtMP under Gaussian returns, 
-perhaps leveraging the work of Bodnar and Okhrin,
-or of Britton-Jones.  \cite{SJOS:SJOS729, BrittenJones1999}
+%\item How good is \apxref{qual_dist}? Can we find the expected
+%value of the distribution in \apxref{qual_dist}, and what is the
+%gap between it and the bound of \theoremref{qual_bound}?
+%Can we find the \emph{exact} distribution of \txtQual of the 
+%sample \txtMP under Gaussian returns, 
+%perhaps leveraging the work of Bodnar and Okhrin,
+%or of Britton-Jones.  \cite{SJOS:SJOS729, BrittenJones1999}
 \item Can the assumption of Directional Independence be weakened?
 Can the \theoremref{qual_bound_two} be generalized to deal with omitted 
 variable bias in \vfact[i]?  
