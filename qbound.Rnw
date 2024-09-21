@@ -2,17 +2,36 @@
 % for MF
 % to move figures to end of doc 
 \usepackage[nomarkers,tablesfirst]{endfloat}
+% to get two title pages in same doc.
+\usepackage{titling}
+
+
 % to make it double spaced
 \usepackage{setspace}
 \doublespacing
 
+% MF: 
+% Optional Cover letter
 
-% now ignored, I think:
-%\VignetteEngine{knitr::knitr}
-%\VignetteIndexEntry{Asymptotic Distribution of the Markowitz Portfolio}
-%\VignetteKeyword{Finance}
-%\VignetteKeyword{Markowitz}
-%\VignettePackage{MarkowitzR}
+% Title Page
+% * short informative title containing the major key words
+% * short running title of less than 40 characters
+% * full names of the authors
+% * The author's institutional affiliations where the work was conducted, with a footnote for the author’s present address if different from where the work was conducted;
+% * Acknowledgments.
+
+% Main Text
+% *    A short informative title containing the major key words. The title should not contain abbreviations;
+% *    The full names of the authors with institutional affiliations where the work was conducted, with a footnote for the author’s present address if different from where the work was conducted;
+% *    Acknowledgments;
+% *    Abstract structured (intro/methods/results/conclusion) or unstructured;
+% *    Up to seven keywords;
+% *    Practitioner Points (optional) Authors will need to provide no more than 3 ‘key points’, written with the practitioner in mind, that summarize the key messages of their paper to be published with their article;
+% *    Main body: formatted as introduction, materials & methods, results, discussion, conclusion;
+% *    References;
+% *    Tables (each table complete with title and footnotes);
+% *    Figure legends: Legends should be supplied as a complete list in the text. Figures should be uploaded as separate files.
+
 
 \batchmode
 % front matter%FOLDUP
@@ -505,12 +524,24 @@ ope <- 253
 \providecommand{\txtKS}{Kolmogorov-Smirnov\xspace}
 %UNFOLD
 
+<<'title'>>=
+# article_title <- 'Bounds on Portfolio Quality'
+# running_title <- 'Markowitz Stinks, but so does everything else'
+article_title <- 'Noise in the Machine'
+article_subtitle <- 'Bounds on Portfolio Quality'
+running_title <- article_title
+@
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % document incantations%FOLDUP
 \begin{document}
 
-\title{Bounds on Portfolio Quality}
-\author{Steven E. Pav \thanks{Gilgamath Consulting.\\
+\title{\Sexpr{article_title}:\\ \large \Sexpr{article_subtitle}}
+\posttitle{\\ \normalsize running title: ``\Sexpr{running_title}''}
+
+
+\author{Steven E. Pav, Cerebellum Capital \thanks{Currently: Gilgamath Consulting.\\
 \email{steven@gilgamath.com}\\
 2132 15th Ave.\\
 San Francisco, CA 94116}
@@ -525,19 +556,22 @@ Paper has \total{figure} figures, \total{table} tables, and approximately
 
 \newpage
 
+\author{}
+
+\maketitle
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{abstract}%FOLDUP
 The \txtQual of a portfolio of \nlatf assets, its expected return divided 
 by its risk, is couched as an estimation problem on the sphere
-\spherep.  When the portfolio is built using noisy data, the expected
-value of the \txtQual is bounded from above via a \txtCR bound, 
+\spherep.  
+When a portfolio is built using noisy data and a general purpose method, 
+the expected value of the \txtQual is bounded from above via a \txtCR bound, 
 %on the portfolio estimator, 
-for the case of Gaussian returns. The bound holds
-for `biased' estimators, thus there appears to be no bias-variance
-tradeoff for the problem of maximizing the \txtQual. 
-An approximate distribution of the \txtQual for the \txtMP is 
-given, and shown to be fairly accurate via Monte Carlo simulations, 
-for Gaussian returns as well as more exotic returns distributions.
+for the case of Gaussian returns. 
+% The bound holds for `biased' estimators, thus there appears to be no bias-variance tradeoff for the problem of maximizing the \txtQual. 
+%An approximate distribution of the \txtQual for the \txtMP is given, and shown to be fairly accurate via Monte Carlo simulations, for Gaussian returns as well as more exotic returns distributions.
 These findings imply that if the maximal population 
 \txtSNR grows slower than the universe size to the 
 \oneby{4} power, there may be no diversification benefit, 
@@ -551,12 +585,12 @@ features, subspace constraints (\ie dimensionality reduction),
 and hedging constraints.
 \end{abstract}%UNFOLD
 
-Keywords: Sharpe Ratio, Markowitz Portfolio, Portfolio Selection, Quantitative
-Finance.\\
+Keywords: Markowitz Portfolio, Portfolio Selection, Sharpe Ratio, Asset Management.\\
 
-Key Messages:
+% Key Messages:
+Practitioner points:
 \begin{compactenum}
-\item An upper bound on the expected Sharpe ratio of a portfolio is given.
+\item An upper bound on the expected \txtSR of the \txtMP is given.
 \item The bound considers true effect size, observation history and number of decisions.
 \item The upper bound quantifies ``overfitting'' in portfolio selection problems.
 \end{compactenum}
@@ -582,18 +616,17 @@ optimization, as well as the
 \label{eqn:opt_port_I}
 \end{equation}
 
-In practice, the \txtMP has a tarnished reputation, and
+Despite its theoretical superiority, 
+in practice the \txtMP has a tarnished reputation, and
 is infrequently, if ever, used without some modification.
-The unknown population parameters \pvmu and \pvsig must
-be estimated from samples, resulting in a feasible
-portfolio of dubious value. Michaud went so far as to call
-mean-variance optimization, ``error maximization.'' \cite{michaud1989markowitz}  
+The unknown population parameters \pvmu and \pvsig must be estimated from samples, resulting in a feasible portfolio of dubious value. 
+Michaud went so far as to call mean-variance optimization, ``error maximization.'' \cite{michaud1989markowitz}  
 In its stead, numerous portfolio construction methodologies have been proposed
 to replace the \txtMP, 
 some based on patching conjectured theoretical deficiencies, 
 others relying on simple heuristics. \cite{demiguel2009optimal,tu2011markowitz,brandt2009portfolio}
 
-Praticioners often resort to dimensionality reduction heuristics
+Pratitioners often resort to dimensionality reduction heuristics
 to mitigate estimation error, effectively reducing the number 
 of free variables in the portfolio optimization problem. 
 One version of this tactic describes the returns of
@@ -608,20 +641,99 @@ reduction is common practice.
 
 In this paper, an upper bound is established on the expected value of
 a feasible portfolio's \txtQual, defined to be the expected return of the portfolio
-divided by it's risk, with return and risk measured using the (unknown)
+divided by its risk, with return and risk measured using the (unknown)
 population parameters, and with the ``expected value'' taken over realizations
-of the sample used to estimate the portfolio. This bound balances the
-`effect size,' $\sqrt{\ssiz \qiform{\pvsig}{\pvmu}},$ with the number of assets,
-\nlatf, and justifies some form of dimensionality reduction. It
-is established, for example, that if, by adding additional assets
+of the sample used to estimate the portfolio. 
+This bound balances the `effect size,' $\sqrt{\ssiz \qiform{\pvsig}{\pvmu}},$ with the number of assets,
+\nlatf, and justifies some form of dimensionality reduction. 
+It is established, for example, that if, by adding additional assets
 to the investment universe, $\sqrt{\qiform{\pvsig}{\pvmu}}$ grows at a rate
 slower than $\nlatf^{1/4}$, the upper bound on expected \txtQual
 can decrease.
+It is further shown that similar bounds hold for the case where
+the expected returns of the assets are linear in some observable features,
+where the portfolio is restricted to some subspace (\eg baskets of assets),
+and where optimization is performed conditional on hedging out some factors.
+
+This upper bound holds for portfolio construction techniques which are
+generally applicable to all possible inputs.
+Portfolios which embed strong assumptions about the underlying unknown
+parameters are akin to ``stopped clocks''; it is difficult to make
+strong unconditional statements about how accurate a stopped clock is, because
+it depends on the time of day.
+Consider, for example, the ``one over $N$ allocation'' in the long-only
+context; \cite{demiguel2009optimal} this portfolio would have a very high
+\txtQual if the assets had equal expected return and risk and returns among
+them were independent, but could otherwise have very poor performance if just a few
+assets had high expected returns and the rest had zero or negative expected
+returns.
+The one over $N$ portfolio is a pathological case which totally ignores any
+observed history, so it seems natural that we could not make strong statements
+about its expected performance.
+However, other more data-dependent portfolio construction techniques would also qualify as stopped clocks
+and would not be covered by the bound we prove here.
+Consider, for example, an asset manager who allocates using portfolio
+optimization software with some constraints, such as allocating no more than
+$k/N$ of their capital to one asset for some small $k$. 
+Such heuristic constraints, and more principled ones, are widely used but they
+qualify as stopped clocks and are not subject to our bound.
+
+In fact, most portfolio construction techniques would qualify as stopped clocks
+and our bound is mostly applicable to the \txtMP, and to unusal variants of it,
+such as projection to a random subspace followed by Markowitz.
+We believe this bound is valuable for a number of reasons:
+\begin{itemize}
+  \item It helps to explain the poor observed performance of the \txtMP in
+    empirical studies. \cite{demiguel2009optimal,tu2011markowitz}
+  \item Simultaneously it raises the question of why the \txtMP is compared to
+    stopped clocks in such studies. 
+  \item We believe that the majority of practical portfolio construction
+    techniques are close enough to general-purpose that a bound similar to 
+    what we prove here is applicable. We believe that the general rule of thumb
+    that the true effect size has to scale with decisions to the $\frac{1}{4}$
+    power to avoid worsening outcomes holds more broadly, and that this 
+    explains why dimensionality reduction is widely used in portfolio
+    construction.
+  \item We hope this bound will spur research in the area that can shed further
+    light on these issues. 
+    In particular, while a \txtCR bound cannot apply to a stopped clock,
+    statistical decision theory can be employed.  \cite{berger2013statistical}
+    Briefly, in a statistical decision theory approach the underlying
+    unknown parameters are considered as being drawn from some distribution,
+    and then worst case performance of a rule is evaluated.
+    It is typically hard to prove a rule is \emph{optimal} under this theory,
+    though often much easier to prove one rule is dominated by another.
+\end{itemize}
+
+This paper is structured as follows: 
+first we introduce the notation and prove the \txtCR bound applies to the
+\txtMP and portfolios like it.
+Then we briefly discuss the marginal value of additional assets in the
+investable universe.
+In the section following we consider a similar bound for a linear expectation
+model, under subspace and hedging constraints.
+We then consider a few examples, and then conclude with a discussion.
+
 %UNFOLD
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Portfolio \txtQual}%FOLDUP
 \label{sec:portfolio_qual}
+
+Our argument will proceed as follows:
+We establish this upper bond on expected \txtQual via the theory of \txtCR bounds.
+\begin{itemize}
+  \item We first show that for purposes of determining \txtQual, portfolio
+    selection is equivalent to selecting a point on a \nlatf-dimensional
+    sphere.
+  \item We use a \txtCR bound for estimation problems on hyperspheres to 
+    establish that the \emph{variance} of the estimated point is greater than
+    some value. This applies to general purpose estimators, but not stopped
+    clocks.
+  \item Using essentially a geometric argument we transform the \txtCR lower bound
+    on the variance into an upper bound on the expected \txtSNR.
+\end{itemize}
+
 
 Let \vreti be the vector of relative returns of \nlatf
 assets, with expectation \pvmu and covariance \pvsig.
@@ -643,6 +755,9 @@ meaning that if $\pql{\sportw[1]} \le \pql{\sportw[2]}$ then the
 \txtSR of \trAB{\sportw[2]}{\vreti} 
 (first order) stochastically dominates the 
 \txtSR of \trAB{\sportw[1]}{\vreti}. 
+Other names for the \txtQual might be the ``\emph{ex ante} \txtSR,''
+or the ``population \txtSR.''
+
 
 Note that the portfolio \txtQual is bounded by the \txtQual achieved
 by the population \txtMP, \pportwopt:
@@ -681,7 +796,7 @@ where
 \fnorm{\vect{x}}\defeq \frac{\vect{x}}{\sqrt{\gram{\vect{x}}}}
 \end{equation}
 is the projection operator taking non-zero vector \vect{x} to the
-unit sphere.
+unit sphere in \nlatf dimensions.
 That is, \fracc{\pql{\sportw}}{\psnropt} can be viewed as the dot product
 of two vectors on the unit sphere (assuming both \sportw and \pportwopt
 are non-zero vectors), namely 
@@ -756,7 +871,8 @@ Assume that
 where \bterm is the `bias' term, which is orthogonal to
 \fnorm{\trchol{\pvsig}\pportwopt}, and which may be an
 arbitrary function
-of \pvmu and \pvsig.
+of \pvmu and \pvsig, and
+\cfnc{\psnrsqopt} is some scalar function.
 
 \end{assumption}%UNFOLD
 
@@ -769,9 +885,12 @@ and linearity of the expectation,
 = \cfnc{\psnrsqopt}.
 \end{equation}
 Thus $\abs{\cfnc{x}} \le 1$,
-and we expect $\cfnc{x} \ge 0$ for a `sane' portfolio estimator.
+and we expect $\cfnc{x} \ge 0$ for a `good' portfolio estimator.
 Moreover, one expects $\cfnc{x} \to 0$ as $\ssiz x \to 0$, and
 for non-zero $x$, $\cfnc[{\ssiz}]{x} \to 1$ as $\ssiz\to\infty$.
+The function $\cfnc{\psnrsqopt}$ describes how well the portfolio estimator
+can capitalize on a universe with \txtSNR $\psnropt$ given $\ssiz$
+observations.
 
 When \bterm is the zero vector, the estimator is a 
 `parallel estimator' in Watson's terminology
@@ -801,11 +920,13 @@ $$
 $$
 is independent of \trchol{\pvsig}\pportwopt.
 \end{assumption}
-This assumption prevents us from making false assertions about 
-\eg the 1/$N$ allocation in the case where 
-it happens to nearly equal \pportwopt.  \cite{demiguel2009optimal}  
-%These two assumptions eliminate the ``one over $N$'' estimator
-%from further consideration here.
+This assumption restricts our attention to general-purpose portfolio
+construction techniques and not on the ``stopped clocks''.
+%prevents us from making false assertions about 
+%\eg the 1/$N$ allocation in the case where 
+%it happens to nearly equal \pportwopt.  \cite{demiguel2009optimal}  
+These two assumptions, and the long-short context, eliminate the 1/$N$
+allocation or risk parity portfolios from further consideration here.
 
 Let $\vect{y}$ be a \nlatf-variate random variable. Then
 \begin{align}
@@ -2143,7 +2264,7 @@ grows with \nlatf.
 %of \psnropt. As a practical matter, this may explain why the
 %\txtMP is typically applied to small asset universes.
 
-<<'grow_sqrt',dependson=c('plot_stuff'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("Some quantiles of the \\txtQual of the \\txtMP, under \\apxref{qual_dist}, are plotted versus \\nlatf for different scaling laws for \\psnropt, with panels for different values of $\\gamma$, \\viz ", sgammas.txt, "."), eval.after='fig.cap'>>= 
+<<'grow_sqrt',eval=INCLUDE_APX_DIST,dependson=c('plot_stuff'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("Some quantiles of the \\txtQual of the \\txtMP, under \\apxref{qual_dist}, are plotted versus \\nlatf for different scaling laws for \\psnropt, with panels for different values of $\\gamma$, \\viz ", sgammas.txt, "."), eval.after='fig.cap'>>= 
 
 scale.experiment <- function(pow,n.obs,zeta.s,
                              n.stok=n.stok,ope=ope,plims=c(2,250)) {
@@ -2629,7 +2750,7 @@ constrained to be in some lower dimensional subspace. That is, by design,
 \zerJc \sportWfnc{\mreti,\mfact} = \vzero,
 \end{equation}
 where $\zerJc$ is a \bby{\wrapParens{\nlatf - \nlatfzer}}{\nlatf}
-matrix of rank $\nlatf - \nlatfzer$, that is chosen indpendently
+matrix of rank $\nlatf - \nlatfzer$, that is chosen independently
 of the observations of \mreti and \mfact.
 Let the rows of \zerJ span the null space of the rows of
 \zerJc; that is, $\zerJc \tr{\zerJ} = \mzero$, and $\ogram{\zerJ} = \eye$.
@@ -3082,14 +3203,14 @@ strategies which are nonlinear, complex functions of the features?
 sane sufficient conditions for which \psnropt grows slower than
 $\nlatf^{\oneby{4}}$? What is the analogue of \eqnref{capm_zetas}
 for a multi-factor model of returns?
-\item Can we find a lower bound, or a non-trivial upper bound on the 
-variance of $\pql{\sportwfnc{\mreti}}$? Together these could be used
-to give guarantees about the quantiles of \pql{\sportwfnc{\mreti}}.
-A lower bound on the variance can likely be had via a result of
-Kakarala and Watson. \cite{ANZS:ANZS253} Together with Cantelli's
-Inequality, these would give rough (perhaps useless) upper bounds
-on the 
-\kth{\qlev} quantile of portfolio \txtQual, for $\half < \qlev < 1$.
+%\item Can we find a lower bound, or a non-trivial upper bound on the 
+%variance of $\pql{\sportwfnc{\mreti}}$? Together these could be used
+%to give guarantees about the quantiles of \pql{\sportwfnc{\mreti}}.
+%A lower bound on the variance can likely be had via a result of
+%Kakarala and Watson. \cite{ANZS:ANZS253} Together with Cantelli's
+%Inequality, these would give rough (perhaps useless) upper bounds
+%on the 
+%\kth{\qlev} quantile of portfolio \txtQual, for $\half < \qlev < 1$.
 %\item The simulations of \secref{apx_distribution} should
 %be repeated with different choices of \ssiz, \nlatf, and \psnropt.
 \item How tight is the bound of \theoremref{qual_bound}, and can 
@@ -3124,7 +3245,6 @@ be generalized to include these costs?
 \bibliographystyle{apacite}
 %\bibliographystyle{acm}
 \bibliography{SharpeR,rauto}
-%\bibliography{AsymptoticMarkowitz}
 %UNFOLD
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
