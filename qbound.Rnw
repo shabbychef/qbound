@@ -726,12 +726,12 @@ We establish this upper bond on expected \txtQual via the theory of \txtCR bound
   \item We first show that for purposes of determining \txtQual, portfolio
     selection is equivalent to selecting a point on a \nlatf-dimensional
     sphere.
-  \item We use a \txtCR bound for estimation problems on hyperspheres to 
-    establish that the \emph{variance} of the estimated point is greater than
-    some value. This applies to general purpose estimators, but not stopped
-    clocks.
+  \item We use a \txtCCR bound to 
+    establish that the \emph{variance} of the estimated point on the
+    hypersphere is greater than some value.  \cite{tj_moore_ccrb,GormanHero}
   \item Using essentially a geometric argument we transform the \txtCR lower bound
     on the variance into an upper bound on the expected \txtSNR.
+    This applies to general purpose estimators, but not stopped clocks.
 \end{itemize}
 
 
@@ -776,6 +776,11 @@ by introducing a risk transform:
 =
 \frac{\trAB{\wrapParens{\trchol{\pvsig}\sportw}}{\trchol{\pvsig}{\pportwopt}}}{\sqrt{\gram{\wrapParens{\trchol{\pvsig}\sportw}}}}.
 \end{equation}
+We write $\chol{\Mtx{A}}$ to mean the (not necessarily symmetric) square root
+of matrix \Mtx{A}. That is we have $\chol{\Mtx{A}}\trchol{\Mtx{A}} = \Mtx{A}$.
+(While there is a symmetric matrix square root, the non-symmetric Cholesky
+factorization is used more often in practice.)
+
 Now normalize by the maximum absolute value that \pql{\sportw} can take:
 \begin{equation*}
 \begin{split}
@@ -805,6 +810,13 @@ Let \spang be the angle between
 \fnorm{\trchol{\pvsig}\sportw} and \fnorm{\trchol{\pvsig}\pportwopt}, and 
 thus 
 $\pql{\sportw} = \psnropt \cos \spang.$
+
+We view portfolio selection as the task of estimating the point
+$\fnorm{\trchol{\pvsig}\pportwopt}$ on the \nlatf sphere \spherep
+by the ``estimator'' $\fnorm{\trchol{\pvsig}\sportw}$.
+However, the practitioner does not observe \pvsig, and thus does not explicitly
+pick a point on the hypersphere when constructing a portfolio.
+
 
 %By the law of cosines, we can relate the relative \txtQual to the distance
 %between these vectors:
@@ -859,7 +871,9 @@ the \emph{estimator} that gives \sportw for a given \mreti by
 %and our assumptions may be rather weak. We assume that
 
 To appeal to a \txtCR bound, one must typically assume the estimator
-is unbiased. For this problem a somewhat weaker condition suffices.
+is unbiased. For this problem, which involves estimation on a hypersphere, 
+a somewhat weaker condition suffices.
+
 \begin{assumption}[Directional Independence]%FOLDUP
 Assume that
 \begin{equation}
@@ -876,6 +890,9 @@ of \pvmu and \pvsig, and
 
 \end{assumption}%UNFOLD
 
+The function $\cfnc{\psnrsqopt}$ describes how well the portfolio estimator
+can capitalize on a universe with \txtSNR $\psnropt$ given $\ssiz$
+observations.
 Note that by orthogonality of \bterm and \fnorm{\trchol{\pvsig}\pportwopt}, 
 and linearity of the expectation, 
 \begin{equation}
@@ -888,14 +905,15 @@ Thus $\abs{\cfnc{x}} \le 1$,
 and we expect $\cfnc{x} \ge 0$ for a `good' portfolio estimator.
 Moreover, one expects $\cfnc{x} \to 0$ as $\ssiz x \to 0$, and
 for non-zero $x$, $\cfnc[{\ssiz}]{x} \to 1$ as $\ssiz\to\infty$.
-The function $\cfnc{\psnrsqopt}$ describes how well the portfolio estimator
-can capitalize on a universe with \txtSNR $\psnropt$ given $\ssiz$
-observations.
 
-When \bterm is the zero vector, the estimator is a 
-`parallel estimator' in Watson's terminology
-\cite{ANZS:ANZS253}, or `unbiased' in the sense of Hendricks.
-\cite{Hendriks1991245,Dutchmen1992}
+Thus the assumption of Directional Independence tells us that the
+\txtQual of a portfolio estimator depends \emph{only} on $\psnrsqopt$.
+
+
+%When \bterm is the zero vector, the estimator is a 
+%`parallel estimator' in Watson's terminology
+%\cite{ANZS:ANZS253}, or `unbiased' in the sense of Hendricks.
+%\cite{Hendriks1991245,Dutchmen1992}
 Note that \eqnref{sane_estimator} is satisfied for 
 any \emph{directionally equivariant} portfolio estimator,
 \ie one which, for any orthonormal \Mtx{H}, 
@@ -904,14 +922,20 @@ has
 \begin{equation*}
 \sportwfnc{\mreti\tr{\Mtx{H}}} = \Mtx{H}\sportwfnc{\mreti}.
 \end{equation*}
+
+
 However, one should recognize that not all portfolio estimators
 satisfy this assumption. For example, consider an estimator that
 never concentrates greater than $\nlatf^{-\half}$ proportion of its
 total gross allocation in any one asset; this estimator does not exhibit
-Directional Independence, since it can not capitalize when 
-$\pportwopt=\psnropt\basev[1]$. Neither does the ``one over $N$ allocation'' 
-estimator.  \cite{demiguel2009optimal}  
+Directional Independence, as it will exhibit different performance
+when $\pportwopt=\psnropt\basev[1]$ than when $\pportwopt =
+\nlatf^{-1/2}\vone$.
+Neither does the ``one over $N$ allocation'' estimator.  \cite{demiguel2009optimal}  
 
+The Directional Independence assumption is one of two that are required to
+eliminate stopped clocks from consideration.
+The other more closely resembles an assumption 
 We must eliminate other `pathological' cases from consideration.
 \begin{assumption}[Residual Independence]
 Assume that the distribution of the residual
@@ -960,7 +984,7 @@ Note that $\gramprskvec = \qiform{\pvsig}{\pvmu} = \psnrsqopt$.
 %\trace{\VAR{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}}}
 %\le 2\wrapParens{1 - \cfnc{\gramprskvec}}.
 %\end{equation}
-Using the \txtCR lower bound for the left hand side 
+Using the \txtCCR lower bound for the left hand side 
 of \eqnref{var_bounds},
 and then using the definition of \prskvec in the expectation, we have
 \cite{tj_moore_ccrb}
