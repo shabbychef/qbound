@@ -211,6 +211,7 @@ library(tidyr)
 library(readr)
 library(xtable)
 library(viridis)
+library(glue)
 if (!require(tsrsa,quietly=TRUE) && require(remotes)) {
   # get the 10 industry data
   remotes::install_github('shabbychef/tsrsa/rpkg')
@@ -906,10 +907,12 @@ and we expect $\cfnc{x} \ge 0$ for a `good' portfolio estimator.
 Moreover, one expects $\cfnc{x} \to 0$ as $\ssiz x \to 0$, and
 for non-zero $x$, $\cfnc[{\ssiz}]{x} \to 1$ as $\ssiz\to\infty$.
 
-Thus the assumption of Directional Independence tells us that the
-\txtQual of a portfolio estimator depends \emph{only} on $\psnrsqopt$.
-
-
+While we can alway perform the decomposition of
+$\E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}}$
+into parts parallel and orthogonal to $\fnorm{\trchol{\pvsig}\pportwopt}$,
+the gist of Directional Independence is that we assume the
+\txtQual of a portfolio estimator depends \emph{only} on $\psnrsqopt$, and
+not on \pvmu or \pvsig, conditional on $\psnrsqopt$.
 %When \bterm is the zero vector, the estimator is a 
 %`parallel estimator' in Watson's terminology
 %\cite{ANZS:ANZS253}, or `unbiased' in the sense of Hendricks.
@@ -922,6 +925,11 @@ has
 \begin{equation*}
 \sportwfnc{\mreti\tr{\Mtx{H}}} = \Mtx{H}\sportwfnc{\mreti}.
 \end{equation*}
+To see why this is sufficient, take $\Mtx{H}$ to be some rotation of
+$\ichol{\pvsig}$ that takes $\pvmu$ to a standard direction.
+That is, take \Mtx{H} such that $\Mtx{H}\pvsig\tr{\Mtx{H}} = \eye$ and
+$\Mtx{H}\pvmu = c \basev[1]$. We note that in fact
+$\Mtx{H}\pvmu = \psnropt \basev[1]$. 
 
 
 However, one should recognize that not all portfolio estimators
@@ -2174,8 +2182,7 @@ The last inequality is implied by the inequality
 $\oneby{4\wrapParens{\nlatf-1}} \le \dbyd{\log\psnropt}{\nlatf}$, 
 with equality holding for $\psnropt = c \wrapParens{\nlatf-1}^{1/4}$.
 
-<<'grow_bound',dependson=c('plot_stuff'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.scap='',fig.cap=paste0("The upper bound of \\theoremref{qual_bound} is plotted versus \\nlatf for different scaling laws, corresponding to $\\psnropt = \\psnr[0]\\nlatf^{\\gamma}$, with $\\gamma$ taking values ",sgammas.summary,"."),eval.after='fig.cap'>>= 
-
+<<'grow_bound',dependson=c('plot_stuff'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=fig_cap,fig.scap="The upper bound of \\theoremref{qual_bound} is plotted versus \\nlatf for different scaling laws.",eval.after='fig.cap'>>= 
 
 
 bound.experiment <- function(pow,n.obs,zeta.s,
@@ -2252,6 +2259,8 @@ sgammas.summary <- paste0("between ",sgammas[1]," and ",sgammas[length(sgammas)]
 print(bound.plot(pgammas,n.obs=n.obs,zeta.s=zeta.s,
 	n.stok=n.stok,ope=ope))
 
+#fig_cap <- glue("The upper bound of \\theoremref{{qual_bound}} is plotted versus \\nlatf for different scaling laws, corresponding to $\\psnropt = \\psnr[0]\\nlatf^{{\\gamma}}$, with $\\gamma$ taking values {sgammas.summary}.")
+fig_cap <- glue("The upper bound of \\theoremref{{qual_bound}} is plotted versus \\nlatf for different scaling laws.")
 @
 
 The decreasing upper bound with respect to growing universe size
@@ -2965,12 +2974,10 @@ $\Sexpr{sr2$sropt}\yrtomhalf$.
 Now consider a portfolio estimator
 given \Sexpr{dgu.yr} years of observations, as in 
 DeMiguel \etal \cite{demiguel2009optimal}, assuming 
-$\psnropt=\Sexpr{sr2$sropt}\yrtomhalf$. The bound on expected
-value of \pql{\sportwfnc{\mreti}} from \theoremref{qual_bound}
-is only $\Sexpr{dgqb}\yrtomhalf$.  Under \apxref{qual_dist}, 
-the probability that \pql{\sportwfnc{\mreti}} exceeds 
-$\Sexpr{sr1$sr}\yrtomhalf$ in this case is only
-$\Sexpr{dfp}$. It is not surprising that DeMiguel \etal drew
+$\psnropt=\Sexpr{sr2$sropt}\yrtomhalf$.
+The bound on expected value of \pql{\sportwfnc{\mreti}} from \theoremref{qual_bound} is only $\Sexpr{dgqb}\yrtomhalf$.  
+%Under \apxref{qual_dist}, the probability that \pql{\sportwfnc{\mreti}} exceeds $\Sexpr{sr1$sr}\yrtomhalf$ in this case is only $\Sexpr{dfp}$. 
+It is not surprising that DeMiguel \etal drew
 the conclusions they did, nor that they would be refuted
 by looking at a longer sample, as by Kritzman \etal \cite{defoopt2010}
 
@@ -3273,6 +3280,11 @@ be generalized to include these costs?
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \appendix%FOLDUP
+
+\section{Miscellaneous Proofs}%FOLDUP
+\label{sec:misc_proofs}
+
+%UNFOLD
 
 \section{Declaration of Interests}
 
