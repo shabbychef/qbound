@@ -871,94 +871,129 @@ the \emph{estimator} that gives \sportw for a given \mreti by
 %is unbiased. In this case, however, there is no bias-variance tradeoff,
 %and our assumptions may be rather weak. We assume that
 
-To appeal to a \txtCR bound, one must typically assume the estimator
-is unbiased. For this problem, which involves estimation on a hypersphere, 
-a somewhat weaker condition suffices.
-
-\begin{assumption}[Directional Independence]%FOLDUP
-Assume that
+To appeal to a \txtCR bound one must assume the estimator
+is unbiased or incorporate the bias into the bound.
+In the extreme case where the estimator is a stopped clock, the
+\txtCR bound can collapse to the uninteresting statement that the variance 
+is non-negative.
+For this problem we first note that the expected value of 
+$\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}$ can be decomposed
+into a part parallel to $\fnorm{\trchol{\pvsig}\pportwopt}$, which is the thing
+it is estimating, and a perpendicular part.  \cite{ANZS:ANZS253}
+That is,
 \begin{equation}
-\label{eqn:sane_estimator}
+\label{eqn:any_estimator}
 \E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}} = 
-\cfnc{\psnrsqopt} \fnorm{\trchol{\pvsig}\pportwopt}
+\cfnc{\pvmu, \pvsig} \fnorm{\trchol{\pvsig}\pportwopt}
 + \bterm,
 \end{equation}
 where \bterm is the `bias' term, which is orthogonal to
-\fnorm{\trchol{\pvsig}\pportwopt}, and which may be an
-arbitrary function
-of \pvmu and \pvsig, and
-\cfnc{\psnrsqopt} is some scalar function.
+\fnorm{\trchol{\pvsig}\pportwopt}.
 
-\end{assumption}%UNFOLD
-
-The function $\cfnc{\psnrsqopt}$ describes how well the portfolio estimator
-can capitalize on a universe with \txtSNR $\psnropt$ given $\ssiz$
-observations.
+The function $\cfnc{\pvmu, \pvsig}$ describes how well the portfolio estimator
+can capitalize on the parameters $\pvmu$ and $\pvsig$ given $\ssiz$
+observations, as we soon show.
 Note that by orthogonality of \bterm and \fnorm{\trchol{\pvsig}\pportwopt}, 
 and linearity of the expectation, 
 \begin{equation}
 \E{\cos \spangfnc{\mreti}} = 
 \E{\frac{\pql{\sportw}}{\psnropt}} =
 \E{\trAB{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}}{\fnorm{\trchol{\pvsig}\pportwopt}}}
-= \cfnc{\psnrsqopt}.
+= \cfnc{\pvmu, \pvsig}.
 \end{equation}
-Thus $\abs{\cfnc{x}} \le 1$,
-and we expect $\cfnc{x} \ge 0$ for a `good' portfolio estimator.
-Moreover, one expects $\cfnc{x} \to 0$ as $\ssiz x \to 0$, and
-for non-zero $x$, $\cfnc[{\ssiz}]{x} \to 1$ as $\ssiz\to\infty$.
+Thus $\abs{\cfnc{\pvmu, \pvsig}} \le 1$.
+Moreover we expect $\cfnc{\pvmu, \pvsig}$ to be large when the
+estimator is good, but go to $1$ as the sample size increases
+when the parameters are fixed, and so on.
 
-While we can alway perform the decomposition of
-$\E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}}$
-into parts parallel and orthogonal to $\fnorm{\trchol{\pvsig}\pportwopt}$,
-the gist of Directional Independence is that we assume the
-\txtQual of a portfolio estimator depends \emph{only} on $\psnrsqopt$, and
-not on \pvmu or \pvsig, conditional on $\psnrsqopt$.
+We wish to appeal to the \txtCR bound with respect to the `parameter'
+\fnorm{\trchol{\pvsig}\pportwopt}. 
+To do so without making false statements about stopped clocks we make two assumptions.
+
+\begin{assumption}[Directional Independence and Unbiasedness]%FOLDUP
+Assume that
+\begin{equation}
+\label{eqn:unbiased_estimator}
+\E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}} = 
+\cfnc{\psnrsqopt} \fnorm{\trchol{\pvsig}\pportwopt}.
+\end{equation}
+That is, $\cfnc{\cdot}$ 
+depends on \pvmu and \pvsig only through \psnrsqopt,
+and 
+the estimator $\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}$
+is directionally unbiased.
+%\footnote{That is the estimator is a `parallel estimator' in Watson's terminology \cite{ANZS:ANZS253}, or `unbiased' in the sense of Hendricks.  \cite{Hendriks1991245,Dutchmen1992}}
+\end{assumption}%UNFOLD
+
+%The function $\cfnc{\psnrsqopt}$ describes how well the portfolio estimator
+%can capitalize on a universe with \txtSNR $\psnropt$ given $\ssiz$
+%observations.
+%Note that by orthogonality of \bterm and \fnorm{\trchol{\pvsig}\pportwopt}, 
+%and linearity of the expectation, 
+%\begin{equation}
+%\E{\cos \spangfnc{\mreti}} = 
+%\E{\frac{\pql{\sportw}}{\psnropt}} =
+%\E{\trAB{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}}{\fnorm{\trchol{\pvsig}\pportwopt}}}
+%= \cfnc{\psnrsqopt}.
+%\end{equation}
+%Thus $\abs{\cfnc{x}} \le 1$,
+%and we expect $\cfnc{x} \ge 0$ for a `good' portfolio estimator.
+%Moreover, one expects $\cfnc{x} \to 0$ as $\ssiz x \to 0$, and
+%for non-zero $x$, $\cfnc[{\ssiz}]{x} \to 1$ as $\ssiz\to\infty$.
+
+%While we can alway perform the decomposition of
+%$\E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}}$
+%into parts parallel and orthogonal to $\fnorm{\trchol{\pvsig}\pportwopt}$,
+%the 
+%The gist of Directional Independence is that we assume the
+%\txtQual of a portfolio estimator depends \emph{only} on $\psnrsqopt$, and
+%not on \pvmu or \pvsig, conditional on $\psnrsqopt$.
 %When \bterm is the zero vector, the estimator is a 
 %`parallel estimator' in Watson's terminology
 %\cite{ANZS:ANZS253}, or `unbiased' in the sense of Hendricks.
 %\cite{Hendriks1991245,Dutchmen1992}
-Note that \eqnref{sane_estimator} is satisfied for 
-any \emph{directionally equivariant} portfolio estimator,
-\ie one which, for any orthonormal \Mtx{H}, 
-($\gram{\Mtx{H}} = \eye[\nlatf] = \ogram{\Mtx{H}}$), one
-has 
-\begin{equation*}
-\sportwfnc{\mreti\tr{\Mtx{H}}} = \Mtx{H}\sportwfnc{\mreti}.
-\end{equation*}
-To see why this is sufficient, take $\Mtx{H}$ to be some rotation of
-$\ichol{\pvsig}$ that takes $\pvmu$ to a standard direction.
-That is, take \Mtx{H} such that $\Mtx{H}\pvsig\tr{\Mtx{H}} = \eye$ and
-$\Mtx{H}\pvmu = c \basev[1]$. We note that in fact
-$\Mtx{H}\pvmu = \psnropt \basev[1]$. 
+%Note that \eqnref{sane_estimator} is satisfied for 
+%any \emph{directionally equivariant} portfolio estimator,
+%\ie one which, for any orthonormal \Mtx{H}, 
+%($\gram{\Mtx{H}} = \eye[\nlatf] = \ogram{\Mtx{H}}$), one
+%has 
+%\begin{equation*}
+%\sportwfnc{\mreti\tr{\Mtx{H}}} = \Mtx{H}\sportwfnc{\mreti}.
+%\end{equation*}
+%To see why this is sufficient, take $\Mtx{H}$ to be some rotation of
+%$\ichol{\pvsig}$ that takes $\pvmu$ to a standard direction.
+%That is, take \Mtx{H} such that $\Mtx{H}\pvsig\tr{\Mtx{H}} = \eye$ and
+%$\Mtx{H}\pvmu = c \basev[1]$. We note that in fact
+%$\Mtx{H}\pvmu = \psnropt \basev[1]$. 
 
 
-However, one should recognize that not all portfolio estimators
+One should recognize that not all portfolio estimators
 satisfy this assumption. For example, consider an estimator that
 never concentrates greater than $\nlatf^{-\half}$ proportion of its
 total gross allocation in any one asset; this estimator does not exhibit
 Directional Independence, as it will exhibit different performance
 when $\pportwopt=\psnropt\basev[1]$ than when $\pportwopt =
 \nlatf^{-1/2}\vone$.
-Neither does the ``one over $N$ allocation'' estimator.  \cite{demiguel2009optimal}  
+Neither does the ``one over $N$ allocation'' estimator\footnote{The naive equal weight allocation makes no real sense in our long-short context anyway.}.  \cite{demiguel2009optimal}  
 
-The Directional Independence assumption is one of two that are required to
-eliminate stopped clocks from consideration.
-The other more closely resembles an assumption 
-We must eliminate other `pathological' cases from consideration.
-\begin{assumption}[Residual Independence]
-Assume that the distribution of the residual
-$$
-\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}} - \E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}}
-$$
-is independent of \trchol{\pvsig}\pportwopt.
-\end{assumption}
-This assumption restricts our attention to general-purpose portfolio
-construction techniques and not on the ``stopped clocks''.
-%prevents us from making false assertions about 
-%\eg the 1/$N$ allocation in the case where 
-%it happens to nearly equal \pportwopt.  \cite{demiguel2009optimal}  
-These two assumptions, and the long-short context, eliminate the 1/$N$
-allocation or risk parity portfolios from further consideration here.
+%The Directional Independence assumption is one of two that are required to
+%eliminate stopped clocks from consideration.
+%The other more closely resembles an assumption 
+%We must eliminate other `pathological' cases from consideration.
+%\begin{assumption}[Residual Independence]
+%Assume that the distribution of the residual
+%$$
+%\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}} - \E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}}
+%$$
+%is independent of \trchol{\pvsig}\pportwopt.
+%\end{assumption}
+%This assumption restricts our attention to general-purpose portfolio
+%construction techniques and not on the ``stopped clocks''.
+%%prevents us from making false assertions about 
+%%\eg the 1/$N$ allocation in the case where 
+%%it happens to nearly equal \pportwopt.  \cite{demiguel2009optimal}  
+%These two assumptions, and the long-short context, eliminate the 1/$N$
+%allocation or risk parity portfolios from further consideration here.
 
 Let $\vect{y}$ be a \nlatf-variate random variable. Then
 \begin{align}
@@ -2061,7 +2096,7 @@ print(ph)
 
 @
 
-Plots of the \txtKS statistic are given in \figref{ksplots}, and
+%Plots of the \txtKS statistic are given in \figref{ksplots}, and
 %\figref{ksheat}, which suggest that the quality of
 %\apxref{qual_dist} is a function of the
 %quantity $\psnropt \wrapParens{\nlatf-1}/\sqrt{\ssiz}$. 
@@ -2259,8 +2294,8 @@ sgammas.summary <- paste0("between ",sgammas[1]," and ",sgammas[length(sgammas)]
 print(bound.plot(pgammas,n.obs=n.obs,zeta.s=zeta.s,
 	n.stok=n.stok,ope=ope))
 
-#fig_cap <- glue("The upper bound of \\theoremref{{qual_bound}} is plotted versus \\nlatf for different scaling laws, corresponding to $\\psnropt = \\psnr[0]\\nlatf^{{\\gamma}}$, with $\\gamma$ taking values {sgammas.summary}.")
-fig_cap <- glue("The upper bound of \\theoremref{{qual_bound}} is plotted versus \\nlatf for different scaling laws.")
+fig_cap <- glue("The upper bound of \\theoremref{{qual_bound}} is plotted versus \\nlatf for different scaling laws, corresponding to $\\psnropt = \\psnr[0]\\nlatf^{{\\gamma}}$, with $\\gamma$ taking values {sgammas.summary}.")
+#fig_cap <- glue("The upper bound of \\theoremref{{qual_bound}} is plotted versus \\nlatf for different scaling laws.")
 @
 
 The decreasing upper bound with respect to growing universe size
@@ -2360,30 +2395,32 @@ print(scale.plot(pgammas,n.obs=n.obs,zeta.s=zeta.s,
 
 @
 
-This relationship between \txtQual and \nlatf for different
-values of $\gamma$ appears not just in the upper bound of
-\theoremref{qual_bound}, but apparently also for most quantiles
-of the distribution given by \apxref{qual_dist}, as
-%This loss in value with respect to growing universe size is
-illustrated in \figref{grow_sqrt}. Again assuming
-$\psnropt = \psnr[0]\nlatf^{\gamma}$, lines of 
-$\psnropt$ and the $0.25, 0.50,$ and $0.75$ quantiles of
-$\psnropt\pql{\sportwfnc{\mreti}}$, under 
-\apxref{qual_dist}, are plotted versus \nlatf.
-The panels represent $\gamma$ values of
-$\Sexpr{sort(pgammas)[1:(length(pgammas)-1)]},$ and 
-$\Sexpr{sort(pgammas)[length(pgammas)]}$.
-Again, the value of
-$\psnr[0]$ is set so that 
-$\psnropt=\Sexpr{sqrt(ope)*zeta.s}\yrtomhalf$ when 
-$\nlatf=\Sexpr{n.stok}$.
-For $\gamma < \oneby{4}$, one sees a local maximum in 
-\txtQual as \nlatf increases, a behavior not seen for
-$\gamma > \oneby{4}$, where quantiles of \txtQual grow with \nlatf. 
-For the case of `slow growth' of \psnropt, the diversification 
-benefit is not seen by the sample \txtMP, rather its practical
-utility \emph{decreases} because the estimation error 
-outpaces the growth of \psnropt. 
+%% this is the approximate distribution of MP SR, which is now cutFOLDUP
+%This relationship between \txtQual and \nlatf for different
+%values of $\gamma$ appears not just in the upper bound of
+%\theoremref{qual_bound}, but apparently also for most quantiles
+%of the distribution given by \apxref{qual_dist}, as
+%%This loss in value with respect to growing universe size is
+%illustrated in \figref{grow_sqrt}. Again assuming
+%$\psnropt = \psnr[0]\nlatf^{\gamma}$, lines of 
+%$\psnropt$ and the $0.25, 0.50,$ and $0.75$ quantiles of
+%$\psnropt\pql{\sportwfnc{\mreti}}$, under 
+%\apxref{qual_dist}, are plotted versus \nlatf.
+%The panels represent $\gamma$ values of
+%$\Sexpr{sort(pgammas)[1:(length(pgammas)-1)]},$ and 
+%$\Sexpr{sort(pgammas)[length(pgammas)]}$.
+%Again, the value of
+%$\psnr[0]$ is set so that 
+%$\psnropt=\Sexpr{sqrt(ope)*zeta.s}\yrtomhalf$ when 
+%$\nlatf=\Sexpr{n.stok}$.
+%For $\gamma < \oneby{4}$, one sees a local maximum in 
+%\txtQual as \nlatf increases, a behavior not seen for
+%$\gamma > \oneby{4}$, where quantiles of \txtQual grow with \nlatf. 
+%For the case of `slow growth' of \psnropt, the diversification 
+%benefit is not seen by the sample \txtMP, rather its practical
+%utility \emph{decreases} because the estimation error 
+%outpaces the growth of \psnropt. 
+%%UNFOLD
 
 %Via the equivalence in \eqnref{sufficient_growth}, for the 
 %bound \qbnd to be growing with respect to \nlatf, it suffices
@@ -3229,9 +3266,11 @@ trading strategies where the portfolio is linear in the
 observable features, \vfact[i]. 
 Can it be used as an approximate bound for trading
 strategies which are nonlinear, complex functions of the features?
-\item What can be said about scaling of \psnropt with respect to
-\nlatf for different models of market returns? Can one establish
-sane sufficient conditions for which \psnropt grows slower than
+\item 
+What can be said about scaling of \psnropt with respect to
+\nlatf for different models of market returns? 
+Can one establish
+reasonable sufficient conditions for which \psnropt grows slower than
 $\nlatf^{\oneby{4}}$? What is the analogue of \eqnref{capm_zetas}
 for a multi-factor model of returns?
 %\item Can we find a lower bound, or a non-trivial upper bound on the 
@@ -3283,6 +3322,54 @@ be generalized to include these costs?
 
 \section{Miscellaneous Proofs}%FOLDUP
 \label{sec:misc_proofs}
+
+\begin{lemma}
+Suppose the portfolio selection technique is such that
+for any orthonormal \Mtx{H}, 
+\begin{equation*}
+\sportwfnc{\mreti\tr{\Mtx{H}}} = \Mtx{H}\sportwfnc{\mreti}.
+\end{equation*}
+Then
+$$
+\tr{\fnorm{\trchol{\pvsig}\pportwopt}} \E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}} = \cfnc{\psnrsqopt}.
+$$
+That is, the \txtQual of the portfolio depends on 
+\pvmu and \pvsig only through $\psnrsqopt = \qiform{\pvsig}{\pvmu}$.
+\end{lemma}
+\begin{proof}
+Suppose \Mtx{H} is orthonormal, so $\gram{\Mtx{H}} = \eye[\nlatf] =
+\ogram{\Mtx{H}}$.
+If \pvmu and \pvsig are the mean and covariance of \reti.
+Then the mean and covariance of $\Mtx{H}\reti$ are 
+$\Mtx{H}\pvmu$ and $\qoform{\pvsig}{\Mtx{H}}$.
+
+Now note that
+\begin{align*}
+  \E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}} }
+  &= \E{\fnorm{\gram{\Mtx{H}}\trchol{\pvsig}\gram{\Mtx{H}}\sportwfnc{\mreti}}},\\
+  &= \E{\tr{\Mtx{H}}\fnorm{{\Mtx{H}}\trchol{\pvsig}\tr{\Mtx{H}}\sportwfnc{\mreti\tr{\Mtx{H}}}}},\\
+  &= \tr{\Mtx{H}}\E{\fnorm{{\Mtx{H}}\trchol{\pvsig}\tr{\Mtx{H}}\sportwfnc{\mreti\tr{\Mtx{H}}}}}.
+\end{align*}
+So the quantity of interest, $c$ is 
+\begin{align*}
+  c & \defeq
+\tr{\fnorm{\trchol{\pvsig}\pportwopt}}
+  \E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}},\\
+  &= 
+\tr{\fnorm{\trchol{\pvsig}\pportwopt}}
+  \tr{\Mtx{H}}\E{\fnorm{{\Mtx{H}}\trchol{\pvsig}\tr{\Mtx{H}}\sportwfnc{\mreti\tr{\Mtx{H}}}}},\\
+  &= 
+  \tr{\wrapParens{\Mtx{H} {\fnorm{\trchol{\pvsig}\pportwopt}}}}
+  \E{\fnorm{{\Mtx{H}}\trchol{\pvsig}\tr{\Mtx{H}}\sportwfnc{\mreti\tr{\Mtx{H}}}}},\\
+  &= 
+  \tr{\wrapParens{{\fnorm{\Mtx{H}\trchol{\pvsig}\gram{\Mtx{H}}\pportwopt}}}}
+  \E{\fnorm{{\Mtx{H}}\trchol{\pvsig}\tr{\Mtx{H}}\sportwfnc{\mreti\tr{\Mtx{H}}}}},\\
+\end{align*}
+
+
+\end{proof}
+
+
 
 %UNFOLD
 
