@@ -408,6 +408,9 @@
 \providecommand{\fsqfnc}[2][{\ssiz}]{\ffncUL{2}{#1}{#2}}
 \providecommand{\ffncp}[2][{\ssiz}]{\ffncUL{\prime}{#1}{#2}}
 
+\providecommand{\lik}[2]{\funcit{\mathcal{L}}{\left.{#1}\,\right|{#2}}}
+\providecommand{\loglik}[2]{\log\lik{#1}{#2}}
+
 % bias
 \providecommand{\prvbterm}[3]{\funcitUL{\vect{b}}{#1}{#2}{#3}}
 \providecommand{\buterm}[1][{}]{\prvbterm{#1}{\ssiz}{\pvmu, \pvsig}}
@@ -2509,6 +2512,56 @@ be generalized to include these costs?
 
 \section{Miscellaneous Proofs}%FOLDUP
 \label{sec:misc_proofs}
+
+
+Suppose that \vreti are multivariate normally distributed,
+$\vreti\sim\normlaw{\pvmu,\pvsig}$. The log likelihood of $\pvmu, \pvsig$ is
+\begin{equation}
+  \loglik{\pvmu, \pvsig}{\vreti} = -\half[\nlatf]\log{2\pi} -
+  \half\log{\det{\pvsig}} - \half \qiform{\pvsig}{\wrapParens{\vreti - \pvmu}}.
+\end{equation}
+Let's express this instead in terms of 
+$\prskvec \defeq \ichol{\pvsig}\pvmu$, 
+and the lower triangular inverse Cholesky factor $\ichol{\pvsig}$.
+We have
+\begin{align*}
+  \loglik{\prskvec, \ichol{\pvsig}}{\vreti} 
+  &= -\half[\nlatf]\log{2\pi} - \half\log{\det{\chol{\pvsig}\trchol{\pvsig}}}\\
+  &\phantom{=}\,
+  - \half \qform{\trichol{\pvsig}\ichol{\pvsig}}{\vreti}
+  + \tr{\prskvec} \ichol{\pvsig}\vreti
+  - \half \gram{\prskvec},\\
+  &= -\half[\nlatf]\log{2\pi} - \log{\det{\chol{\pvsig}}}\\
+  &\phantom{=}\,
+  - \half \trace{{\trichol{\pvsig}\ichol{\pvsig}}\ogram{\vreti}}
+  + \tr{\prskvec} \ichol{\pvsig}\vreti
+  - \half \gram{\prskvec},\\
+  &= -\half[\nlatf]\log{2\pi} + \log{\det{\ichol{\pvsig}}}\\
+  &\phantom{=}\,
+  - \half \trace{{\trichol{\pvsig}\ichol{\pvsig}}\ogram{\vreti}}
+  + \tr{\prskvec} \ichol{\pvsig}\vreti
+  - \half \gram{\prskvec}.
+\end{align*}
+Now define a vector parameter which is the stack
+$$\vect{\theta} = 
+\twobyone{\prskvec}{\fvech{\ichol{\pvsig}}}.
+$$
+The \emph{score function} is the gradient of the log likelihood with respect to
+this parameter. 
+We express matrix derivatives in numerator layout, so a gradient is a \emph{row
+vector}.
+The score function has value.
+\begin{align*}
+  \gradof[\vect{\theta}]{\loglik{\vec{\theta}}{\vreti}} 
+  &= \tr{\twobyone{\ichol{\pvsig}\vreti -
+  \prskvec}{\fvech{\chol{\pvsig}}}}
+\end{align*}
+
+
+
+
+
+
 
 \begin{lemma}
 Suppose the portfolio selection technique is such that
