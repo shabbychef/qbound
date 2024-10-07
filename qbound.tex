@@ -401,6 +401,11 @@
 
 
 
+% matrix gt, ge, lt
+\providecommand{\mtxge}{\succsim}
+\providecommand{\mtxgt}{\succ}
+\providecommand{\mtxlt}{\prec}
+\providecommand{\mtxle}{\precsim}
 
 \providecommand{\prvfsym}{f}
 \providecommand{\ffncUL}[3]{\funcitUL{\prvfsym}{#1}{#2}{#3}}
@@ -438,8 +443,9 @@
 %\providecommand{\prskvecU}[1]{\vectUL{\eta}{#1}{*}}
 \providecommand{\prskvecU}[1]{\vectUL{\eta}{#1}{}}
 \providecommand{\prskvec}{\prskvecU{}}
-\providecommand{\gramprskvec}{\prskvecU{\trsym}\prskvec}
-\providecommand{\ogramprskvec}{\prskvec\prskvecU{\trsym}}
+\providecommand{\trprskvec}{\prskvecU{\trsym}}
+\providecommand{\gramprskvec}{\trprskvec\prskvec}
+\providecommand{\ogramprskvec}{\prskvec\trprskvecU}
 \providecommand{\Drv}{\Mtx{D}}
 
 \providecommand{\prskMtxU}[1]{\MtxUL{H}{#1}{}}
@@ -762,8 +768,8 @@ pick a point on the hypersphere when constructing a portfolio.
 %\end{equation}
 
 In practice the portfolio \sportw is built using \ssiz \iid observations 
-of the random variable \vreti. Denote these observations by the
-\bby{\ssiz}{\nlatf} matrix \mreti, and, by abuse of notation, denote
+of the random variable \vreti. 
+Denote these observations by the \bby{\ssiz}{\nlatf} matrix \mreti, and, by abuse of notation, denote
 the \emph{estimator} that gives \sportw for a given \mreti by
 \sportwfnc{\mreti}. By the same abuse of notation, write 
 \spangfnc{\mreti}. We will bound the expected value of
@@ -2514,8 +2520,20 @@ be generalized to include these costs?
 \label{sec:misc_proofs}
 
 
-Suppose that \vreti are multivariate normally distributed,
-$\vreti\sim\normlaw{\pvmu,\pvsig}$. The log likelihood of $\pvmu, \pvsig$ is
+\begin{lemma}
+Suppose that \vreti[i] for $i=1,\ldots,\ssiz$ are \iid multivariate normally
+distributed, $\vreti[i]\sim\normlaw{\pvmu,\pvsig}$. 
+Let $\funcit{f}{\mreti}$ be an unbiased estimator:
+$\E{\funcit{f}{\mreti}} = \prskvec \defeq \ichol{\pvsig}\pvmu$.
+Then
+$$
+\VAR{\funcit{f}{\mreti}} \mtxge \frac{1}{\ssiz} \eye[\nlatf].
+$$
+We write $\Mtx{A} \mtxge \Mtx{B}$ to mean $\Mtx{A} - \Mtx{B}$ is positive semidefinite.
+\end{lemma}
+\begin{proof}
+%Suppose that \vreti are multivariate normally distributed, $\vreti\sim\normlaw{\pvmu,\pvsig}$. 
+The log likelihood of $\pvmu, \pvsig$ is
 \begin{equation}
   \loglik{\pvmu, \pvsig}{\vreti} = -\half[\nlatf]\log{2\pi} -
   \half\log{\det{\pvsig}} - \half \qiform{\pvsig}{\wrapParens{\vreti - \pvmu}}.
@@ -2546,22 +2564,41 @@ Now define a vector parameter which is the stack
 $$\vect{\theta} = 
 \twobyone{\prskvec}{\fvech{\ichol{\pvsig}}}.
 $$
-The \emph{score function} is the gradient of the log likelihood with respect to
-this parameter. 
-We express matrix derivatives in numerator layout, so a gradient is a \emph{row
-vector}.
-The score function has value.
-\begin{align*}
-  \gradof[\vect{\theta}]{\loglik{\vec{\theta}}{\vreti}} 
-  &= \tr{\twobyone{\ichol{\pvsig}\vreti -
-  \prskvec}{\fvech{\chol{\pvsig}}}}
-\end{align*}
 
+The Fisher Information matrix is 
+$$
+\FishI[\vect{\theta}] = - \E{\prby[2]{\log\FOOlik{}{\vreti}{\vec{\theta}}}{\px[\vect{\theta}]\px[\tr{\vect{\theta}}]}}.
+$$
+We express the Fisher Information as a block matrix
+$$
+\FishI[\vect{\theta}] = \twobytwo{-
+  \E{\prby[2]{\log\FOOlik{}{\vreti}{\vec{\theta}}}{\px[\prskvec]\px[\trprskvec]}}}{\Mtx{A}}{\tr{\Mtx{A}}}{\Mtx{B}},
+$$
+for some matrices $\Mtx{A}, \Mtx{B}$.
 
+The \txtCR bound is the inverse of the Fisher Information matrix. Thus
+$$
+\VAR{\funcit{f}{\mreti}} \mtxge \frac{1}{\ssiz} \Mtx{M}_{1,1},
+$$
+where $\Mtx{M} = \iFishI[\vect{\theta}],$ and 
+$\Mtx{M}_{1,1}$ is the upper left corner block corresponding to \prskvec in \vect{\theta}.
 
+Now, by the block matrix inversion formula, 
+$$
+\Mtx{M}_{1,1} =
+  \minvParens{-\E{\prby[2]{\log\FOOlik{}{\vreti}{\vec{\theta}}}{\px[\prskvec]\px[\trprskvec]}}} + \Mtx{C},
+$$
+where $\Mtx{C}$ is a particular symmetric positive definite matrix.
+That is, the nuisance parameters of $\vect{\theta}$ which consist of
+$\chol{\pvsig}$, only increase the \txtCR bound on variance.
 
-
-
+Now note that 
+$$
+\E{\prby[2]{\log\FOOlik{}{\vreti}{\vec{\theta}}}{\px[\prskvec]\px[\trprskvec]}}
+= - \eye[\nlatf],
+$$
+which completes the proof.
+\end{proof}
 
 \begin{lemma}
 Suppose the portfolio selection technique is such that
