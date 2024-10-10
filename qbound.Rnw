@@ -505,12 +505,17 @@ ope <- 253
 \providecommand{\spperpfnc}[1]{\funcitUL{\pportw}{}{\bottom}{#1}}
 
 %\providecommand{\prskvecU}[1]{\vectUL{\eta}{#1}{*}}
+\providecommand{\prskvecUL}[2]{\vectUL{\eta}{#1}{#2}}
 \providecommand{\prskvecU}[1]{\vectUL{\eta}{#1}{}}
 \providecommand{\prskvec}{\prskvecU{}}
 \providecommand{\trprskvec}{\prskvecU{\trsym}}
 \providecommand{\gramprskvec}{\trprskvec\prskvec}
-\providecommand{\ogramprskvec}{\prskvec\trprskvecU}
+\providecommand{\ogramprskvec}{\prskvec\trprskvec}
 \providecommand{\Drv}{\Mtx{D}}
+
+\providecommand{\ptmpvecU}[1]{\vectUL{\gamma}{#1}{}}
+\providecommand{\ptmpvec}{\ptmpvecU{}}
+
 
 \providecommand{\prskMtxU}[1]{\MtxUL{H}{#1}{}}
 \providecommand{\prskMtx}{\prskMtxU{}}
@@ -880,12 +885,12 @@ the \emph{estimator} that gives \sportw for a given \mreti by
 %is unbiased. In this case, however, there is no bias-variance tradeoff,
 %and our assumptions may be rather weak. We assume that
 
-To appeal to a \txtCR bound one must assume the estimator
-is unbiased or incorporate the bias into the bound.
+Generally when one appeals to a \txtCR bound one must assume the estimator
+is unbiased or incorporate the bias into the construction of the bound.
 In the extreme case where the estimator is a stopped clock, the
-\txtCR bound can collapse to the uninteresting statement that the variance 
+\txtCR bound can collapse to the trivial statement that the variance 
 is non-negative.
-For this problem we first note that the expected value of 
+For our problem we first note that the expected value of 
 $\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}$ can be decomposed
 into a part parallel to $\fnorm{\trchol{\pvsig}\pportwopt}$, which is the thing
 it is estimating, and a perpendicular part.  \cite{ANZS:ANZS253}
@@ -912,8 +917,9 @@ and linearity of the expectation,
 \end{equation}
 Thus $\abs{\cfnc{\pvmu, \pvsig}} \le 1$.
 Moreover we expect $\cfnc{\pvmu, \pvsig}$ to be large when the
-estimator is good, but go to $1$ as the sample size increases
-when the parameters are fixed, and so on.
+estimator is good.
+We also expect $\cfnc{\pvmu, \pvsig}$ to go to $1$ as the sample size increases
+when the parameters are fixed, and $\pvmu$ is non-zero.
 
 We wish to appeal to the \txtCR bound with respect to the `parameter'
 \fnorm{\trchol{\pvsig}\pportwopt}. 
@@ -934,6 +940,16 @@ is directionally unbiased.
 %\footnote{That is the estimator is a `parallel estimator' in Watson's terminology \cite{ANZS:ANZS253}, or `unbiased' in the sense of Hendricks.  \cite{Hendriks1991245,Dutchmen1992}}
 \end{assumption}%UNFOLD
 
+The sample \txtMP satisfies this assumption, as we show in \secref{misc_proofs}
+in the Appendix.
+It is not clear if there are simple sufficient conditions which imply these
+assumptions.
+However, the assumptions seem innocuous enough: 
+they state that the expected performance of the portfolio construction
+technique only depends on the underlying effect size, and does not have favored
+directions. 
+A portfolio construction technique which satisfies these assumptions is general
+purpose and can be applied to any long-short problem.
 %The function $\cfnc{\psnrsqopt}$ describes how well the portfolio estimator
 %can capitalize on a universe with \txtSNR $\psnropt$ given $\ssiz$
 %observations.
@@ -983,7 +999,8 @@ total gross allocation in any one asset; this estimator does not exhibit
 Directional Independence, as it will exhibit different performance
 when $\pportwopt=\psnropt\basev[1]$ than when $\pportwopt =
 \nlatf^{-1/2}\vone$.
-Neither does the ``one over $N$ allocation'' estimator\footnote{The naive equal weight allocation makes no real sense in our long-short context anyway.}.  \cite{demiguel2009optimal}  
+Neither does the ``one over $N$ allocation'' estimator\footnote{The naive equal
+weight allocation does not make sense in our long-short context anyway.}.  \cite{demiguel2009optimal}  
 
 %The Directional Independence assumption is one of two that are required to
 %eliminate stopped clocks from consideration.
@@ -1004,45 +1021,69 @@ Neither does the ``one over $N$ allocation'' estimator\footnote{The naive equal 
 %These two assumptions, and the long-short context, eliminate the 1/$N$
 %allocation or risk parity portfolios from further consideration here.
 
-Let $\vect{y}$ be a \nlatf-variate random variable. Then
+Let $\vect{y}$ be any \nlatf-variate random variable. Then
 \begin{align}
 \nonumber\trace{\VAR{\vect{y}}} 
 &= \trace{\E{\ogram{\wrapParens{\vect{y} - \E{\vect{y}}}}}},&\\
 \nonumber &= \trace{\E{\ogram{\vect{y}}}} - \trace{\ogram{\E{\vect{y}}}},&\\
 &= \E{\gram{\vect{y}}} - \gram{\E{\vect{y}}}.&
 \end{align}
-By \eqnref{sane_estimator}, and using orthogonality of 
-\bterm and \fnorm{\trchol{\pvsig}\pportwopt}, we then have
+Applying this to our problem we have
 \begin{align}
-\nonumber
-\trace{\VAR{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}}} &= 
-1 - \wrapParens{\csqfnc{\psnrsqopt} + \bsqterm}&\\
-\label{eqn:var_bounds}
-&\le 1 - \csqfnc{\psnrsqopt},&
+\trace{\VAR{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}}} &= \label{eqn:var_bounds} 1 - \csqfnc{\psnrsqopt},
 \end{align}
 We will bound the variance of 
 $\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}$
-by a \txtCR lower bound, thus establishing an upper bound on
+by a \txtCR \emph{lower} bound, thus establishing an \emph{upper} bound on
 \cfnc{\psnrsqopt}.
+
+To compute the Fisher information we must fix the likelihood
+of the returns, \vreti. 
+While the normal distribution is a poor fit for asset
+returns \cite{stylized_facts}, it is a convenient distribution to work with.
+We note that the multivariate Gaussian has the minimum Fisher Information over
+distributions with the given covariance.
+Effectively this means the upper bound we establish on expected \txtQual
+is lowest for Gaussian returns.
+Informally, non-Gaussian returns may provide more ``hints'' to the direction of
+\pportwopt.
+
+\begin{assumption}[Normal Returns]
+Assume that \vreti[i] are \iid multivariate normally distributed,
+$\vreti[i]\sim\normlaw{\pvmu,\pvsig}$.
+\end{assumption}
+
 
 Define 
 \begin{equation}
 \prskvec \defeq \trchol{\pvsig}\pportwopt = \ichol{\pvsig}\pvmu.
 \end{equation}
 Note that $\gramprskvec = \qiform{\pvsig}{\pvmu} = \psnrsqopt$.
+If $\funcit{f}{\mreti}$ is an unbiased estimator of $\prskvec$ then
+\begin{equation}
+\VAR{\funcit{f}{\mreti}} \mtxge \frac{1}{\ssiz} \eye[\nlatf],
+\label{eqn:magical_crb}
+\end{equation}
+where 
+we write $\Mtx{A} \mtxge \Mtx{B}$ to mean $\Mtx{A} - \Mtx{B}$ is positive semidefinite.
+This result is \lemmaref{prskvec_crb} in the Appendix; the proof appeals to the
+\txtCR bound with transformations and nuisance parameters.
+
+
 %Under the assumption of \eqnref{sane_estimator}, \eqnref{var_bounds}
 %becomes
 %\begin{equation}
 %\trace{\VAR{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}}}
 %\le 2\wrapParens{1 - \cfnc{\gramprskvec}}.
 %\end{equation}
-Using the \txtCCR lower bound for the left hand side 
-of \eqnref{var_bounds},
-and then using the definition of \prskvec in the expectation, we have
-\cite{tj_moore_ccrb}
+Applying a change of variables to \eqnref{magical_crb}, we
+can get a lower bound on the left hand side 
+of \eqnref{var_bounds}, yielding
 \begin{equation}
 \label{eqn:crb_one}
-\oneby{\ssiz}\trace{\qoform{\iFishI[\prskvec]}{\Drv}}
+\label{eqn:crb_two}
+%\oneby{\ssiz}\trace{\qoform{\iFishI[\prskvec]}{\Drv}}
+\oneby{\ssiz}\trace{\ogram{\Drv}}
 \le 1 - \csqfnc{\gramprskvec},
 \end{equation}
 where
@@ -1051,7 +1092,8 @@ where
 {\dbyd{\cfnc{\gramprskvec}\frac{\prskvec}{\sqrt{\gramprskvec}}}{\prskvec}}.
 \end{equation}
 Here we take the derivative to follow the `numerator layout' convention, 
-meaning a gradient is a row vector. This derivative takes the form
+meaning a gradient is a row vector. 
+This derivative takes the form
 \begin{equation}
 \label{eqn:Drv_form}
 \Drv = \frac{\cfncp{\gramprskvec}}{\sqrt{\gramprskvec}}\ogramprskvec + 
@@ -1059,42 +1101,34 @@ meaning a gradient is a row vector. This derivative takes the form
 \frac{\ogramprskvec}{\gramprskvec^{\half[3]}}}.
 \end{equation}
 
-To compute the Fisher information, \FishI[\prskvec], we must fix the likelihood
-of the returns, \vreti. While the normal distribution is a poor fit for asset
-returns \cite{stylized_facts}, it is a convenient distribution to work with.
 
-\begin{assumption}[Normal Returns]
-Assume that \vreti are multivariate normally distributed,
-$\vreti\sim\normlaw{\pvmu,\pvsig}$.
-\end{assumption}
-
-For multivariate normal returns, and conditional on \pvsig, the log likelihood
-takes the form
-\begin{equation}
-\begin{split}
-\log\FOOlik{}{\vreti}{\prskvec} &= c_1 - \half
-\qiform{\pvsig}{\wrapParens{\vreti - \pvmu}},\\
-&= \funcit{c}{\vreti} + \prskvecU{\trsym}\ichol{\pvsig}\vreti - \half
-\gramprskvec,
-\end{split}
-\end{equation}
-dropping the `nuisance parameters' from the likelihood function.
-The Fisher Information is negative the expectation of the 
-Hessian of the log likelihood with respect to \prskvec. 
-In this case we have simply
-\begin{equation}
-\label{eqn:FisherI}
-\FishI[\prskvec] =
-- \E{\prby[2]{\log\FOOlik{}{\vreti}{\prskvec}}{\px[\prskvec]\px[\prskvecU{\trsym}]}}
-= \eye[\nlatf].
-\end{equation}
-This radically simplifies the exposition, as the \txtCR bound of
-\eqnref{crb_one} can now be expressed as 
-\begin{equation}
-\label{eqn:crb_two}
-\oneby{\ssiz}\trace{\ogram{\Drv}}
-\le 1 - \csqfnc{\gramprskvec}.
-\end{equation}
+%For multivariate normal returns, and conditional on \pvsig, the log likelihood
+%takes the form
+%\begin{equation}
+%\begin{split}
+%\log\FOOlik{}{\vreti}{\prskvec} &= c_1 - \half
+%\qiform{\pvsig}{\wrapParens{\vreti - \pvmu}},\\
+%&= \funcit{c}{\vreti} + \prskvecU{\trsym}\ichol{\pvsig}\vreti - \half
+%\gramprskvec,
+%\end{split}
+%\end{equation}
+%dropping the `nuisance parameters' from the likelihood function.
+%The Fisher Information is negative the expectation of the 
+%Hessian of the log likelihood with respect to \prskvec. 
+%In this case we have simply
+%\begin{equation}
+%\label{eqn:FisherI}
+%\FishI[\prskvec] =
+%- \E{\prby[2]{\log\FOOlik{}{\vreti}{\prskvec}}{\px[\prskvec]\px[\prskvecU{\trsym}]}}
+%= \eye[\nlatf].
+%\end{equation}
+%This radically simplifies the exposition, as the \txtCR bound of
+%\eqnref{crb_one} can now be expressed as 
+%\begin{equation}
+%\label{eqn:crb_two}
+%\oneby{\ssiz}\trace{\ogram{\Drv}}
+%\le 1 - \csqfnc{\gramprskvec}.
+%\end{equation}
 Using the form of \Drv given in \eqnref{Drv_form}, and noting that the cross
 terms are orthogonal, we have
 \begin{equation}
@@ -1137,7 +1171,8 @@ proving the following theorem.
 \label{theorem:qual_bound}
 Let \sportwfnc{\mreti} be an estimator based on \ssiz \iid observations of
 multivariate Gaussian returns, \mreti, satisfying the assumptions of
-directional independence and residual independence. Then
+directional independence and unbiasedness. 
+Then
 \begin{equation}
 \E{\pql{\sportwfnc{\mreti}}} 
 \le \frac{\sqrt{\ssiz}\psnrsqopt}{\sqrt{\nlatf - 1 + \ssiz\psnrsqopt}}.
@@ -2558,8 +2593,8 @@ expected value of the returns of the portfolio is
 by definition of \pfacsig as the second moment of \vfact[i].
 
 Unfortunately the unconditional variance will, in general,
-involve a term quadratic in the expectation. However, it
-can easily be shown that the unconditional \emph{expected} 
+involve a term quadratic in the expectation. 
+However, it can easily be shown that the unconditional \emph{expected} 
 variance of the portfolio's returns is
 \begin{equation*}
 \E{\qform{\pvsig}{\wrapParens{\sportW\vfact[i]}}} =
@@ -2623,18 +2658,18 @@ sphere \sphere{\nfac\nlatf - 1}. An analogue
 to \theoremref{qual_bound} can be proved with $\nfac\nlatf$ replacing
 $\nlatf$, by assuming a particular form to the likelihood. We must
 generalize the assumption of Directional Independence, after which
-the theorem proceeds easily.
+the theorem proceeds easily\footnote{We expect few reviewers will have made it
+to this point. If you find yourself reading this, congratulations!}.
 
 \begin{assumption}[Conditional Directional Independence]%FOLDUP
 Assume that
 \begin{equation}
 \label{eqn:sane_estimator_cond}
 \E{\fnorm{\fvec{\trchol{\pvsig}\sportWfnc{\mreti,\mfact}}}} = 
-\cfnc{\psnrsqopt} \fnorm{\fvec{\trchol{\pvsig}\pportWopt\chol{\pfacsig}}}
-+ \Bterm,
+\cfnc{\psnrsqopt} \fnorm{\fvec{\trchol{\pvsig}\pportWopt\chol{\pfacsig}}}.
+%+ \Bterm,
 \end{equation}
-where \Bterm is the bias term, orthogonal to 
-\fnorm{\fvec{\trchol{\pvsig}\pportWopt\chol{\pfacsig}}}.
+%where \Bterm is the bias term, orthogonal to \fnorm{\fvec{\trchol{\pvsig}\pportWopt\chol{\pfacsig}}}.
 \end{assumption}%UNFOLD
 
 \begin{theorem}%FOLDUP
@@ -2680,7 +2715,9 @@ Then
 \psnrsqopt = \trace{\gramprskMtx}.
 \end{equation*}
 
-We get, analogously to \eqnref{crb_one},
+% I changed the exposition so that the users never see \eqnref{crb_one}.
+%We get, analogously to \eqnref{crb_one},
+We get, analogously to \eqnref{crb_two},
 \begin{equation}
 \oneby{\ssiz}\trace{\qoform{\iFishI[\fvec{\prskMtx}]}{\Drv}}
 \le 1 - \csqfnc{\trace{\gramprskMtx}},
@@ -3239,9 +3276,9 @@ These findings perhaps raise more questions than they answer:
 depend on the unknown
 quantity, \psnrsqopt. How can we perform inference, 
 Frequentist or Bayesian, on \pql{\sportwopt}, where \sportwopt is the \txtMP, 
-given the observed information (\viz \svmu and \svsig)? This
-is a problem of enormous practical concern to hundreds of
-quantitative portfolio managers.
+given the observed information (\viz \svmu and \svsig)? 
+This is a problem of enormous practical concern to hundreds of
+quantitative portfolio managers.  \cite{pav2020inference}
 
 Contrast inference on the portfolio \txtQual with inference
 on the population \txtSNR: under Gaussian returns, the
@@ -3254,13 +3291,15 @@ Performing inverence on \pql{\sportwopt} is tricky because \psnrsqopt
 is unknown and the error $\sportwopt - \pportwopt$ is likely
 not independent of the error in the estimate \ssropt.
 
-It may be the case, however, that inference on the portfolio
-\txtQual qualifies as an `impossible' estimation-after-selection
-problem. \cite{leeb2006}
+%It may be the case, however, that inference on the portfolio
+%\txtQual qualifies as an `impossible' estimation-after-selection
+%problem. \cite{leeb2006}
 \item While \theoremref{qual_bound} requires Gaussian returns, 
-one expects that the result holds for returns distributions whose 
-likelihood is ``more concave'' than the Gaussian at the MLE.
-Exact conditions for this to hold should be established.
+it is not clear whether non-Gaussian returns actually present an \emph{easier}
+case for a portfolio estimator. 
+The minimality of the Fisher information would seem to imply this is the case,
+but since we assumed away the nuisance parameters, it is not clear.
+Simple simulations would be revealing.
 %\item How is \txtQual affected by the imposition of hedging and
 %other constraints?  \cite{pav2013markowitz} Does dimensionality
 %reduction modify the `degrees of freedom' in the straightforward
@@ -3275,6 +3314,9 @@ trading strategies where the portfolio is linear in the
 observable features, \vfact[i]. 
 Can it be used as an approximate bound for trading
 strategies which are nonlinear, complex functions of the features?
+Better yet, is there a more general version of 
+\theoremref{qual_bound_two} that applies whenever you estimate
+free parameters of some trading system?
 \item 
 What can be said about scaling of \psnropt with respect to
 \nlatf for different models of market returns? 
@@ -3297,6 +3339,8 @@ it be much improved by directly analyzing the differential
 inequality of \eqnref{crb_three}, rather than discarding
 the derivative term? Or perhaps the bound can be improved by using
 an `intrinsic' \txtCR bound.  \cite{DBLP:conf/icassp/XavierB05}
+Similarly, how much worse is the upper bound if we do not assume the nuisance
+parameters \pvsig are known?
 %\item How good is \apxref{qual_dist}? Can we find the expected
 %value of the distribution in \apxref{qual_dist}, and what is the
 %gap between it and the bound of \theoremref{qual_bound}?
@@ -3304,7 +3348,7 @@ an `intrinsic' \txtCR bound.  \cite{DBLP:conf/icassp/XavierB05}
 %sample \txtMP under Gaussian returns, 
 %perhaps leveraging the work of Bodnar and Okhrin,
 %or of Britton-Jones.  \cite{SJOS:SJOS729, BrittenJones1999}
-\item Can the assumption of Directional Independence be weakened?
+\item Can the assumptions of Directional Independence and unbiasedness be weakened?
 Can the \theoremref{qual_bound_two} be generalized to deal with omitted 
 variable bias in \vfact[i]?  
 \item The analysis of \txtQual ignores the `risk-free' or `disastrous'
@@ -3332,8 +3376,24 @@ be generalized to include these costs?
 \section{Miscellaneous Proofs}%FOLDUP
 \label{sec:misc_proofs}
 
+\begin{lemma}
+Suppose that \vreti[i] for $i=1,\ldots,\ssiz$ are \iid multivariate normally
+distributed, $\vreti[i]\sim\normlaw{\pvmu,\pvsig}$, where $\pvmu$ is not the
+zero vector.
+Let \sportwfnc{\mreti} be the sample \txtMP.
+Then 
+\begin{equation}
+\label{eqn:unbiased_estimator_again}
+\E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}} = 
+\cfnc{\psnrsqopt} \fnorm{\trchol{\pvsig}\pportwopt}.
+\end{equation}
+\end{lemma}
+\begin{proof}
+
+\end{proof}
 
 \begin{lemma}
+\label{lemma:prskvec_crb}
 Suppose that \vreti[i] for $i=1,\ldots,\ssiz$ are \iid multivariate normally
 distributed, $\vreti[i]\sim\normlaw{\pvmu,\pvsig}$. 
 Let $\funcit{f}{\mreti}$ be an unbiased estimator:
@@ -3403,7 +3463,8 @@ $$
 $$
 where $\Mtx{C}$ is a particular symmetric positive definite matrix.
 That is the nuisance parameters of $\vect{\theta}$, which consist of
-$\chol{\pvsig}$, only increase the \txtCR bound on variance.
+$\chol{\pvsig}$, only increase the \txtCR bound on variance\footnote{I suspect
+  this is a commonly used result, but could not find a reference.}
 
 Now note that 
 $$
@@ -3412,6 +3473,59 @@ $$
 $$
 which completes the proof.
 \end{proof}
+
+Note that this lower bound can only be achieved if the nuisance parameter
+\pvsig were known, and if the portfolio estimator is the maximum likelihood
+estimator. \cite{pawitanIAL}
+It can be shown that the \txtMP is the MLE under Gaussian returns.
+\cite{pav2013markowitz}
+
+
+\begin{lemma}
+Suppose that \vreti[i] for $i=1,\ldots,\ssiz$ are \iid multivariate normally
+distributed, $\vreti[i]\sim\normlaw{\pvmu,\pvsig}$. 
+Let $\funcit{f}{\mreti}$ be some function of the observed data which is 
+constrained to \spherep.
+Suppose that this function is directionally unbiased:
+$$\E{\funcit{f}{\mreti}} = c\prskvec = c \ichol{\pvsig}\pvmu$$.
+Then 
+$$
+\VAR{\funcit{f}{\mreti}} \mtxge ??
+$$
+We write $\Mtx{A} \mtxge \Mtx{B}$ to mean $\Mtx{A} - \Mtx{B}$ is positive semidefinite.
+\end{lemma}
+\begin{proof}
+Let us perform a change of variables. We define the length $\nlatf+1$ vector
+\begin{equation}
+  \ptmpvec = \twobyone{\gramprskvec = \psnrsqopt}{\prskvecUL{}{} /
+  \sqrt{\gramprskvec}}.
+\end{equation}
+Now compute the derivative of \ptmpvec with respect to \prskvec,
+in numerator layout:
+\begin{equation}
+  \dbyd{\fvec{\ptmpvec}}{\fvec{\prskvec}} = \Mtx{D} = 
+  \twobyone{2 \trprskvec}{%
+    \oneby{\psnropt}\wrapParens{\eye[\nlatf] -
+    \oenby{\psnrsqopt}\ogramprskvec}}.
+\end{equation}
+  By the change of variables formula \cite{tj_moore_ccrb}, if 
+\funcit{g}{\mreti} is an unbiased estimator of \ptmpvec, then
+\begin{equation}
+  \VAR{\funcit{g}{\mreti}} \mtxge \ogram{\Mtx{D}} = 
+  \twobytwo{4 \psnrsqopt}{%
+    \tr{\vzero}}{%
+      \vzero}{%
+    \oneby{\psnrsqopt}\wrapParens{\eye[\nlatf] -
+    \oenby{\psnrsqopt}\ogramprskvec}
+  }
+\end{equation}
+
+
+
+
+
+\end{proof}
+
 
 \begin{lemma}
 Suppose the portfolio selection technique is such that
