@@ -239,5 +239,16 @@ downstream_files : $(DOWNSTREAM_FILES)  ## copy files from this repo to the publ
 mdpi.zip : mdpi.tex SharpeR.sty SharpeR.bib rauto.bib Definitions/ figure/  ## make a zipfile to send along
 	zip -r $@ $^ 
 
+mf1.pdf : $(PDF_TARGET)
+	pdftk $(PDF_TARGET) cat 1 output $@
+
+mf2.pdf : $(PDF_TARGET)
+	pdftk $(PDF_TARGET) cat 2-34 output $@
+
+mf3.pdf : $(PDF_TARGET)
+	pdftk $(PDF_TARGET) cat 35-39 output $@
+
+mf_all : mf1.pdf mf2.pdf mf3.pdf  ## all the MF bits
+
 #for vim modeline: (do not edit)
 # vim:ts=2:sw=2:tw=149:fdm=marker:fmr=FOLDUP,UNFOLD:cms=#%s:tags=tags;:syn=make:ft=make:ai:si:cin:nu:fo=croqt:cino=p0t0c5(0:
