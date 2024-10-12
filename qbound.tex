@@ -2567,7 +2567,7 @@ be generalized to include these costs?
 Suppose that \vreti[i] for $i=1,\ldots,\ssiz$ are \iid multivariate normally
 distributed, $\vreti[i]\sim\normlaw{\pvmu,\pvsig}$, where $\pvmu$ is not the
 zero vector.
-Let \sportwfnc{\mreti} be the sample \txtMP.
+Let \sportwfnc{\mreti} be the sample \txtMP function.
 Then 
 \begin{equation}
 \label{eqn:unbiased_estimator_again}
@@ -2576,7 +2576,65 @@ Then
 \end{equation}
 \end{lemma}
 \begin{proof}
+First note that
+\begin{align*}
+\trchol{\pvsig}\sportwfnc{\mreti} 
+  &= \trchol{\pvsig}\minv{\svsig}\svmu,\\
+  &= \trchol{\pvsig} \trichol{\pvsig} \minv{\Mtx{W}} \ichol{\pvsig}
+  \wrapParens{\pvmu + \chol{\pvsig}\vect{z}},\\
+  &= \minv{\Mtx{W}} \wrapParens{\trchol{\pvsig}\pportwopt + \vect{z}},
+\end{align*}
+where \Mtx{W} is a Wishart random variable with scale matrix \eye[\nlatf], 
+and \vect{z} is a standard zero-mean Gaussian, and the two are independent of each other.
 
+Now note that this means that the probability density of 
+$\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}$ is axially symmetric around
+the direction of $\trchol{\pvsig}\pportwopt$.
+That is if \funcit{g}{\vect{x}} is the probability density of
+$\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}$, then
+$$
+\funcit{g}{a \trchol{\pvsig}\pportwopt + \vect{y}} =
+\funcit{g}{a \trchol{\pvsig}\pportwopt - \vect{y}},
+$$
+for scalar $a$ where $\vect{y}$ is orthogonal to $\trchol{\pvsig}\pportwopt$.
+This proves that
+$$
+\E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}} = 
+c\fnorm{\trchol{\pvsig}\pportwopt},
+$$
+for some constant $c$. 
+
+Now we show that $c$ only depends on the effect size.
+Note that
+\begin{align*}
+  c 
+  &= \E{\tr{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}}\fnorm{\trchol{\pvsig}\pportwopt}},\\
+  &= \E{\frac{\tr{\sportwfnc{\mreti}}\pvsig\pportwopt}{\sqrt{\qform{\pvsig}{\sportwfnc{\mreti}}}}},\\
+  &= \E{\frac{\tr{\pportwopt}\chol{\pvsig} \minv{\Mtx{W}}\wrapParens{\trchol{\pvsig}\pportwopt + \vect{z}}}{%
+    \sqrt{\gram{\wrapParens{\minv{\Mtx{W}}\wrapParens{\trchol{\pvsig}\pportwopt
+    + \vect{z}}}}}}},
+\end{align*}
+where \Mtx{W} is a Wishart random variable with scale matrix \eye[\nlatf], 
+and \vect{z} is a standard zero-mean Gaussian, and the two are independent of each other.
+Now let $\Mtx{H}$ be an orthonormal matrix that rotates $\trchol{\pvsig}\pportwopt$ to $\psnropt \basev[1]$.
+We can insert $\gram{\Mtx{H}} = \eye$ to arrive at
+\begin{align*}
+  c 
+  &= \E{\frac{\tr{\pportwopt}\chol{\pvsig}\gram{\Mtx{H}} \minv{\Mtx{W}}\gram{\Mtx{H}}\wrapParens{\trchol{\pvsig}\pportwopt + \vect{z}}}{%
+    \sqrt{\qform{\gram{\Mtx{H}}}{\wrapParens{\minv{\Mtx{W}}\gram{\Mtx{H}}\wrapParens{\trchol{\pvsig}\pportwopt
+    + \vect{z}}}}}}},\\
+  &= \E{\frac{\psnropt \tr{\basev[1]}\Mtx{H}
+  \minv{\Mtx{W}}\tr{\Mtx{H}}\wrapParens{\psnropt\basev[1] + \Mtx{H}\vect{z}}}{%
+    \sqrt{\gram{\wrapParens{\Mtx{H}\minv{\Mtx{W}}\tr{\Mtx{H}}\wrapParens{\psnropt\basev[1]
+    + \Mtx{H}\vect{z}}}}}}},\\
+  &= \E{\frac{\psnropt \tr{\basev[1]}
+  \minv{\tilde{\Mtx{W}}}\wrapParens{\psnropt\basev[1] + \vect{\tilde{z}}}}{%
+    \sqrt{\minv{\tilde{\Mtx{W}}}\wrapParens{\psnropt\basev[1]
+    + \vect{\tilde{z}}}}}},
+\end{align*}
+where where \Mtx{\tilde{W}} is a Wishart random variable with scale matrix \eye[\nlatf], 
+and \vect{\tilde{z}} is a standard zero-mean Gaussian, and the two are independent of each other.
+Thus $c$ depends on \pvmu and \pvsig only via \psnropt, which was to be proven.
 \end{proof}
 
 \begin{lemma}
@@ -2668,97 +2726,92 @@ It can be shown that the \txtMP is the MLE under Gaussian returns.
 \cite{pav2013markowitz}
 
 
-\begin{lemma}
-Suppose that \vreti[i] for $i=1,\ldots,\ssiz$ are \iid multivariate normally
-distributed, $\vreti[i]\sim\normlaw{\pvmu,\pvsig}$. 
-Let $\funcit{f}{\mreti}$ be some function of the observed data which is 
-constrained to \spherep.
-Suppose that this function is directionally unbiased:
-$$\E{\funcit{f}{\mreti}} = c\prskvec = c \ichol{\pvsig}\pvmu$$.
-Then 
-$$
-\VAR{\funcit{f}{\mreti}} \mtxge ??
-$$
-We write $\Mtx{A} \mtxge \Mtx{B}$ to mean $\Mtx{A} - \Mtx{B}$ is positive semidefinite.
-\end{lemma}
-\begin{proof}
-Let us perform a change of variables. We define the length $\nlatf+1$ vector
-\begin{equation}
-  \ptmpvec = \twobyone{\gramprskvec = \psnrsqopt}{\prskvecUL{}{} /
-  \sqrt{\gramprskvec}}.
-\end{equation}
-Now compute the derivative of \ptmpvec with respect to \prskvec,
-in numerator layout:
-\begin{equation}
-  \dbyd{\fvec{\ptmpvec}}{\fvec{\prskvec}} = \Mtx{D} = 
-  \twobyone{2 \trprskvec}{%
-    \oneby{\psnropt}\wrapParens{\eye[\nlatf] -
-    \oenby{\psnrsqopt}\ogramprskvec}}.
-\end{equation}
-  By the change of variables formula \cite{tj_moore_ccrb}, if 
-\funcit{g}{\mreti} is an unbiased estimator of \ptmpvec, then
-\begin{equation}
-  \VAR{\funcit{g}{\mreti}} \mtxge \ogram{\Mtx{D}} = 
-  \twobytwo{4 \psnrsqopt}{%
-    \tr{\vzero}}{%
-      \vzero}{%
-    \oneby{\psnrsqopt}\wrapParens{\eye[\nlatf] -
-    \oenby{\psnrsqopt}\ogramprskvec}
-  }
-\end{equation}
+%\begin{lemma}
+%Suppose that \vreti[i] for $i=1,\ldots,\ssiz$ are \iid multivariate normally
+%distributed, $\vreti[i]\sim\normlaw{\pvmu,\pvsig}$. 
+%Let $\funcit{f}{\mreti}$ be some function of the observed data which is 
+%constrained to \spherep.
+%Suppose that this function is directionally unbiased:
+%$$\E{\funcit{f}{\mreti}} = c\prskvec = c \ichol{\pvsig}\pvmu$$.
+%Then 
+%$$
+%\VAR{\funcit{f}{\mreti}} \mtxge ??
+%$$
+%We write $\Mtx{A} \mtxge \Mtx{B}$ to mean $\Mtx{A} - \Mtx{B}$ is positive semidefinite.
+%\end{lemma}
+%\begin{proof}
+%Let us perform a change of variables. We define the length $\nlatf+1$ vector
+%\begin{equation}
+  %\ptmpvec = \twobyone{\gramprskvec = \psnrsqopt}{\prskvecUL{}{} /
+  %\sqrt{\gramprskvec}}.
+%\end{equation}
+%Now compute the derivative of \ptmpvec with respect to \prskvec,
+%in numerator layout:
+%\begin{equation}
+  %\dbyd{\fvec{\ptmpvec}}{\fvec{\prskvec}} = \Mtx{D} = 
+  %\twobyone{2 \trprskvec}{%
+    %\oneby{\psnropt}\wrapParens{\eye[\nlatf] -
+    %\oenby{\psnrsqopt}\ogramprskvec}}.
+%\end{equation}
+  %By the change of variables formula \cite{tj_moore_ccrb}, if 
+%\funcit{g}{\mreti} is an unbiased estimator of \ptmpvec, then
+%\begin{equation}
+  %\VAR{\funcit{g}{\mreti}} \mtxge \ogram{\Mtx{D}} = 
+  %\twobytwo{4 \psnrsqopt}{%
+    %\tr{\vzero}}{%
+      %\vzero}{%
+    %\oneby{\psnrsqopt}\wrapParens{\eye[\nlatf] -
+    %\oenby{\psnrsqopt}\ogramprskvec}
+  %}
+%\end{equation}
+%\end{proof}
 
 
+%\begin{lemma}
+%Suppose the portfolio selection technique is such that
+%for any orthonormal \Mtx{H}, 
+%\begin{equation*}
+%\sportwfnc{\mreti\tr{\Mtx{H}}} = \Mtx{H}\sportwfnc{\mreti}.
+%\end{equation*}
+%Then
+%$$
+%\tr{\fnorm{\trchol{\pvsig}\pportwopt}} \E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}} = \cfnc{\psnrsqopt}.
+%$$
+%That is, the \txtQual of the portfolio depends on 
+%\pvmu and \pvsig only through $\psnrsqopt = \qiform{\pvsig}{\pvmu}$.
+%\end{lemma}
+%\begin{proof}
+%Suppose \Mtx{H} is orthonormal, so $\gram{\Mtx{H}} = \eye[\nlatf] =
+%\ogram{\Mtx{H}}$.
+%If \pvmu and \pvsig are the mean and covariance of \reti.
+%Then the mean and covariance of $\Mtx{H}\reti$ are 
+%$\Mtx{H}\pvmu$ and $\qoform{\pvsig}{\Mtx{H}}$.
+
+%Now note that
+%\begin{align*}
+  %\E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}} }
+  %&= \E{\fnorm{\gram{\Mtx{H}}\trchol{\pvsig}\gram{\Mtx{H}}\sportwfnc{\mreti}}},\\
+  %&= \E{\tr{\Mtx{H}}\fnorm{{\Mtx{H}}\trchol{\pvsig}\tr{\Mtx{H}}\sportwfnc{\mreti\tr{\Mtx{H}}}}},\\
+  %&= \tr{\Mtx{H}}\E{\fnorm{{\Mtx{H}}\trchol{\pvsig}\tr{\Mtx{H}}\sportwfnc{\mreti\tr{\Mtx{H}}}}}.
+%\end{align*}
+%So the quantity of interest, $c$ is 
+%\begin{align*}
+  %c & \defeq
+%\tr{\fnorm{\trchol{\pvsig}\pportwopt}}
+  %\E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}},\\
+  %&= 
+%\tr{\fnorm{\trchol{\pvsig}\pportwopt}}
+  %\tr{\Mtx{H}}\E{\fnorm{{\Mtx{H}}\trchol{\pvsig}\tr{\Mtx{H}}\sportwfnc{\mreti\tr{\Mtx{H}}}}},\\
+  %&= 
+  %\tr{\wrapParens{\Mtx{H} {\fnorm{\trchol{\pvsig}\pportwopt}}}}
+  %\E{\fnorm{{\Mtx{H}}\trchol{\pvsig}\tr{\Mtx{H}}\sportwfnc{\mreti\tr{\Mtx{H}}}}},\\
+  %&= 
+  %\tr{\wrapParens{{\fnorm{\Mtx{H}\trchol{\pvsig}\gram{\Mtx{H}}\pportwopt}}}}
+  %\E{\fnorm{{\Mtx{H}}\trchol{\pvsig}\tr{\Mtx{H}}\sportwfnc{\mreti\tr{\Mtx{H}}}}},\\
+%\end{align*}
 
 
-
-\end{proof}
-
-
-\begin{lemma}
-Suppose the portfolio selection technique is such that
-for any orthonormal \Mtx{H}, 
-\begin{equation*}
-\sportwfnc{\mreti\tr{\Mtx{H}}} = \Mtx{H}\sportwfnc{\mreti}.
-\end{equation*}
-Then
-$$
-\tr{\fnorm{\trchol{\pvsig}\pportwopt}} \E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}} = \cfnc{\psnrsqopt}.
-$$
-That is, the \txtQual of the portfolio depends on 
-\pvmu and \pvsig only through $\psnrsqopt = \qiform{\pvsig}{\pvmu}$.
-\end{lemma}
-\begin{proof}
-Suppose \Mtx{H} is orthonormal, so $\gram{\Mtx{H}} = \eye[\nlatf] =
-\ogram{\Mtx{H}}$.
-If \pvmu and \pvsig are the mean and covariance of \reti.
-Then the mean and covariance of $\Mtx{H}\reti$ are 
-$\Mtx{H}\pvmu$ and $\qoform{\pvsig}{\Mtx{H}}$.
-
-Now note that
-\begin{align*}
-  \E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}} }
-  &= \E{\fnorm{\gram{\Mtx{H}}\trchol{\pvsig}\gram{\Mtx{H}}\sportwfnc{\mreti}}},\\
-  &= \E{\tr{\Mtx{H}}\fnorm{{\Mtx{H}}\trchol{\pvsig}\tr{\Mtx{H}}\sportwfnc{\mreti\tr{\Mtx{H}}}}},\\
-  &= \tr{\Mtx{H}}\E{\fnorm{{\Mtx{H}}\trchol{\pvsig}\tr{\Mtx{H}}\sportwfnc{\mreti\tr{\Mtx{H}}}}}.
-\end{align*}
-So the quantity of interest, $c$ is 
-\begin{align*}
-  c & \defeq
-\tr{\fnorm{\trchol{\pvsig}\pportwopt}}
-  \E{\fnorm{\trchol{\pvsig}\sportwfnc{\mreti}}},\\
-  &= 
-\tr{\fnorm{\trchol{\pvsig}\pportwopt}}
-  \tr{\Mtx{H}}\E{\fnorm{{\Mtx{H}}\trchol{\pvsig}\tr{\Mtx{H}}\sportwfnc{\mreti\tr{\Mtx{H}}}}},\\
-  &= 
-  \tr{\wrapParens{\Mtx{H} {\fnorm{\trchol{\pvsig}\pportwopt}}}}
-  \E{\fnorm{{\Mtx{H}}\trchol{\pvsig}\tr{\Mtx{H}}\sportwfnc{\mreti\tr{\Mtx{H}}}}},\\
-  &= 
-  \tr{\wrapParens{{\fnorm{\Mtx{H}\trchol{\pvsig}\gram{\Mtx{H}}\pportwopt}}}}
-  \E{\fnorm{{\Mtx{H}}\trchol{\pvsig}\tr{\Mtx{H}}\sportwfnc{\mreti\tr{\Mtx{H}}}}},\\
-\end{align*}
-
-
-\end{proof}
+%\end{proof}
 
 
 
