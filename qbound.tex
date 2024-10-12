@@ -67,6 +67,7 @@
 \usepackage{titling}
 
 
+
 % to make it double spaced
 \usepackage{setspace}
 \doublespacing
@@ -170,6 +171,12 @@
 
 
 %UNFOLD
+
+% wiley wants numerical footnotes
+% \renewcommand{\thefootnote}{\arabic{footnote}}
+%\usepackage[number]{footmisc}
+\usepackage{endnotes}
+\let\footnote=\endnote
 
 
 
@@ -483,7 +490,7 @@
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 
-\title{Noise in the Machine:\\ \large Bounds on Portfolio Quality}
+\title{Noise in the Machine:\\ \large Quantifying Overfit of the Markowitz Portfolio}
 \posttitle{\\ \normalsize running title: ``Noise in the Machine''}
 
 
@@ -534,7 +541,7 @@ and hedging constraints.
 Keywords: Markowitz Portfolio, Portfolio Selection, Sharpe Ratio, Asset Management.\\
 
 % Key Messages:
-Practitioner points:
+\textbf{Practitioner points:}
 \begin{compactenum}
 \item An upper bound on the expected \txtSR of the \txtMP is given.
 \item The bound considers true effect size, observation history and number of decisions.
@@ -1105,6 +1112,7 @@ multivariate Gaussian returns, \mreti, satisfying the assumptions of
 directional independence and unbiasedness. 
 Then
 \begin{equation}
+\label{eqn:qual_bound}
 \E{\pql{\sportwfnc{\mreti}}} 
 \le \frac{\sqrt{\ssiz}\psnrsqopt}{\sqrt{\nlatf - 1 + \ssiz\psnrsqopt}}.
 \end{equation}
@@ -1116,6 +1124,7 @@ and the ``observable effect size'', $\ssiz\psnrsqopt$. The effect size
 is a unitless quantity. If \psnropt is measured in trading days, then \ssiz should
 be the number of trading days; if \psnropt is measured in 
 `annualized' terms, then \ssiz should be the number of years.
+
 
 
 This bound is fairly harsh. Consider a typical actively managed portfolio.
@@ -1421,6 +1430,7 @@ degrees of freedom.
 
 
 
+
 %The accuracy of \apxref{qual_dist} is checked by 
 %Monte Carlo simulations: $n.sim$ simulations were performed
 %of construction of the \txtMP 
@@ -1590,6 +1600,40 @@ degrees of freedom.
 %UNFOLD
 
 %UNFOLD
+
+\subsection{Empirical Confirmation}
+\label{subsec:empirical_confirmation}
+
+
+
+We now confirm \theoremref{qual_bound} via Monte Carlo simulations.
+For some reasonable values of \ssiz, \nlatf and \psnropt, we
+draw returns \iid from a Gaussian distribution with the given \psnropt,
+construct the sample \txtMP, then compute its \txtQual. 
+We repeat this 1000 times for each setting of the parameters,
+then compute the mean and standard deviation of the \txtQual over the simulations.
+We estimate the standard error as the standard deviation divided by the square
+root of the number of simulations.
+We plot the empirical values and the theoretical bound in
+\figref{mc_basic_plot}.
+
+At risk of generalizing from this small set of configurations tested,
+it appears the theoretical bound of \theoremref{qual_bound} is tighter
+when $\ssiz$ is larger and when \nlatf is larger.
+When both $\ssiz$ and $\nlatf$ are small it appears the expected \txtQual of
+the sample \txtMP is a bit lower than the theoretical upper bound.
+We note that the \txtCR bound we use here discards \pvsig as nuisance
+parameters, thus some gap is expected.
+However, for reasonably large \ssiz, this gap is relatively small compared to
+the bound value.
+
+
+\begin{knitrout}\small
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{figure}[h]
+\includegraphics[width=0.975\textwidth,height=0.691\textwidth]{figure/qboundmc_basic_plot-1} \caption[Empirical estimates of the expected \txtQual of the \txtMP are plotted.]{Empirical estimates of the expected \txtQual of the \txtMP are plotted versus \psnropt for various values of \nlatf and \ssiz, along with the upper bound of \theoremref{qual_bound}.}\label{fig:mc_basic_plot}
+\end{figure}
+
+\end{knitrout}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Diversification}%FOLDUP
@@ -1921,7 +1965,7 @@ generalize the assumption of Directional Independence, after which
 the theorem proceeds easily\footnote{We expect few reviewers will have made it
 to this point. If you find yourself reading this, congratulations!}.
 
-\begin{assumption}[Conditional Directional Independence]%FOLDUP
+\begin{assumption}[Conditional Directional Independence and Unbiasedness]%FOLDUP
 Assume that
 \begin{equation}
 \label{eqn:sane_estimator_cond}
@@ -1945,7 +1989,8 @@ Let \sportWfnc{\mreti,\mfact} be an estimator
 %and multivariate Gaussian features, \mfact, with one column of \mfact
 %an intercept term, 
 satisfying the assumptions of
-Conditional Directional Independence and Residual Independence. Then
+Conditional Directional Independence and Unbiasedness.
+Then
 \begin{equation}
 \E{\pQl{\sportWfnc{\mreti,\mfact}}} 
 \le \frac{\sqrt{\ssiz}\psnrsqopt}{\sqrt{\nfac\nlatf - 1 + \ssiz\psnrsqopt}}.
@@ -2411,13 +2456,15 @@ over even a small subset of the S\&P 100.
 
 Care should be taken in the interpretation of \theoremref{qual_bound},
 or its generalizations from \secref{generalizations}.
-It does not claim that the sample \txtMP is somehow `optimal,' nor
+It does not claim that the sample \txtMP is somehow optimal\footnote{Though
+that does follow from the theory of likelihood, as the sample \txtMP is the
+MLE for Gaussian returns.}, nor
 does it make comparative claims about different portfolio estimators
 when presented with the same data.
 The theorem does not imply that somehow `overfitting' to the observed
 data can be mitigated by selecting a less desireable portfolio. 
 It does not claim that sample estimates of the \txtQual of a portfolio
-are useless.  It is trivially
+are useless; it is trivially
 the case, for example, that if $\pql{\sportw[1]} > \pql{\sportw[2]}$, then,
 with probability greater than half, 
 $\trAB{\sportw[1]}{\svmu} / \sqrt{\qform{\svsig}{\sportw[1]}} > 
@@ -2428,7 +2475,7 @@ The theorem does not claim that the expected
 since the portfolio estimator which generates a random portfolio, 
 ignoring the data, has zero expected \txtQual). 
 The theorem makes no claims (\eg providing a Bayesian posterior) about 
-any particular portfolio based on a single sample of the data: it is
+any \emph{particular} portfolio based on a single sample of the data: it is
 a statement about the expectation of the \emph{estimator} under replication 
 of draws of the sample.
 
@@ -2486,7 +2533,8 @@ it is not clear whether non-Gaussian returns actually present an \emph{easier}
 case for a portfolio estimator. 
 The minimality of the Fisher information would seem to imply this is the case,
 but since we assumed away the nuisance parameters, it is not clear.
-Simple simulations would be revealing.
+Simple simulations along the lines of those in \subsecref{empirical_confirmation} could be revealing.
+
 %\item How is \txtQual affected by the imposition of hedging and
 %other constraints?  \cite{pav2013markowitz} Does dimensionality
 %reduction modify the `degrees of freedom' in the straightforward
@@ -2556,6 +2604,10 @@ be generalized to include these costs?
 %\bibliographystyle{acm}
 \bibliography{SharpeR,rauto}
 %UNFOLD
+
+\newpage
+\theendnotes
+\newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \appendix%FOLDUP
@@ -2817,10 +2869,10 @@ It can be shown that the \txtMP is the MLE under Gaussian returns.
 
 %UNFOLD
 
-\section{Declaration of Interests}
+\section{Conflicts of Interest}
 
-The authors report no conflicts of interest.
-The authors alone are responsible for the content and writing of the paper.
+The author reports no conflicts of interest.
+The author alone is responsible for the content and writing of the paper.
 
 %UNFOLD
 

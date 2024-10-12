@@ -6,6 +6,7 @@
 \usepackage{titling}
 
 
+
 % to make it double spaced
 \usepackage{setspace}
 \doublespacing
@@ -168,6 +169,13 @@ wfg_height <- 0.6 * resol
 wot_width <- "0.99\\textwidth"
 wot_height <- "0.495\\textwidth"
 
+# a tall figure use
+# fig.width=tfg_width,fig.height=wfg_height,out.width=tot_width,out.height=tot_height,
+tfg_width <- resol
+tfg_height <- aspr * resol
+tot_width <- "0.99\\textwidth"
+tot_height <- paste0(round(0.99 * aspr,3),"\\textwidth")
+
 opts_chunk$set(fig.pos='h')
 
 # doing this means that png files are made of figures;
@@ -219,6 +227,12 @@ if (!require(tsrsa,quietly=TRUE) && require(remotes)) {
 @
 
 %UNFOLD
+
+% wiley wants numerical footnotes
+% \renewcommand{\thefootnote}{\arabic{footnote}}
+%\usepackage[number]{footmisc}
+\usepackage{endnotes}
+\let\footnote=\endnote
 
 <<'runtime'>>=
 # compiler flags!
@@ -543,7 +557,8 @@ ope <- 253
 # article_title <- 'Bounds on Portfolio Quality'
 # running_title <- 'Markowitz Stinks, but so does everything else'
 article_title <- 'Noise in the Machine'
-article_subtitle <- 'Bounds on Portfolio Quality'
+article_subtitle <- 'Quantifying Overfit of the Markowitz Portfolio'
+#article_subtitle <- 'Bounds on Portfolio Quality'
 running_title <- article_title
 @
 
@@ -603,7 +618,7 @@ and hedging constraints.
 Keywords: Markowitz Portfolio, Portfolio Selection, Sharpe Ratio, Asset Management.\\
 
 % Key Messages:
-Practitioner points:
+\textbf{Practitioner points:}
 \begin{compactenum}
 \item An upper bound on the expected \txtSR of the \txtMP is given.
 \item The bound considers true effect size, observation history and number of decisions.
@@ -1174,6 +1189,7 @@ multivariate Gaussian returns, \mreti, satisfying the assumptions of
 directional independence and unbiasedness. 
 Then
 \begin{equation}
+\label{eqn:qual_bound}
 \E{\pql{\sportwfnc{\mreti}}} 
 \le \frac{\sqrt{\ssiz}\psnrsqopt}{\sqrt{\nlatf - 1 + \ssiz\psnrsqopt}}.
 \end{equation}
@@ -1186,12 +1202,14 @@ is a unitless quantity. If \psnropt is measured in trading days, then \ssiz shou
 be the number of trading days; if \psnropt is measured in 
 `annualized' terms, then \ssiz should be the number of years.
 
-<<'prelook'>>=
+<<'qbound_func'>>=
 qbound <- function(p, n, zeta.s, use.ope=1) {
 	# the upper bound on quality of the theorem.
 	n.zet <- sqrt(n) * zeta.s
 	retval <- sqrt(use.ope) * (n.zet * zeta.s) / sqrt(p - 1 + n.zet^2)
 }
+@
+<<'prelook',dependson=c('qbound_func')>>=
 ex.n <- 5
 ex.z <- 1.0
 ex.p <- 10
@@ -1620,8 +1638,21 @@ sample.haircut <- function(n,p,zeta.s,genf=genz.gauss,...) {
 
 # test
 #sample.haircut(1000,10,zeta.s=0.1)
+
+repsim <- function(nsamp, genf, nobs, nstok, zeta, rseed=NULL, ...) {
+	if (!is.null(rseed)) {
+		set.seed(rseed)
+	}
+	experiments <- replicate(nsamp, sample.haircut(n=nobs,p=nstok,zeta.s=zeta,genf=genf))
+	data_frame(ssnr=sqrt(ope) * experiments,
+						 n=nobs,p=nstok,zeta=zeta.s)
+}
+# testing
+#repsim(100,genf=genz.gauss)
+#repsim(nsamp=100,zeta=0.1,nstok=5,nobs=100,genf=genz.gauss)
+
 @
-<<'haircut_study',eval=INCLUDE_APX_DIST,dependson=c('runtime','consts','haircut_study_setup')>>=
+<<'haircut_study_more_setup',eval=TRUE,dependson=c('runtime','consts','haircut_study_setup')>>=
 # set everything up
 
 n.sim <- ceiling(1e6/max(1,RUNTIME_PARAM))
@@ -1636,25 +1667,13 @@ t.df <- 4
 tuk.h <- 0.15
 lam.gam <- -0.2
 
-repsim <- function(nsamp, nobs, nstok, zeta.s, genf, rseed=NULL) {
-	if (!is.null(rseed)) {
-		set.seed(rseed)
-	}
-	experiments <- replicate(nsamp, sample.haircut(n=nobs,p=nstok,zeta.s=zeta.s,genf=genf))
-	data_frame(ssnr=sqrt(ope) * experiments,
-						 n=nobs,p=nstok,zeta=zeta.s)
-}
-# testing
-#repsim(100,genf=genz.gauss)
-#repsim(nsamp=100,zeta=0.1,nstok=5,nobs=100,genf=genz.gauss)
-
 suppressMessages({
   library(future.apply)
 })
 
-manysim <- function(nsamp, genf, nobs=n.obs, nstok=n.stok, zeta=zeta.s, nper=n.per, rseed=1234) {
+manysim <- function(nsamp, genf, nobs=n.obs, nstok=n.stok, zeta=zeta.s, nper=n.per, rseed=1234, ...) {
   require(future.apply)
-  plan(multisession, gc = TRUE, workers = 20)
+  plan(multisession, gc = TRUE, workers = 6)
 
 	quals <- future_lapply(1:ceiling(nsamp/nper),
 												 FUN=function(...) {
@@ -1667,7 +1686,8 @@ manysim <- function(nsamp, genf, nobs=n.obs, nstok=n.stok, zeta=zeta.s, nper=n.p
 	quals <- quals[1:nsamp,]
 	return(quals)
 }
-
+@
+<<'haircut_study',eval=INCLUDE_APX_DIST,dependson=c('haircut_study','haircut_study_more_setup')>>=
 t0 <- Sys.time()
 
 # gaussian
@@ -1947,7 +1967,7 @@ print(xres,include.rownames=FALSE)
 %\txtMP would have \txtSR less than $\Sexpr{big.sr * sqrt(ope)}\yrtomhalf$, 
 %a less than exciting prospect.
 
-<<'means',eval=INCLUDE_APX_DIST,dependson=c('haircut_study','hcut_qtile'),results='asis'>>=
+<<'means',eval=INCLUDE_APX_DIST,dependson=c('haircut_study','hcut_qtile','qbound_func'),results='asis'>>=
 
 ubound <- qbound(n.stok, n.obs, zeta.s, ope)
 
@@ -2185,86 +2205,149 @@ print(ph)
 
 %UNFOLD
 
+\subsection{Empirical Confirmation}
+\label{subsec:empirical_confirmation}
 
-<<'basic_simulations',eval=TRE,dependson=c('runtime','consts','haircut_study_setup')>>=
-# set everything up
+<<'mc_basic_simulations',eval=TRUE,dependson=c('runtime','consts','haircut_study_more_setup','qbound_func')>>=
+# simulations to establish that the bound is correct by compting expected values.
+mc_nrep <- 1000
 
-# n.sim <- ceiling(1e6/max(1,RUNTIME_PARAM))
-# n.per <- ceiling(1e3/max(1,RUNTIME_PARAM))
-
-n.stok <- 6
-n.yr <- 4
-n.obs <- ceiling(ope * n.yr)
-zeta.s <- 1.25 / sqrt(ope)   # optimal SNR, in daily units
-
-genf <- genz.gauss
-
-sample.haircut <- function(n,p,zeta.s,genf=genz.gauss,...) {
-	popX <- gen.pop(n=n,p=p,zeta.s=zeta.s,genf=genf,...)
-	smeas <- simple.marko(popX$X)
-	# popX$sig is eye
-	#ssnr <- (t(smeas$w) %*% t(popX$mu)) / sqrt(t(smeas$w) %*% popX$sig %*% smeas$w)
-	ssnr <- (t(smeas$w) %*% t(popX$mu)) / sqrt(t(smeas$w) %*% smeas$w)
-	as.numeric(ssnr)
+# perform the sims, but then summarize, taking means, std, and se.
+sumsim <- function(nsamp, nobs, nstok, zeta, 
+                   genf=genz.gauss, 
+                   rseed=1234, 
+                   nper=500,
+                   parallel=TRUE,
+                   ...) {
+  if (parallel) {
+    adf <- manysim(nsamp=nsamp, genf=genf, nobs=nobs, nstok=nstok, zeta=zeta, nper=nper, rseed=rseed, ...)
+  } else {
+    adf <- repsim(nsamp=nsamp, genf=genf, nobs=nobs, nstok=nstok, zeta=zeta, rseed=rseed, ...)
+  }
+  adf %>%
+    group_by(n,p,zeta) %>%
+    summarize(mean_ssnr=mean(ssnr),
+              sd_ssnr=sd(ssnr),
+              nsamp=n()) %>%
+    ungroup() %>%
+    mutate(se_ssnr=sd_ssnr / sqrt(nsamp))
 }
 
-
-repsim <- function(nsamp, nobs, nstok, zeta.s, genf, rseed=NULL) {
-	if (!is.null(rseed)) {
-		set.seed(rseed)
-	}
-	experiments <- replicate(nsamp, sample.haircut(n=nobs,p=nstok,zeta.s=zeta.s,genf=genf))
-	data_frame(ssnr=sqrt(ope) * experiments,
-						 n=nobs,p=nstok,zeta=zeta.s)
-}
-# testing
-#repsim(100,genf=genz.gauss)
-#repsim(nsamp=100,zeta=0.1,nstok=5,nobs=100,genf=genz.gauss)
-
-suppressMessages({
-  library(future.apply)
-})
-
-manysim <- function(nsamp, genf, nobs=n.obs, nstok=n.stok, zeta=zeta.s, nper=n.per, rseed=1234) {
-  require(future.apply)
-  plan(multisession, gc = TRUE, workers = 20)
-
-	quals <- future_lapply(1:ceiling(nsamp/nper),
-												 FUN=function(...) {
-													 repsim(nsamp=nper,genf=genf,nobs=nobs,nstok=nstok,zeta=zeta)
-												 },
-												 future.seed=rseed) %>%
-		bind_rows()
-
-	# might have to down select
-	quals <- quals[1:nsamp,]
-	return(quals)
+powseq <- function(power, from, to, ...) {
+  seq(from=from^power, to=to^power, ...)^(1/power)
 }
 
 t0 <- Sys.time()
+allrep <- tidyr::crossing(tibble(zeta_annual=powseq(power=1.5, 0, 1.3, length.out=6)),
+                          tibble(years=c(2,8)),
+                          #tibble(years=c(2,4)),
+                          #tibble(years=c(2)),
+                          tibble(nstok=c(4,10,24))) %>%
+  filter(zeta_annual > 0) %>%
+  mutate(nobs=ope*years) %>%
+  mutate(zeta.s=zeta_annual / sqrt(ope)) %>%
+  group_by(years,nobs,nstok,zeta.s) %>%
+    mutate(result=list(sumsim(nsamp=mc_nrep,nobs=nobs,nstok=nstok,zeta=zeta.s,genf=genz.gauss))) %>%
+  ungroup() %>%
+  unnest(result) %>%
+  mutate(theory=qbound(p=p, n=nobs, zeta.s=zeta.s, use.ope=ope))
+tf <- Sys.time()
+# cat(glue("# takes {tf - t0} minutes for 2, 8 year, mc_nrep={mc_nrep}."),"\n")
 
-# gaussian
-quals.gaussian <- manysim(n.sim,genf=genz.gauss)$ssnr
-
-# uniform
-quals.uni <- manysim(n.sim,genf=genz.uni)$ssnr
-
-# t(4)
-quals.t <- manysim(n.sim,genf=make_genz.t(t.df))$ssnr
-
-# tukey(0.1)
-quals.tukey <- manysim(n.sim,genf=make_genz.tukeyh(tuk.h))$ssnr
-
-# Lambert W(0.1)
-quals.lambert <- manysim(n.sim,genf=make_genz.lambertw(lam.gam))$ssnr
+# takes 1.74913499355316 minutes for 2, 4, 8 year, mc_nrep=200.
+# takes 1.18217681646347 minutes for 2, 8 year, mc_nrep=200. 
+# takes 1.195152759552 minutes for 2, 8 year, mc_nrep=400. 
+# takes 1.51361531416575 minutes for 2, 8 year, mc_nrep=800. 
+# takes 1.49076588153839 minutes for 2, 8 year, mc_nrep=1000. 
+# takes 1.49700756867727 minutes for 2, 8 year, mc_nrep=1000. 
 @
 
+We now confirm \theoremref{qual_bound} via Monte Carlo simulations.
+For some reasonable values of \ssiz, \nlatf and \psnropt, we
+draw returns \iid from a Gaussian distribution with the given \psnropt,
+construct the sample \txtMP, then compute its \txtQual. 
+We repeat this \Sexpr{mc_nrep} times for each setting of the parameters,
+then compute the mean and standard deviation of the \txtQual over the simulations.
+We estimate the standard error as the standard deviation divided by the square
+root of the number of simulations.
+We plot the empirical values and the theoretical bound in
+\figref{mc_basic_plot}.
+
+At risk of generalizing from this small set of configurations tested,
+it appears the theoretical bound of \theoremref{qual_bound} is tighter
+when $\ssiz$ is larger and when \nlatf is larger.
+When both $\ssiz$ and $\nlatf$ are small it appears the expected \txtQual of
+the sample \txtMP is a bit lower than the theoretical upper bound.
+We note that the \txtCR bound we use here discards \pvsig as nuisance
+parameters, thus some gap is expected.
+However, for reasonably large \ssiz, this gap is relatively small compared to
+the bound value.
+
+
+<<'mc_basic_plot',dependson=c('mc_basic_simulations'),fig.cap=fig_cap,fig.scap="Empirical estimates of the expected \\txtQual of the \\txtMP are plotted.",eval.after='fig.cap'>>= 
+
+fig_cap <- glue("Empirical estimates of the expected \\txtQual of the \\txtMP are plotted versus \\psnropt for various values of \\nlatf and \\ssiz, along with the upper bound of \\theoremref{{qual_bound}}.")
+
+# not sure I'm going to use this ...
+scales_square <- scales::new_transform(name="sign_square", 
+                                       transform=function(x) sign(x) * x^2,
+                                       inverse=function(y) sign(y) * sqrt(abs(y)),
+                                       d_transform=function(x) 2 * sign(x) * x,
+                                       d_inverse=function(y) 0.5 * sign(y) / sqrt(abs(y)),
+                                       domain = c(-Inf,Inf))
+
+faclt <- . %>%
+  mutate(lt=factor(lt,levels=c('Empirical Value','Theoretical Upper Bound'))) 
+
+# finer grained theory line
+theory_line <- allrep %>%
+  distinct(years,nobs,nstok,p) %>%
+  tidyr::crossing(tibble(zeta_annual=seq(0,1.40,by=0.01))) %>%
+  mutate(zeta.s=zeta_annual / sqrt(ope)) %>%
+  mutate(theory=qbound(p=p, n=nobs, zeta.s=zeta.s, use.ope=ope)) %>%
+  mutate(lt='Theoretical Upper Bound') %>% faclt()
+
+# append zero values.
+zallrep <- bind_rows(allrep,
+                     allrep %>% 
+                       distinct(years,nstok,nobs,n,p) %>%
+                       mutate(zeta_annual=0,
+                              zeta.s=0,
+                              mean_ssnr=0,
+                              sd_ssnr=0,
+                              se_ssnr=NA_real_,
+                              theory=0))
+
+
+labl <- scales::comma_format(suffix="/sqrt(yr)")
+
+zallrep %>%
+  mutate(ymin=mean_ssnr - se_ssnr,ymax=mean_ssnr + se_ssnr) %>%
+  mutate(lt='Empirical Value') %>% faclt() %>%
+  ggplot(aes(zeta_annual,mean_ssnr,linetype=lt,color=factor(nstok))) + 
+  #geom_point(shape=4) + 
+  #geom_point() +
+  geom_line(alpha=0.5) + 
+  geom_errorbar(aes(ymin=ymin,ymax=ymax,linetype=NULL),alpha=1.0,width=0.05) +
+  geom_line(data=theory_line,aes(y=theory) ) + 
+  scale_x_continuous(labels=labl) + scale_y_continuous(labels=labl) + 
+  #scale_x_continuous(trans=scales_square,labels=labl) + scale_y_continuous(trans=scales_square,labels=labl) + 
+  #scale_x_sqrt(labels=labl) + scale_y_sqrt(labels=labl) + 
+  scale_linetype_manual(values=c(1,3),breaks=c('Theoretical Upper Bound','Empirical Value')) + 
+  facet_grid(. ~ years,labeller=label_both) +
+  labs(x=expression(zeta[`*`]),
+       y=expression(hat(zeta[`*`])),
+       color=expression(p),
+       linetype='line:',
+       title='Empirical Expected Signal Noise of Markowitz Portfolio',
+       caption=glue("Using {mc_nrep} simulations per configuration. Error bars at +/- 1 standard error.\nAssumes {ope} trading days per year."))
+@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Diversification}%FOLDUP
 \label{sec:diversification}
 
-<<'forexample',dependson=c('consts','hcut_qtile')>>=
+<<'forexample',dependson=c('consts','hcut_qtile','qbound_func')>>=
 # reset these, just in case...
 n.stok <- 6
 n.yr <- 4
@@ -2736,7 +2819,7 @@ generalize the assumption of Directional Independence, after which
 the theorem proceeds easily\footnote{We expect few reviewers will have made it
 to this point. If you find yourself reading this, congratulations!}.
 
-\begin{assumption}[Conditional Directional Independence]%FOLDUP
+\begin{assumption}[Conditional Directional Independence and Unbiasedness]%FOLDUP
 Assume that
 \begin{equation}
 \label{eqn:sane_estimator_cond}
@@ -2760,7 +2843,8 @@ Let \sportWfnc{\mreti,\mfact} be an estimator
 %and multivariate Gaussian features, \mfact, with one column of \mfact
 %an intercept term, 
 satisfying the assumptions of
-Conditional Directional Independence and Residual Independence. Then
+Conditional Directional Independence and Unbiasedness.
+Then
 \begin{equation}
 \E{\pQl{\sportWfnc{\mreti,\mfact}}} 
 \le \frac{\sqrt{\ssiz}\psnrsqopt}{\sqrt{\nfac\nlatf - 1 + \ssiz\psnrsqopt}}.
@@ -3070,7 +3154,7 @@ Then
 \section{Examples}%FOLDUP
 
 \subsection{The equal weight puzzle}%FOLDUP
-<<'qlook',dependson=c('hcut_qtile')>>=
+<<'qlook',dependson=c('hcut_qtile','qbound_func')>>=
 if (!require(tsrsa,quietly=TRUE) && require(remotes)) {
   # get the 10 industry data
   remotes::install_github('shabbychef/tsrsa/rpkg')
@@ -3299,13 +3383,15 @@ print(ph)
 
 Care should be taken in the interpretation of \theoremref{qual_bound},
 or its generalizations from \secref{generalizations}.
-It does not claim that the sample \txtMP is somehow `optimal,' nor
+It does not claim that the sample \txtMP is somehow optimal\footnote{Though
+that does follow from the theory of likelihood, as the sample \txtMP is the
+MLE for Gaussian returns.}, nor
 does it make comparative claims about different portfolio estimators
 when presented with the same data.
 The theorem does not imply that somehow `overfitting' to the observed
 data can be mitigated by selecting a less desireable portfolio. 
 It does not claim that sample estimates of the \txtQual of a portfolio
-are useless.  It is trivially
+are useless; it is trivially
 the case, for example, that if $\pql{\sportw[1]} > \pql{\sportw[2]}$, then,
 with probability greater than half, 
 $\trAB{\sportw[1]}{\svmu} / \sqrt{\qform{\svsig}{\sportw[1]}} > 
@@ -3316,7 +3402,7 @@ The theorem does not claim that the expected
 since the portfolio estimator which generates a random portfolio, 
 ignoring the data, has zero expected \txtQual). 
 The theorem makes no claims (\eg providing a Bayesian posterior) about 
-any particular portfolio based on a single sample of the data: it is
+any \emph{particular} portfolio based on a single sample of the data: it is
 a statement about the expectation of the \emph{estimator} under replication 
 of draws of the sample.
 
@@ -3374,7 +3460,8 @@ it is not clear whether non-Gaussian returns actually present an \emph{easier}
 case for a portfolio estimator. 
 The minimality of the Fisher information would seem to imply this is the case,
 but since we assumed away the nuisance parameters, it is not clear.
-Simple simulations would be revealing.
+Simple simulations along the lines of those in \subsecref{empirical_confirmation} could be revealing.
+
 %\item How is \txtQual affected by the imposition of hedging and
 %other constraints?  \cite{pav2013markowitz} Does dimensionality
 %reduction modify the `degrees of freedom' in the straightforward
@@ -3444,6 +3531,10 @@ be generalized to include these costs?
 %\bibliographystyle{acm}
 \bibliography{SharpeR,rauto}
 %UNFOLD
+
+\newpage
+\theendnotes
+\newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \appendix%FOLDUP
@@ -3705,10 +3796,10 @@ It can be shown that the \txtMP is the MLE under Gaussian returns.
 
 %UNFOLD
 
-\section{Declaration of Interests}
+\section{Conflicts of Interest}
 
-The authors report no conflicts of interest.
-The authors alone are responsible for the content and writing of the paper.
+The author reports no conflicts of interest.
+The author alone is responsible for the content and writing of the paper.
 
 %UNFOLD
 
