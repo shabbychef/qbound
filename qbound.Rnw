@@ -571,7 +571,7 @@ running_title <- article_title
 \posttitle{\\ \normalsize running title: ``\Sexpr{running_title}''}
 
 
-\author{Steven E. Pav, Cerebellum Capital \thanks{Currently: Gilgamath Consulting.\\
+\author{Steven E. Pav, Bank of America\thanks{Currently: Gilgamath Consulting.\\
 \email{steven@gilgamath.com}\\
 2132 15th Ave.\\
 San Francisco, CA 94116}
@@ -583,6 +583,21 @@ San Francisco, CA 94116}
 
 Paper has \total{figure} figures, \total{table} tables, and approximately 
 \input{qbound.count} words.
+
+
+\paragraph{Conflicts of Interest}
+
+The author reports no conflicts of interest.
+The author alone is responsible for the content and writing of the paper.
+
+\paragraph{Funding Information}
+
+No funding was received for this research.
+
+\paragraph{Data Availability}
+
+Source code and data available from \url{https://github.com/shabbychef/qbound/tree/jmf}.
+
 
 \newpage
 

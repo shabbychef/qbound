@@ -1,4 +1,4 @@
-\documentclass[10pt,a4paper,english]{article}\usepackage[]{graphicx}\usepackage[]{color}
+\documentclass[10pt,a4paper,english]{article}\usepackage[]{graphicx}\usepackage[]{xcolor}
 % maxwidth is the original width if it is less than linewidth
 % otherwise use linewidth (to make sure the graphics do not exceed the margin)
 \makeatletter
@@ -12,14 +12,11 @@
 \makeatother
 
 \definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
-\makeatletter
-\@ifundefined{AddToHook}{}{\AddToHook{package/xcolor/after}{\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}}}
-\makeatother
 \newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
-\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlsng}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
 \newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
 \newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
-\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hldef}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
 \newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
 \newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
 \newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
@@ -49,14 +46,6 @@
 \definecolor{messagecolor}{rgb}{0, 0, 0}
 \definecolor{warningcolor}{rgb}{1, 0, 1}
 \definecolor{errorcolor}{rgb}{1, 0, 0}
-\makeatletter
-\@ifundefined{AddToHook}{}{\AddToHook{package/xcolor/after}{
-\definecolor{shadecolor}{rgb}{.97, .97, .97}
-\definecolor{messagecolor}{rgb}{0, 0, 0}
-\definecolor{warningcolor}{rgb}{1, 0, 1}
-\definecolor{errorcolor}{rgb}{1, 0, 0}
-}}
-\makeatother
 \newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
 
 \usepackage{alltt}
@@ -494,7 +483,7 @@
 \posttitle{\\ \normalsize running title: ``Noise in the Machine''}
 
 
-\author{Steven E. Pav, Cerebellum Capital \thanks{Currently: Gilgamath Consulting.\\
+\author{Steven E. Pav, Bank of America\thanks{Currently: Gilgamath Consulting.\\
 \email{steven@gilgamath.com}\\
 2132 15th Ave.\\
 San Francisco, CA 94116}
@@ -506,6 +495,21 @@ San Francisco, CA 94116}
 
 Paper has \total{figure} figures, \total{table} tables, and approximately 
 \input{qbound.count} words.
+
+
+\paragraph{Conflicts of Interest}
+
+The author reports no conflicts of interest.
+The author alone is responsible for the content and writing of the paper.
+
+\paragraph{Funding Information}
+
+No funding was received for this research.
+
+\paragraph{Data Availability}
+
+Source code and data available from \url{https://github.com/shabbychef/qbound/tree/jmf}.
+
 
 \newpage
 
