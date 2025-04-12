@@ -1,4 +1,4 @@
-\documentclass[10pt,a4paper,english]{article}\usepackage[]{graphicx}\usepackage[]{xcolor}
+\documentclass{ws-ijtaf}\usepackage[]{graphicx}\usepackage[]{xcolor}
 % maxwidth is the original width if it is less than linewidth
 % otherwise use linewidth (to make sure the graphics do not exceed the margin)
 \makeatletter
@@ -51,15 +51,13 @@
 \usepackage{alltt}
 % for MF
 % to move figures to end of doc 
-\usepackage[nomarkers,tablesfirst]{endfloat}
+%\usepackage[nomarkers,tablesfirst]{endfloat}
 % to get two title pages in same doc.
-\usepackage{titling}
-
 
 
 % to make it double spaced
-\usepackage{setspace}
-\doublespacing
+%\usepackage{setspace}
+%\doublespacing
 
 % MF: 
 % Optional Cover letter
@@ -87,38 +85,40 @@
 \batchmode
 % front matter%FOLDUP
 \usepackage[hyphens]{url}
-\usepackage{amsmath}
-\usepackage{amsfonts}
+\usepackage[hypertexnames=false]{hyperref} 
+
+%\usepackage{amsmath}
+%\usepackage{amsfonts}
 % for therefore
-\usepackage{amssymb}
+%\usepackage{amssymb}
 % for theorems?
-\usepackage{amsthm}
+%\usepackage{amsthm}
 
-\theoremstyle{plain}
-\newtheorem{theorem}{Theorem}[section]
-\newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{corollary}[theorem]{Corollary}
+%\theoremstyle{plain}
+%\newtheorem{theorem}{Theorem}[section]
+%\newtheorem{lemma}[theorem]{Lemma}
+%\newtheorem{corollary}[theorem]{Corollary}
 
-\theoremstyle{definition}
-\newtheorem{definition}[theorem]{Definition}
-\newtheorem{conjecture}[theorem]{Conjecture}
-\newtheorem{assumption}[theorem]{Assumption}
-\newtheorem{example}{Example}[section]
+%\theoremstyle{definition}
+%\newtheorem{definition}[theorem]{Definition}
+%\newtheorem{conjecture}[theorem]{Conjecture}
+%\newtheorem{assumption}[theorem]{Assumption}
+%\newtheorem{example}{Example}[section]
 
-\theoremstyle{remark}
-\newtheorem*{remark}{Remark}
-\newtheorem*{caution}{Caution}
-\newtheorem*{note}{Note}
+%\theoremstyle{remark}
+%\newtheorem*{remark}{Remark}
+%\newtheorem*{caution}{Caution}
+%\newtheorem*{note}{Note}
 
 % see http://tex.stackexchange.com/a/3034/2530
-\PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
-\usepackage{hyperref}
+%\PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
+%\usepackage{hyperref}
 %\usepackage[square,numbers]{natbib}
-\usepackage{apacite}
+%\usepackage{apacite}
 %\usepackage[authoryear]{natbib}
 %\usepackage[iso]{datetime}
 %\usepackage{datetime}
-\usepackage{gitinfo2}
+%\usepackage{gitinfo2}
 
 %%http://choorucode.com/2010/05/05/how-to-add-draft-watermark-in-latex/
 %\usepackage{draftwatermark}
@@ -139,10 +139,10 @@
 %\rfoot{}
 
 %compactitem and such:
-\usepackage[newitem,newenum,increaseonly]{paralist}
-\usepackage{totcount}
-\regtotcounter{figure}
-\regtotcounter{table}
+%\usepackage[newitem,newenum,increaseonly]{paralist}
+%\usepackage{totcount}
+%\regtotcounter{figure}
+%\regtotcounter{table}
 
 \makeatletter
 \makeatother
@@ -164,8 +164,8 @@
 % wiley wants numerical footnotes
 % \renewcommand{\thefootnote}{\arabic{footnote}}
 %\usepackage[number]{footmisc}
-\usepackage{endnotes}
-\let\footnote=\endnote
+%\usepackage{endnotes}
+%\let\footnote=\endnote
 
 
 
@@ -187,7 +187,7 @@
     % The hyperref package gives us a pdf with properly built
     % internal navigation ('pdf bookmarks' for the table of contents,
     % internal cross-reference links, web links for URLs, etc.)
-    \usepackage{hyperref}
+    %\usepackage{hyperref}
     %\usepackage{longtable} % longtable support required by pandoc >1.10
     
 
@@ -478,42 +478,52 @@
 % document incantations%FOLDUP
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
+%\markboth{Authors' Names}{Instructions for Typing Manuscripts (Paper's Title)}
 
+%%%%%%%%%%%%%%%%%%%%% Publisher's Area please ignore %%%%%%%%%%%%%%%
+\catchline{}{}{}{}{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \title{Noise in the Machine:\\ \large Quantifying Overfit of the Markowitz Portfolio}
-\posttitle{\\ \normalsize running title: ``Noise in the Machine''}
+%\posttitle{\\ \normalsize running title: ``running_title''}
 
 
-\author{Steven E. Pav, Bank of America\thanks{Currently: Gilgamath Consulting.\\
-\email{steven@gilgamath.com}\\
+\author{Steven E. Pav}
+\address{Bank of America\\
+Currently: Gilgamath Consulting.\\
 2132 15th Ave.\\
-San Francisco, CA 94116}
-}
+San Francisco, CA 94116\\
+\email{steven@gilgamath.com}}
 %\date{\today, \currenttime}
 
 \maketitle
+
+\begin{history}
+\received{(Day Month Year)}
+\revised{(Day Month Year)}
+\end{history}
 %UNFOLD
 
-Paper has \total{figure} figures, \total{table} tables, and approximately 
-\input{qbound.count} words.
+%Paper has \total{figure} figures, \total{table} tables, and approximately 
+%\input{qbound.count} words.
 
 
-\paragraph{Conflicts of Interest}
+%\paragraph{Conflicts of Interest}
 
-The author reports no conflicts of interest.
-The author alone is responsible for the content and writing of the paper.
+%The author reports no conflicts of interest.
+%The author alone is responsible for the content and writing of the paper.
 
-\paragraph{Funding Information}
+%\paragraph{Funding Information}
 
-No funding was received for this research.
+%No funding was received for this research.
 
-\paragraph{Data Availability}
+%\paragraph{Data Availability}
 
-Source code and data available from \url{https://github.com/shabbychef/qbound/tree/jmf}.
+%Source code and data available from \url{https://github.com/shabbychef/qbound/tree/jmf}.
 
 
-\newpage
+%\newpage
 
-\author{}
+%\author{}
 
 \maketitle
 
@@ -542,15 +552,17 @@ features, subspace constraints (\ie dimensionality reduction),
 and hedging constraints.
 \end{abstract}%UNFOLD
 
-Keywords: Markowitz Portfolio, Portfolio Selection, Sharpe Ratio, Asset Management.\\
+%Keywords: Markowitz Portfolio, Portfolio Selection, Sharpe Ratio, Asset Management.\\
+\keywords{Markowitz Portfolio; Portfolio Selection; Sharpe Ratio; Asset
+Management.}
 
-% Key Messages:
-\textbf{Practitioner points:}
-\begin{compactenum}
-\item An upper bound on the expected \txtSR of the \txtMP is given.
-\item The bound considers true effect size, observation history and number of decisions.
-\item The upper bound quantifies ``overfitting'' in portfolio selection problems.
-\end{compactenum}
+%% Key Messages:
+%\textbf{Practitioner points:}
+%\begin{compactenum}
+%\item An upper bound on the expected \txtSR of the \txtMP is given.
+%\item The bound considers true effect size, observation history and number of decisions.
+%\item The upper bound quantifies ``overfitting'' in portfolio selection problems.
+%\end{compactenum}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -639,28 +651,28 @@ In fact, most portfolio construction techniques would qualify as stopped clocks
 and our bound is mostly applicable to the \txtMP, and to unusal variants of it,
 such as projection to a random subspace followed by Markowitz.
 We believe this bound is valuable for a number of reasons:
-\begin{itemize}
-  \item It helps to explain the poor observed performance of the \txtMP in
-    empirical studies. \cite{demiguel2009optimal,tu2011markowitz}
-  \item Simultaneously it raises the question of why the \txtMP is compared to
-    stopped clocks in such studies. 
-  \item We believe that the majority of practical portfolio construction
-    techniques are close enough to general-purpose that a bound similar to 
-    what we prove here is applicable. We believe that the general rule of thumb
-    that the true effect size has to scale with decisions to the $\frac{1}{4}$
-    power to avoid worsening outcomes holds more broadly, and that this 
-    explains why dimensionality reduction is widely used in portfolio
-    construction.
-  \item We hope this bound will spur research in the area that can shed further
-    light on these issues. 
-    In particular, while a \txtCR bound cannot apply to a stopped clock,
-    statistical decision theory can be employed.  \cite{berger2013statistical}
-    Briefly, in a statistical decision theory approach the underlying
-    unknown parameters are considered as being drawn from some distribution,
-    and then worst case performance of a rule is evaluated.
-    It is typically hard to prove a rule is \emph{optimal} under this theory,
-    though often much easier to prove one rule is dominated by another.
-\end{itemize}
+\begin{arabiclist}
+\item It helps to explain the poor observed performance of the \txtMP in
+  empirical studies. \cite{demiguel2009optimal,tu2011markowitz}
+\item Simultaneously it raises the question of why the \txtMP is compared to
+  stopped clocks in such studies. 
+\item We believe that the majority of practical portfolio construction
+  techniques are close enough to general-purpose that a bound similar to 
+  what we prove here is applicable. We believe that the general rule of thumb
+  that the true effect size has to scale with decisions to the $\frac{1}{4}$
+  power to avoid worsening outcomes holds more broadly, and that this 
+  explains why dimensionality reduction is widely used in portfolio
+  construction.
+\item We hope this bound will spur research in the area that can shed further
+  light on these issues. 
+  In particular, while a \txtCR bound cannot apply to a stopped clock,
+  statistical decision theory can be employed.  \cite{berger2013statistical}
+  Briefly, in a statistical decision theory approach the underlying
+  unknown parameters are considered as being drawn from some distribution,
+  and then worst case performance of a rule is evaluated.
+  It is typically hard to prove a rule is \emph{optimal} under this theory,
+  though often much easier to prove one rule is dominated by another.
+\end{arabiclist}
 
 This paper is structured as follows: 
 first we introduce the notation and prove the \txtCR bound applies to the
@@ -679,17 +691,17 @@ We then consider a few examples, and then conclude with a discussion.
 
 Our argument will proceed as follows:
 We establish this upper bond on expected \txtQual via the theory of \txtCR bounds.
-\begin{itemize}
-  \item We first show that for purposes of determining \txtQual, portfolio
-    selection is equivalent to selecting a point on a \nlatf-dimensional
-    sphere.
-  \item We use a \txtCCR bound to 
-    establish that the \emph{variance} of the estimated point on the
-    hypersphere is greater than some value.  \cite{tj_moore_ccrb,GormanHero}
-  \item Using essentially a geometric argument we transform the \txtCR lower bound
-    on the variance into an upper bound on the expected \txtSNR.
-    This applies to general purpose estimators, but not stopped clocks.
-\end{itemize}
+\begin{arabiclist}
+\item We first show that for purposes of determining \txtQual, portfolio
+  selection is equivalent to selecting a point on a \nlatf-dimensional
+  sphere.
+\item We use a \txtCCR bound to 
+  establish that the \emph{variance} of the estimated point on the
+  hypersphere is greater than some value.  \cite{tj_moore_ccrb,GormanHero}
+\item Using essentially a geometric argument we transform the \txtCR lower bound
+  on the variance into an upper bound on the expected \txtSNR.
+  This applies to general purpose estimators, but not stopped clocks.
+\end{arabiclist}
 
 
 Let \vreti be the vector of relative returns of \nlatf
@@ -1022,7 +1034,7 @@ Applying a change of variables to \eqnref{magical_crb}, we
 can get a lower bound on the left hand side 
 of \eqnref{var_bounds}, yielding
 \begin{equation}
-\label{eqn:crb_one}
+%\label{eqn:crb_one}
 \label{eqn:crb_two}
 %\oneby{\ssiz}\trace{\qoform{\iFishI[\prskvec]}{\Drv}}
 \oneby{\ssiz}\trace{\ogram{\Drv}}
@@ -1109,7 +1121,7 @@ This yields
 \ssiz\gramprskvec},
 \end{equation}
 proving the following theorem.
-\begin{theorem}
+\begin{theorem}{}
 \label{theorem:qual_bound}
 Let \sportwfnc{\mreti} be an estimator based on \ssiz \iid observations of
 multivariate Gaussian returns, \mreti, satisfying the assumptions of
@@ -2508,7 +2520,7 @@ depend on how \pRegco aligns with the leading eigenvectors of
 
 These findings perhaps raise more questions than they answer:
 %This work leaves unanswered a number of interesting questions:
-\begin{compactenum}
+\begin{arabiclist}
 \item Foremost, the bounds of 
 \theoremref{qual_bound} and \theoremref{qual_bound_two}
 depend on the unknown
@@ -2593,7 +2605,7 @@ variable bias in \vfact[i]?
 \item The analysis of \txtQual ignores the `risk-free' or `disastrous'
 rate of return, and all trading costs. Can the expected bounds
 be generalized to include these costs?
-\end{compactenum}
+\end{arabiclist}
 %UNFOLD
 %UNFOLD
 
@@ -2604,14 +2616,15 @@ be generalized to include these costs?
 %\bibliographystyle{siam}
 %\bibliographystyle{ieeetr}
 %\bibliographystyle{plainnat}
-\bibliographystyle{apacite}
+%\bibliographystyle{apacite}
 %\bibliographystyle{acm}
+\bibliographystyle{ws-ijtaf}
 \bibliography{SharpeR,rauto}
 %UNFOLD
 
-\newpage
-\theendnotes
-\newpage
+%\newpage
+%\theendnotes
+%\newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \appendix%FOLDUP

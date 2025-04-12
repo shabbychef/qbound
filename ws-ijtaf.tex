@@ -1,0 +1,441 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Trim Size: 9.75in x 6.5in
+%% Text Area: 8in (include Runningheads) x 5in
+%% ws-ijtaf.tex   :   29-07-2021
+%% Tex file to use with ws-ijtaf.cls written in Latex2E.
+%% The content, structure, format and layout of this style file is the
+%% property of World Scientific Publishing Co. Pte. Ltd.
+%% Copyright 2021 by World Scientific Publishing Co.
+%% All rights are reserved.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+
+\documentclass{ws-ijtaf}
+\begin{document}
+
+\markboth{Authors' Names}{Instructions for Typing Manuscripts (Paper's Title)}
+
+%%%%%%%%%%%%%%%%%%%%% Publisher's Area please ignore %%%%%%%%%%%%%%%
+\catchline{}{}{}{}{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{INSTRUCTIONS FOR TYPESETTING MANUSCRIPTS \\
+USING \LaTeX\footnote{For the title, try not to
+use more than 3 lines. Typeset the title in 10 pt bold and uppercase.}
+}
+
+\author{FIRST AUTHOR\footnote{
+Typeset names in 8 pt roman, uppercase. Use the footnote to indicate the
+present or permanent address of the author.}}
+
+\address{University Department, University Name, Address\\
+City, State ZIP/Zone,Country\,\footnote{State completely without
+abbreviations, the affiliation and mailing address, including country.
+Typeset in 8 pt italic.}\\
+\email{author\_id@domain\_name\footnote{Typeset author e-mail
+address in single line.}} }
+
+\author{SECOND AUTHOR}
+
+\address{Group, Laboratory, Address\\
+City, State ZIP/Zone, Country\\
+author\_id@domain\_name }
+
+\maketitle
+
+\begin{history}
+\received{(Day Month Year)}
+\revised{(Day Month Year)}
+\end{history}
+
+\begin{abstract}
+The abstract should summarize the context, content and conclusions of
+the paper in less than 200 words. It should not contain any reference
+citations or displayed equations. Typeset the abstract in 8 pt roman
+with baselineskip of 10 pt, making an indentation of 1.5 pica on the
+left and right margins.
+\end{abstract}
+
+\keywords{Keyword1; keyword2; keyword3.}
+
+\section{General Appearance}	
+Contributions to the {\it International Journal of Theoretical and
+Applied Finance} will mostly be processed by using the authors' source
+files. These should be submitted with the manuscripts, and resubmitted
+in the final form if a paper requires revision before being accepted
+for publication.
+
+\section{The Main Text}
+
+Authors are encouraged to have their contribution checked for grammar.
+American spelling should be used. Abbreviations are allowed but should
+be spelt out in full when first used. Integers ten and below are to be
+spelt out. Italicize foreign language phrases (e.g.~Latin, French).
+
+The text should be in 10 pt roman, single spaced with
+baselineskip of 13~pt. Text area (excluding copyright block and folio)
+is 6.9 inches high and 5 inches wide for the first page.
+Text area (excluding running title) is 7.7 inches high and\break
+5 inches wide for subsequent pages.  Final pagination and
+insertion of running titles will be done by the publisher.
+
+\section{Major Headings}
+Major headings should be typeset in boldface with the first letter of
+important words capitalized.
+
+\subsection{Sub-headings}
+Sub-headings should be typeset in boldface italic and capitalize the
+first letter of the first word only. Section number to be in boldface
+roman.
+
+\subsubsection{Sub-subheadings}
+Typeset sub-subheadings in medium face italic and capitalize the first
+letter of the first word only. Section numbers to be in roman.
+
+\subsection{Numbering and spacing}
+Sections, sub-sections and sub-subsections are numbered in Arabic.
+Use double spacing before all section headings, and single spacing
+after section headings. Flush left all paragraphs that follow after
+section headings.
+
+\subsection{Lists of items}
+List may be presented with each item marked by bullets and numbers.
+
+\subsection*{Bulleted items}
+
+\begin{itemlist}
+ \item item one,
+ \item item two,
+ \item item three.
+\end{itemlist}
+
+\subsection*{Numbered items}
+
+\begin{arabiclist}
+ \item item one,
+ \item item two,
+ \item item three.
+\end{arabiclist}
+
+The order of subdivisions of items in bullet and numbered lists
+may be presented as follows:
+
+\subsection*{Bulleted items}
+
+\begin{itemize}
+\item First item in the first level
+\item Second item in the first level
+\begin{itemize}
+\item First item in the second level
+\item Second item in the second level
+\begin{itemize}
+\item First item in the third level
+\item Second item in the third level
+\end{itemize}
+\item Third item in the second level
+\item Fourth item in the second level
+\end{itemize}
+\item Third item in the first level
+\item Fourth item in the first level
+\end{itemize}
+
+\subsection*{Numbered items}
+
+\begin{arabiclist}
+\item First item in the first level
+\item Second item in the first level
+\begin{alphlist}[(a)]
+\item First item in the second level
+\item Second item in the second level
+\begin{romanlist}[iii.]
+\item First item in the third level
+\item Second item in the third level
+\item Third item in the third level
+\end{romanlist}
+\item Third item in the second level
+\item Fourth item in the second level
+\end{alphlist}
+\item Third item in the first level
+\item Fourth item in the first level
+\end{arabiclist}
+
+\section{Equations}
+
+Displayed equations should be numbered consecutively, with the number
+set flush right and enclosed in parentheses. The equation numbers
+should be consecutive within each section.  Numbering by sections
+refers only to the large main sections, i.e. to those with Level 1
+headings. Thus the equations in Sec.~4 would be labeled (4.1),
+(4.2), etc.
+\begin{equation}
+\mu(n, t) = \frac{\sum^\infty_{i=1} 1(d_i < t, N(d_i)
+= n)}{\int^t_{\sigma=0} 1(N(\sigma) = n)d\sigma}\,.
+\label{eq:jaa}
+\end{equation}
+
+Equations should be referred to in abbreviated form,
+e.g.~``Eq.~(\ref{eq:jaa})'' or ``(4.2)''. In multiple-line equations,
+the number should be given on the last line.
+
+Displayed equations are to be centered on the page width.  Standard
+English letters like x are to appear as $x$ (italicized) in the text
+if they are used as mathematical symbols. Punctuation marks are used
+at the end of equations as if they appeared directly in the text.
+
+\section{Theorem Environments\label{sfive}}
+
+\begin{theorem}
+\label{th1}
+Theorems$,$ lemmas$,$ definitions$,$ etc. are set on a separate
+paragraph$,$ with extra 1 line space above and below. They are
+to be numbered consecutively within each section.
+\begin{equation}
+\mu(n, t) = \frac{\sum^\infty_{i=1} 1(d_i < t, N(d_i)
+= n)}{\int^t_{\sigma=0} 1(N(\sigma) = n)d\sigma}\,.
+\label{five1}
+\end{equation}
+
+Numbering by sections refers only to the large main sections$,$
+i.e. to those with Level 1 headings.  Thus the numbering style in
+Sec.~{\upshape\ref{sfive}}
+would be labeled {\upshape (\ref{five1}),} {\upshape (5.2),} etc.
+\end{theorem}
+
+The theorem environments text can be cross-linked to the body text,
+e.g.,\break
+Theorem \ref{th1} and Lemma \ref{lem1}.
+
+\begin{lemma}[Sample]
+\label{lem1}
+Theorems$,$ lemmas$,$ definitions$,$ etc. are set on a separate paragraph$,$
+with extra 1 line space above and below. They are to be numbered
+consecutively within each section.
+
+Numbering by sections refers only to the large main sections, i.e. to
+those with Level 1 headings.  Thus the numbering style in
+Sec.~{\upshape\ref{sfive}} would be labeled {\upshape (5.1),}
+{\upshape (5.2),} etc.
+\end{lemma}
+
+\begin{proof}
+Proofs should end with a box.
+\end{proof}
+
+\begin{figure}[pb]
+\centerline{\includegraphics[width=2.0in]{ijtaff1}}
+\vspace*{8pt}
+\caption{A schematic illustration of dissociative recombination. The
+direct mechanism, 4m$^2_\pi$ is initiated when the
+molecular ion S$_{\rm L}$ captures an electron with kinetic energy.}
+\end{figure}
+
+\section{Illustrations and Photographs}
+Figures are to be inserted in the text nearest their first reference.
+Figure placements can be either top or bottom.  Original india ink
+drawings of glossy prints are preferred. Please send one set of
+originals with copies. If the author requires the publisher to reduce
+the figures, ensure that the figures (including letterings and
+numbers) are large enough to be clearly seen after reduction. If
+photographs are to be used, only black and white ones are acceptable.
+
+Figures are to be sequentially numbered in Arabic numerals. The
+caption must be placed below the figure. Typeset in 8 pt roman with
+baselineskip of 10~pt. Long captions are to be justified by the
+``page-width''.  Use double spacing between a caption and the text
+that follows immediately.
+
+Previously published material must be accompanied by written
+permission from the author and publisher.
+
+\section{Tables}
+
+Tables should be inserted in the text as close to the point of
+reference as possible. Some space should be left above and below
+the table.
+
+Tables should be numbered sequentially in the text in Arabic
+numerals. Captions are to be centralized above the tables.  Typeset
+tables and captions in 8 pt roman with baselineskip of 10 pt. Long
+captions are to be justified by the ``table-width''.
+
+\begin{table}[h]
+\tbl{Comparison of acoustic for frequencies for piston-cylinder problem.}
+{\begin{tabular}{@{}cccc@{}} \toprule
+Piston mass & Analytical frequency & TRIA6-$S_1$ model &
+\% Error \\
+& (Rad/s) & (Rad/s) \\ \colrule
+1.0\hphantom{00} & \hphantom{0}281.0 & \hphantom{0}280.81 & 0.07 \\
+0.1\hphantom{00} & \hphantom{0}876.0 & \hphantom{0}875.74 & 0.03 \\
+0.01\hphantom{0} & 2441.0 & 2441.0\hphantom{0} & 0.0\hphantom{0} \\
+0.001 & 4130.0 & 4129.3\hphantom{0} & 0.16\\ \botrule
+\end{tabular}}
+\begin{tabnote}
+Table notes
+\end{tabnote}
+\begin{tabfootnote}
+\tabmark{a} Table footnote A\\
+\tabmark{b} Table footnote B
+\end{tabfootnote}
+\end{table}
+
+If tables need to extend over to a second page, the continuation of
+the table should be preceded by a caption, e.g.~``{\it Table~2.}
+$(${\it Continued}$)$''. Notes to tables are placed below the final
+row of the table and should be flushleft.  Footnotes in tables
+shouldbe indicated by superscript lowercase letters and placed beneath
+the table.
+
+\section{Running Heads}
+
+Please provide a shortened runninghead (not more than eight words) for
+the title of your paper. This will appear on the top right-hand side
+of your paper.
+
+\section{Footnotes}
+
+Footnotes should be numbered sequentially in superscript
+lowercase roman letters.\footnote{Footnotes should be
+typeset in 8 pt roman at the bottom of the page.}
+
+\appendix
+
+\section{Appendices}
+
+Appendices should be used only when absolutely necessary. They
+should come\break
+before the Acknowledgments. If there is more than one
+appendix, number them alphabetically. Number displayed equations
+occurring in the Appendix in this way, e.g.~(\ref{appeqn}), (A.2), etc.
+\begin{equation}
+\mu(n, t) = \frac{\sum^\infty_{i=1} 1(d_i < t, N(d_i)
+= n)}{\int^t_{\sigma=0} 1(N(\sigma) = n)d\sigma}\,.
+\label{appeqn}
+\end{equation}
+
+\section*{Acknowledgments}
+
+This section should come before the References. Funding
+information may also be included here.
+
+\section*{References}
+References are to be listed in alphabetical order using the last name of the first-named author.
+They are to be cited in the text in an author-date format (i.e. Black 1973).
+They can be typed after punctuation marks, e.g. ``... in the statement \citep{duf01} ...''
+or used directly, e.g. ``see \cite{duf01} for examples.''
+For multi-authored papers, please use the `\&' symbol, i.e. \cite{del94}.
+
+Please list the references using the style shown in the following examples:
+
+\def\newsection#1{\section*{\underline{#1}}}
+
+\newsection{Journal articles:}
+
+\noindent R. C. Merton (1974) On the pricing of corporate debt: the risk structure of interest rates,
+{\it Journal of Finance} {\bf 29} (2), 449--470.\\[3pt]
+
+\noindent F. Delbaen \& W. Schachermayer (1994) A general version of the fundamental theorem
+of asset pricing, {\it Mathematische Annalen} {\bf 300} (1), 463--520.\\[3pt]
+
+\noindent D. C. Brody, L. P. Hughston \& A. Macrina (2008a) Information-based asset pricing,
+{\it International Journal of Theoretical and Applied Finance} {\bf 11} (1), 107--142.\\[3pt]
+
+\noindent D. C. Brody, L. P. Hughston \& A. Macrina (2008b) Dam rain and cumulative gain,
+{\it Proceedings of the Royal Society A} {\bf 464}, 1801--1822.
+
+\section*{Notes:}
+\begin{enumerate}[4.]
+\item[1.] List articles alphabetically by the surname of the first-named author.
+
+\item[2.] Author initials should precede the surname.
+
+\item[3.] In the case of multiple listing by the same authors in the same year, the years should be labeled ``a'', ``b'' etc. Thus: (1999a), (1999b), etc.
+
+\item[4.] In the titles of journal articles, the font should be non-italic, and words should be capitalized only on an ``as necessary'' basis.
+\end{enumerate}
+
+\newsection{Books:}
+\noindent D. Duffie (2001) {\it Dynamic Asset Pricing Theory}, third edition.
+Princeton, New Jersey: Princeton University Press.\\[3pt]
+
+\noindent J. Gatheral (2006) {\it The Implied Volatility Surface: A Practitioner's Guide}. New York: Wiley.\\[3pt]
+
+\noindent R. A. Jarrow (2008) {\it Financial Derivatives Pricing: Selected Works of Robert Jarrow}. New
+Jersey: World Scientific Publishing Company.\\[3pt]
+
+\noindent I. Karatzas \& S. E. Shreve (1998) {\it Methods of Mathematical Finance}. New York: Springer-Verlag.
+
+\section*{Notes:}
+\begin{enumerate}[4.]
+\item[1.] In the titles of books, the font should be italic, and all of the ``main'' words should be capitalized.
+
+\item[2.] Generally, avoid abbreviations, except in particular situations where the typesetting can be improved by use of an abbreviation (e.g., to avoid running over a line or a page).
+
+\item[3.] Thus, write ``third edition'' rather than ``3rd ed.''. However, ``ed.'' and ``eds.'' can be used for
+``editor'' and ``editors''.
+\end{enumerate}
+
+\newsection{Articles appearing in edited books:}
+
+\noindent J. Gatheral, A. Schied \& A. Slynko (2011) Exponential resilience and decay of market impact. In: {\it Econophysics of Order-Driven Markets} (F. Abergel, B. K Chakrabarti, A. Chakraborti \& M. Mitra, eds.), 225--236. Milan: Springer.\\[3pt]
+
+\noindent D. C. Brody, L. P. Hughston \& A. Macrina (2007) Beyond hazard rates: a new framework for credit-risk modeling. In: {\it Advances in Mathematical Finance} (M. C. Fu, R. Jarrow, J. Y. Yen \& R. Elliot, eds.), 231--257. Boston: Birkhauser.
+
+\newsection{PhD theses:}
+
+\noindent A. Macrina (2006) {\it An Information-Based Framework for Asset Pricing: X-Factor Theory and its Applications}. PhD Thesis, Department of Mathematics, King's College London.
+
+\section*{\underline{Articles appearing on ArXiv, but unpublished, or not yet accepted for}\\ \underline{publication:}}
+
+R. A. Jarrow \& M. Larsson (2014) Informational efficiency under short sale constraints. arXiv:1401.1851.
+
+\newsection{Example of reference list at end of article:}
+
+\begin{thebibliography}{9}
+\bibitem[Brody {\it et al.}(2007)]{bro07} D. C. Brody, L. P. Hughston \& A. Macrina (2007) Beyond hazard rates: a new framework for credit-risk modeling. In: {\it Advances in Mathematical Finance} (M. C. Fu, R. Jarrow, J. Y. Yen
+\& R. Elliot, eds.), 231--257. Boston: Birkhauser.
+
+\bibitem[Brody {\it et al.}(2008a)]{bro08a}D. C. Brody, L. P. Hughston \& A. Macrina (2008a) Information-based asset pricing,
+{\it International Journal of Theoretical and Applied Finance} {\bf 11} (1), 107--142.
+
+\bibitem[Brody {\it et al.}(2008b)]{bro08b}D. C. Brody, L. P. Hughston \& A. Macrina (2008b) Dam rain and cumulative gain,
+{\it Proceedings of the Royal Society A} {\bf 464}, 1801--1822.
+
+\bibitem[Delbaen \& Schachermayer(1994)]{del94} F. Delbaen \& W. Schachermayer (1994) A general version of the fundamental theorem of asset pricing, {\it Mathematische Annalen} {\bf 300} (1), 463--520.
+
+\bibitem[Duffie(2001)]{duf01} D. Duffie (2001) {\it Dynamic Asset Pricing Theory}, third edition. Princeton, New Jersey: Princeton University Press.
+
+\bibitem[Gatheral(2006)]{gat06} J. Gatheral (2006) {\it The Implied Volatility Surface: A Practitioner's Guide}. New York: Wiley.
+
+\bibitem[Gatheral {\it et al.}(2011)]{gat11} J. Gatheral, A. Schied \& A. Slynko (2011) Exponential resilience and decay of market impact. In: {\it Econophysics of Order-Driven Markets} (F. Abergel, B. K Chakrabarti, A. Chakraborti \& M. Mitra, eds.), 225--236. Milan: Springer.
+
+\bibitem[Jarrow(2008)]{jar08} R. A. Jarrow (2008) {\it Financial Derivatives Pricing: Selected Works of Robert Jarrow}. New
+Jersey: World Scientific Publishing Company.
+
+\bibitem[Jarrow & Larsson(2014)]{jar14} R. A. Jarrow \& M. Larsson (2014) Informational efficiency under short sale constraints. arXiv:1401.1851.
+
+\bibitem[Karatzas \& Shreve(1998)]{kar98} I. Karatzas \& S. E. Shreve (1998) {\it Methods of Mathematical Finance}. New York: Springer- Verlag.
+
+\bibitem[Macrina(2006)]{mac06} A. Macrina (2006) {\it An Information-Based Framework for Asset Pricing: X-Factor Theory and its Applications}. PhD Thesis, Department of Mathematics, King's College London.
+
+\bibitem[Merton(1974)]{mer74} R. C. Merton (1974) On the pricing of corporate debt: the risk structure of interest rates,
+{\it Journal of Finance} {\bf 29} (2), 449--470.
+
+\bibitem[Madan & Schoutens(2011)]{mad11} D. Madan \& W. Schoutens (2011) Conic finance and the corporate balance sheet, {\it International Journal of Theoretical and Applied Finance} {\bf 14} (5) 587--610. Reprinted (2013) in: {\it Finance at Fields} (M. R. Grasselli \& L. P. Hughston, eds.), 451--474.
+\end{thebibliography}
+
+\section*{Note:}
+
+References are to be listed in alphabetical order using the last name of the first-named author.
+
+\newsection{Examples of citations:}
+
+\begin{enumerate}[(f)]
+\item[(a)] This result was first established by \cite{mer74}.
+\item[(b)] This result is discussed in \cite{mer74}.
+\item[(c)] The arbitrage-free approach to interest rate theory has a long history \citep{mer74}.
+\item[(d)] The theory of arbitrage free pricing has been greatly advanced in recent years \citep{del94,kar98,duf01}.
+\item[(e)] See \cite{del94,kar98,duf01}, for further information.
+\item[(f)] The role of information in finance is generally appreciated \citep{bro07,bro08a,bro08b}.
+\item[(g)] For more details about the role of information, see \cite{bro07,bro08a,bro08b}.
+\end{enumerate}
+\end{document} 
