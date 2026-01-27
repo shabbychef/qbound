@@ -595,7 +595,7 @@ to replace the \txtMP,
 some based on patching conjectured theoretical deficiencies, 
 others relying on simple heuristics. \cite{demiguel2009optimal,tu2011markowitz,brandt2009portfolio}
 
-Pratitioners often resort to dimensionality reduction heuristics
+Practitioners often resort to dimensionality reduction heuristics
 to mitigate estimation error, effectively reducing the number 
 of free variables in the portfolio optimization problem. 
 One version of this tactic describes the returns of
@@ -690,7 +690,7 @@ We then consider a few examples, and then conclude with a discussion.
 \label{sec:portfolio_qual}
 
 Our argument will proceed as follows:
-We establish this upper bond on expected \txtQual via the theory of \txtCR bounds.
+We establish this upper bound on expected \txtQual via the theory of \txtCR bounds.
 \begin{arabiclist}
 \item We first show that for purposes of determining \txtQual, portfolio
   selection is equivalent to selecting a point on a \nlatf-dimensional
@@ -1019,6 +1019,9 @@ If $\funcit{f}{\mreti}$ is an unbiased estimator of $\prskvec$ then
 \label{eqn:magical_crb}
 \end{equation}
 where 
+\ssiz is the number of rows of \mreti, 
+$\eye[\nlatf]$ is the \bby{\nlatf}{\nlatf} identity matrix,
+and 
 we write $\Mtx{A} \mtxge \Mtx{B}$ to mean $\Mtx{A} - \Mtx{B}$ is positive semidefinite.
 This result is \lemmaref{prskvec_crb} in the Appendix; the proof appeals to the
 \txtCR bound with transformations and nuisance parameters.
@@ -1666,7 +1669,7 @@ $\nlatf=24, \ssiz=1012,
 \psnropt = 1.6\yrtomhalf$. 
 Since the optimum cannot
 decrease over a larger feasible space, we observe that
-the superset has a higher population \txtSNR, \psnropt, 
+the superset has a higher population \txtSNR, \psnropt.
 One should not, of course, increase
 the investment universe without \emph{some} concomitant 
 increase in \psnropt.
@@ -2330,20 +2333,20 @@ by Ken French.
 % 2FIX: add citation to data.
 
 The monthly returns, from 1927-01-01 to 
-2020-12-01, for these 10 
+2025-11-01, for these 10 
 assets were downloaded
 from Kenneth French's data library.  \cite{French10Port}
 %from \emph{Quandl}.  \cite{Quandl}
 The \txtSR of the equal weighted portfolio on the %10
-assets, over the 1128 months, is around 
+assets, over the 1187 months, is around 
 $0.67\yrtomhalf$. The \txtSR of the sample \txtMP over
 the 10 assets over the same period is around
-$0.86\yrtomhalf$.  
+$0.84\yrtomhalf$.  
 Now consider a portfolio estimator
 given 5 years of observations, as in 
 DeMiguel \etal \cite{demiguel2009optimal}, assuming 
-$\psnropt=0.86\yrtomhalf$.
-The bound on expected value of \pql{\sportwfnc{\mreti}} from \theoremref{qual_bound} is only $0.46\yrtomhalf$.  
+$\psnropt=0.84\yrtomhalf$.
+The bound on expected value of \pql{\sportwfnc{\mreti}} from \theoremref{qual_bound} is only $0.45\yrtomhalf$.  
 %Under \apxref{qual_dist}, the probability that \pql{\sportwfnc{\mreti}} exceeds $sr1$sr\yrtomhalf$ in this case is only $dfp$. 
 It is not surprising that DeMiguel \etal drew
 the conclusions they did, nor that they would be refuted
@@ -2356,11 +2359,11 @@ the upper bound of that theorem is non-negative, and zero only
 if the quantity \Delpsnrsqopt{\eye,\hejG} is zero.  This is a
 statement regarding unknown population parameters, but we can
 perform inference on this quantity. For example, based on the
-1128 months of data on these 
+1187 months of data on these 
 10, the 95\% confidence interval on
 \Delpsnrsqopt{\eye,\hejG}, where \hejG is the \bby{1}{10}
 matrix of all ones, is
-$\asrowvec{0.04, 0.45}\yrto{-1}$, under the assumption of
+$\asrowvec{0.03, 0.4}\yrto{-1}$, under the assumption of
 Gaussian returns.  
 
 %One could view the touted superiority of the equal weight portfolio
@@ -2600,7 +2603,7 @@ parameters \pvsig are known?
 %perhaps leveraging the work of Bodnar and Okhrin,
 %or of Britton-Jones.  \cite{SJOS:SJOS729, BrittenJones1999}
 \item Can the assumptions of Directional Independence and unbiasedness be weakened?
-Can the \theoremref{qual_bound_two} be generalized to deal with omitted 
+Can \theoremref{qual_bound_two} be generalized to deal with omitted 
 variable bias in \vfact[i]?  
 \item The analysis of \txtQual ignores the `risk-free' or `disastrous'
 rate of return, and all trading costs. Can the expected bounds

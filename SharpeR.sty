@@ -69,15 +69,15 @@
 % macros%FOLDUP
 
 % ack.
-%\providecommand{\figref}[1]{Figure~\ref{fig:#1}}
+%\providecommand{\figref}[1]{Figure~\pef{fig:#1}}
 \providecommand{\figref}[1]{Figure\nobreakspace\ref{fig:#1}}
-\providecommand{\eqnref}[1]{Equation\nobreakspace\ref{eqn:#1}}
+\providecommand{\eqnref}[1]{Equation\nobreakspace(\ref{eqn:#1})}
 \providecommand{\secref}[1]{Section\nobreakspace\ref{sec:#1}}
 \providecommand{\subsecref}[1]{Section\nobreakspace\ref{subsec:#1}}
 \providecommand{\tabref}[1]{Table\nobreakspace\ref{tab:#1}}
 \providecommand{\lemmaref}[1]{Lemma\nobreakspace\ref{lemma:#1}}
 \providecommand{\theoremref}[1]{Theorem\nobreakspace\ref{theorem:#1}}
-\providecommand{\definitionref}[1]{Definition\nobreakspace\ref{definition:#1}}
+\providecommand{\definitionref}[1]{Definition\nobreakspace(\ref{definition:#1})}
 \providecommand{\corollaryref}[1]{Corollary\nobreakspace\ref{corollary:#1}}
 \providecommand{\conjectureref}[1]{Conjecture\nobreakspace\ref{conjecture:#1}}
 \providecommand{\apxref}[1]{Approximation\nobreakspace\ref{apx:#1}}
@@ -139,7 +139,7 @@
 \providecommand{\txtMwtz}{Markowitz\xspace}
 \providecommand{\txtMP}{Markowitz portfolio\xspace}
 \providecommand{\txtCR}{Cram\'{e}r-Rao\xspace}
-\providecommand{\txtCCR}{Constrained \txtCR}
+\providecommand{\txtCCR}{constrained \txtCR}
 % I have yet to decide:
 \providecommand{\txtLP}{lambda prime\xspace}
 \providecommand{\txtMLP}{multiple \txtLP}

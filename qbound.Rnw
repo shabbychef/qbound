@@ -683,7 +683,7 @@ to replace the \txtMP,
 some based on patching conjectured theoretical deficiencies, 
 others relying on simple heuristics. \cite{demiguel2009optimal,tu2011markowitz,brandt2009portfolio}
 
-Pratitioners often resort to dimensionality reduction heuristics
+Practitioners often resort to dimensionality reduction heuristics
 to mitigate estimation error, effectively reducing the number 
 of free variables in the portfolio optimization problem. 
 One version of this tactic describes the returns of
@@ -778,7 +778,7 @@ We then consider a few examples, and then conclude with a discussion.
 \label{sec:portfolio_qual}
 
 Our argument will proceed as follows:
-We establish this upper bond on expected \txtQual via the theory of \txtCR bounds.
+We establish this upper bound on expected \txtQual via the theory of \txtCR bounds.
 \begin{arabiclist}
 \item We first show that for purposes of determining \txtQual, portfolio
   selection is equivalent to selecting a point on a \nlatf-dimensional
@@ -1107,6 +1107,9 @@ If $\funcit{f}{\mreti}$ is an unbiased estimator of $\prskvec$ then
 \label{eqn:magical_crb}
 \end{equation}
 where 
+\ssiz is the number of rows of \mreti, 
+$\eye[\nlatf]$ is the \bby{\nlatf}{\nlatf} identity matrix,
+and 
 we write $\Mtx{A} \mtxge \Mtx{B}$ to mean $\Mtx{A} - \Mtx{B}$ is positive semidefinite.
 This result is \lemmaref{prskvec_crb} in the Appendix; the proof appeals to the
 \txtCR bound with transformations and nuisance parameters.
@@ -2396,7 +2399,7 @@ $\nlatf=\Sexpr{big.n.stok}, \ssiz=\Sexpr{n.obs},
 \psnropt = \Sexpr{sqrt(ope) * big.zeta}\yrtomhalf$. 
 Since the optimum cannot
 decrease over a larger feasible space, we observe that
-the superset has a higher population \txtSNR, \psnropt, 
+the superset has a higher population \txtSNR, \psnropt.
 One should not, of course, increase
 the investment universe without \emph{some} concomitant 
 increase in \psnropt.
@@ -3538,7 +3541,7 @@ parameters \pvsig are known?
 %perhaps leveraging the work of Bodnar and Okhrin,
 %or of Britton-Jones.  \cite{SJOS:SJOS729, BrittenJones1999}
 \item Can the assumptions of Directional Independence and unbiasedness be weakened?
-Can the \theoremref{qual_bound_two} be generalized to deal with omitted 
+Can \theoremref{qual_bound_two} be generalized to deal with omitted 
 variable bias in \vfact[i]?  
 \item The analysis of \txtQual ignores the `risk-free' or `disastrous'
 rate of return, and all trading costs. Can the expected bounds
