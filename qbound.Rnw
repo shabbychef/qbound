@@ -194,8 +194,9 @@ opts_chunk$set(tidy=TRUE,tidy.opts=list(width.cutoff=50,keep.blank.line=TRUE))
 
 # from the environment
 
-library(quantmod)
-options("getSymbols.warning4.0"=FALSE)
+if (require(quantmod,quietly=TRUE)) { 
+  options("getSymbols.warning4.0"=FALSE)
+}
 
 library(SharpeR)
 @
@@ -213,7 +214,7 @@ library(dplyr)
 library(ggplot2)
 library(hypergeo)
 library(LambertW)
-library(quantmod)
+# library(quantmod)
 library(SharpeR)
 library(tidyr)
 library(readr)
@@ -621,7 +622,7 @@ San Francisco, CA 94116\\
 The \txtQual of a portfolio of \nlatf assets, its expected return divided 
 by its risk, is couched as an estimation problem on the sphere
 \spherep.  
-When a portfolio is built using noisy data and a general purpose method, 
+When the \txtMP is built using noisy data and a general purpose method, 
 the expected value of the \txtQual is bounded from above via a \txtCR bound, 
 %on the portfolio estimator, 
 for the case of Gaussian returns. 
@@ -690,11 +691,13 @@ One version of this tactic describes the returns of
 dozens, or even hundreds, of equities as the linear combination
 of a handful of `factor' returns (plus some `idiosyncratic' term); 
 the portfolio problem is then couched as an optimization over factor
-portfolios. If the population parameters were known with certainty,
+portfolios.  \cite{gappy2025}
+If the population parameters were known with certainty,
 shrinking the set of feasible portfolios would only result in
 reducing the optimal portfolio utility. However, the population
 parameters can typically only be weakly estimated, and dimensionality
 reduction is common practice. 
+
 
 In this paper, an upper bound is established on the expected value of
 a feasible portfolio's \txtQual, defined to be the expected return of the portfolio
@@ -712,19 +715,23 @@ the expected returns of the assets are linear in some observable features,
 where the portfolio is restricted to some subspace (\eg baskets of assets),
 and where optimization is performed conditional on hedging out some factors.
 
-This upper bound holds for portfolio construction techniques which are
-generally applicable to all possible inputs.
-Portfolios which embed strong assumptions about the underlying unknown
-parameters are akin to ``stopped clocks''; it is difficult to make
+This upper bound holds for portfolio construction techniques which satisfy
+certain assumptions of general applicability to all possible population
+parameters.
+In contrast,
+portfolios which embed strong assumptions about the underlying unknown
+parameters are akin to ``stopped clocks''. 
+It is difficult to make
 strong unconditional statements about how accurate a stopped clock is, because
 it depends on the time of day.
-Consider, for example, the ``one over $N$ allocation'' in the long-only
-context; \cite{demiguel2009optimal} this portfolio would have a very high
+Consider, for example, the ``one-over-$N$ allocation'' in the long-only
+context. \cite{demiguel2009optimal} 
+This portfolio would have a very high
 \txtQual if the assets had equal expected return and risk and returns among
 them were independent, but could otherwise have very poor performance if just a few
 assets had high expected returns and the rest had zero or negative expected
 returns.
-The one over $N$ portfolio is a pathological case which totally ignores any
+The one-over-$N$ portfolio is a pathological case which totally ignores any
 observed history, so it seems natural that we could not make strong statements
 about its expected performance.
 However, other more data-dependent portfolio construction techniques would also qualify as stopped clocks
@@ -735,10 +742,16 @@ $k/N$ of their capital to one asset for some small $k$.
 Such heuristic constraints, and more principled ones, are widely used but they
 qualify as stopped clocks and are not subject to our bound.
 
-In fact, most portfolio construction techniques would qualify as stopped clocks
-and our bound is mostly applicable to the \txtMP, and to unusal variants of it,
-such as projection to a random subspace followed by Markowitz.
-We believe this bound is valuable for a number of reasons:
+While we view the no-stopped-clock restriction as desirable from first principles, 
+it is not satisfied by any popular portfolio construction methodology except the \txtMP.
+One could concoct alternative methodologies which satisfy the condition,
+and which would be subject to the bound we prove in this paper,
+but doing so would expose how far they are from the normal discourse in this area.
+Thus one can view the results of this paper as \emph{only} applicable to the
+\txtMP, or to the conditional \txtMP as discussed in the section on
+generalizations.
+
+Nonetheless, we believe this bound is valuable for a number of reasons:
 \begin{arabiclist}
 \item It helps to explain the poor observed performance of the \txtMP in
   empirical studies. \cite{demiguel2009optimal,tu2011markowitz}
@@ -762,14 +775,33 @@ We believe this bound is valuable for a number of reasons:
   though often much easier to prove one rule is dominated by another.
 \end{arabiclist}
 
+We contrast the results of this paper with some others touching on similar
+topics.
+\citeauthor{paulsen2016noise} establish a feasible estimator which is
+approximately unbiased for the \txtQual. \cite{paulsen2016noise}
+This estimator depends on the sample \txtSR of the achieved portfolio, and is
+not just a function of the population parameters.
+Using a similar technique, the present author showed how to compute confidence
+intervals on this quantity. \cite{pav2020inference}
+An earlier paper gives a way to estimate the asymptotic distribution of the
+\txtQual of the sample \txtMP using the central limit theorem and delta method,
+and introduces the conditional expectation and constrained optimization 
+problems we study in \secref{generalizations}.  \cite{pav2013markowitz}
+%\citeauthor{repec:eee:finlet:v:17:y:2016:i:c:p:72-78} gives approximate
+%formulae for the expected value of the \emph{squared} \txtQual, assuming
+%the population covariance is known.
+Approximate formulae for the expected value of the \emph{squared} \txtQual, assuming
+the population covariance is known are found in 
+\cite{repec:eee:finlet:v:17:y:2016:i:c:p:72-78}.
+
 This paper is structured as follows: 
 first we introduce the notation and prove the \txtCR bound applies to the
-\txtMP and portfolios like it.
+\txtMP and general purpose portfolios like it.
 Then we briefly discuss the marginal value of additional assets in the
 investable universe.
 In the section following we consider a similar bound for a linear expectation
 model, under subspace and hedging constraints.
-We then consider a few examples, and then conclude with a discussion.
+We then consider a few examples, and conclude with a discussion.
 
 %UNFOLD
 
@@ -788,7 +820,7 @@ We establish this upper bound on expected \txtQual via the theory of \txtCR boun
   hypersphere is greater than some value.  \cite{tj_moore_ccrb,GormanHero}
 \item Using essentially a geometric argument we transform the \txtCR lower bound
   on the variance into an upper bound on the expected \txtSNR.
-  This applies to general purpose estimators, but not stopped clocks.
+  This applies to the \txtMP estimator, but not stopped clocks.
 \end{arabiclist}
 
 
@@ -983,7 +1015,7 @@ is directionally unbiased.
 \end{assumption}%UNFOLD
 
 The sample \txtMP satisfies this assumption, as we show in \secref{misc_proofs}
-in the Appendix.
+in the Appendix, when returns are Gaussian.
 It is not clear if there are simple sufficient conditions which imply these
 assumptions.
 However, the assumptions seem innocuous enough: 
@@ -992,6 +1024,7 @@ technique only depends on the underlying effect size, and does not have favored
 directions. 
 A portfolio construction technique which satisfies these assumptions is general
 purpose and can be applied to any long-short problem.
+%In practice, however, only the \txtMP is general purpose.
 %The function $\cfnc{\psnrsqopt}$ describes how well the portfolio estimator
 %can capitalize on a universe with \txtSNR $\psnropt$ given $\ssiz$
 %observations.
@@ -1034,15 +1067,18 @@ purpose and can be applied to any long-short problem.
 %$\Mtx{H}\pvmu = \psnropt \basev[1]$. 
 
 
-One should recognize that not all portfolio estimators
-satisfy this assumption. For example, consider an estimator that
+One should recognize that besides the \txtMP, 
+most portfolio estimators do not satisfy this assumption. 
+For example, consider an estimator that
 never concentrates greater than $\nlatf^{-\half}$ proportion of its
 total gross allocation in any one asset; this estimator does not exhibit
 Directional Independence, as it will exhibit different performance
 when $\pportwopt=\psnropt\basev[1]$ than when $\pportwopt =
 \nlatf^{-1/2}\vone$.
-Neither does the ``one over $N$ allocation'' estimator\footnote{The naive equal
+Neither does the ``one-over-$N$ allocation'' estimator\footnote{The naive equal
 weight allocation does not make sense in our long-short context anyway.}.  \cite{demiguel2009optimal}  
+Portfolios which shrink covariance to the diagonal will not satisfy this
+property, and so on.
 
 %The Directional Independence assumption is one of two that are required to
 %eliminate stopped clocks from consideration.
@@ -1703,7 +1739,7 @@ suppressMessages({
 
 manysim <- function(nsamp, genf, nobs=n.obs, nstok=n.stok, zeta=zeta.s, nper=n.per, rseed=1234, ...) {
   require(future.apply)
-  plan(multisession, gc = TRUE, workers = 6)
+  plan(multisession, gc = TRUE, workers = 7)
 
 	quals <- future_lapply(1:ceiling(nsamp/nper),
 												 FUN=function(...) {
@@ -2296,22 +2332,12 @@ We now confirm \theoremref{qual_bound} via Monte Carlo simulations.
 For some reasonable values of \ssiz, \nlatf and \psnropt, we
 draw returns \iid from a Gaussian distribution with the given \psnropt,
 construct the sample \txtMP, then compute its \txtQual. 
-We repeat this \Sexpr{mc_nrep} times for each setting of the parameters,
+We repeat this \Sexpr{scales::comma(mc_nrep)} times for each setting of the parameters,
 then compute the mean and standard deviation of the \txtQual over the simulations.
 We estimate the standard error as the standard deviation divided by the square
 root of the number of simulations.
 We plot the empirical values and the theoretical bound in
 \figref{mc_basic_plot}.
-
-At risk of generalizing from this small set of configurations tested,
-it appears the theoretical bound of \theoremref{qual_bound} is tighter
-when $\ssiz$ is larger and when \nlatf is larger.
-When both $\ssiz$ and $\nlatf$ are small it appears the expected \txtQual of
-the sample \txtMP is a bit lower than the theoretical upper bound.
-We note that the \txtCR bound we use here discards \pvsig as nuisance
-parameters, thus some gap is expected.
-However, for reasonably large \ssiz, this gap is relatively small compared to
-the bound value.
 
 
 <<'mc_basic_plot',dependson=c('mc_basic_simulations'),fig.cap=fig_cap,fig.scap="Empirical estimates of the expected \\txtQual of the \\txtMP are plotted.",eval.after='fig.cap'>>= 
@@ -2366,15 +2392,165 @@ zallrep %>%
   scale_linetype_manual(values=c(1,3),breaks=c('Theoretical Upper Bound','Empirical Value')) + 
   facet_grid(. ~ years,labeller=label_both) +
   labs(x=expression(zeta[`*`]),
-       y=expression(hat(zeta[`*`])),
+       y=expression(bar(zeta[`*`])),
        color=expression(p),
-       linetype='line:',
+       linetype='Line:',
        title='Empirical Expected Signal Noise of Markowitz Portfolio',
-       caption=glue("Using {mc_nrep} simulations per configuration. Error bars at +/- 1 standard error.\nAssumes {ope} trading days per year."))
+       caption=glue("Using {scales::comma(mc_nrep)} simulations per configuration. Error bars at +/- 1 standard error.\nAssumes {ope} trading days per year."))
 @
 
+% now some 'gap' simulations; these are basically the same as above, but on a
+% wider set, and we present the results differently.
+<<'mc_gap_simulations',eval=TRUE,dependson=c('runtime','consts','haircut_study_more_setup','qbound_func','mc_basic_simulations')>>=
+# simulations to establish that the bound is correct by compting expected values.
+mcg_nrep <- 5000
+
+t0 <- Sys.time()
+set.seed(1234)
+all_gaprep <- tidyr::crossing(tibble(zeta_annual=powseq(power=1.5, 0, 1.6,
+                                                    length.out=13)),
+                          tibble(years=c(0.5, 1, 2, 4, 8, 16)),
+                          tibble(nstok=c(2, 4, 8, 16, 32))) %>%
+                          # tibble(nstok=c(2, 4, 8, 16, 32, 64))) %>%
+  filter(zeta_annual > 0) %>%
+  mutate(nobs=ceiling(ope*years)) %>%
+  mutate(zeta.s=zeta_annual / sqrt(ope)) %>%
+  group_by(years,nobs,nstok,zeta.s) %>%
+    mutate(result=list(sumsim(nsamp=mcg_nrep,nper=100,nobs=nobs,nstok=nstok,zeta=zeta.s,genf=genz.gauss))) %>%
+  ungroup() %>%
+  unnest(result) %>%
+  mutate(theory=qbound(p=p, n=nobs, zeta.s=zeta.s, use.ope=ope))
+tf <- Sys.time()
+#cat(glue("# takes {tf - t0} minutes for these sims, mcg_nrep={mcg_nrep}."),"\n")
+# takes 8 minutes for stocks 2 - 64, only 10 sims.
+# 2-8 stocks
+## # takes 1.41058772404989 minutes for these sims, mcg_nrep=100.
+## # takes 1.5764791448911 minutes for these sims, mcg_nrep=1000.
+# 2-16 stocks
+## # takes 2.62160921096802 minutes for these sims, mcg_nrep=1000.
+# 2-32 stocks
+## # takes 4.57942272424698 minutes for these sims, mcg_nrep=1000.
+## # takes 8.13192587296168 minutes for these sims, mcg_nrep=5000.
+## # takes 14.4649877866109 minutes for these sims, mcg_nrep=10000.
+# then I changed it to go to 16 years as well. but also changed the number of
+# cores to use.
+## # takes 7.9277760942777 minutes for these sims, mcg_nrep=1000.
+# with 15 cores, up to 16 years. So this is manageable.
+## # takes 10.3445867935816 minutes for these sims, mcg_nrep=5000.
+## on nickel, but maybe oversampling the runs....
+## # takes 10.0257547140121 minutes for these sims, mcg_nrep=50.
+## # takes 18.9989260117213 minutes for these sims, mcg_nrep=500.
+@
+<<'mc_gap_cleanup',dependson=c('mc_gap_simulations')>>=
+sum_gaprep <- all_gaprep %>%
+  mutate(abs_gap=theory - mean_ssnr,
+         rel_gap=abs_gap / theory) 
+@
+
+In this small set of simulations we generally see that the 
+upper bound given by \theoremref{qual_bound} does indeed bound
+the empirical mean \txtQual of the sample \txtMP, but the tightness of the
+bound seems to vary within the parameter values tested.
+Establishing theoretical bounds on the gap between our quoted bound and the 
+actual mean \txtQual is tricky because it would include some bound on
+the term $\wrapBracks{\cfncp{\gramprskvec}}^2 \gramprskvec$,
+while \cfnc{} is an unknown function, as well as any slack due to the \txtCR
+bound.
+
+Instead we focus on a wider set of Monte Carlo simulations, looking at more
+parameter values. 
+We let $\nfac$ range from $\Sexpr{min(all_gaprep$nstok)}$ to
+$\Sexpr{max(all_gaprep$nstok)}$;
+$\ssiz$ varies from 
+$\Sexpr{min(all_gaprep$nobs)}$ to
+$\Sexpr{max(all_gaprep$nobs)}$;
+$\psnropt$ varies from 
+$\Sexpr{min(all_gaprep$zeta_annual)}\yrtomhalf$ to
+$\Sexpr{max(all_gaprep$zeta_annual)}\yrtomhalf$.
+We consider the absolute gap $B - \overline{\pql{\sportwfnc{\mreti}}}$,
+as well as the relative gap 
+$1 - \overline{\pql{\sportwfnc{\mreti}}}/1$,
+where $\overline{\pql{\sportwfnc{\mreti}}}$ is the empirical mean
+\txtQual under our simulations, and $B$ is the bound of
+\theoremref{qual_bound}.
+We plot 
+the absolute gap in \figref{mc_gap_plot_abs}, and
+the relative gap in \figref{mc_gap_plot_rel}.
+In these plots we see that the absolute gap is larger for smaller \ssiz
+and smaller \nfac. 
+When dealing with more than 2 years of daily observations,
+however, the absolute gap is smaller than around 0.1 \yrtomhalf,
+a quantum which is hard to resolve practically.
+Looking at the relative gap we see that the empirical average
+\txtQual is around 10 to 20\% lower than the bound given
+in the theorem, except when \ssiz and \psnropt are reasonably
+large, and the gap shrinks to around 5\%.
+
+We note that despite the existence of a gap between the quoted upper bound
+and the empirical average \txtQual, we view the quoted upper bound as
+a fairly formidable hurdle for practitioners. 
+As we shall see, for some practially relevant values of \ssiz and \psnropt the
+bound of \theoremref{qual_bound} is quite low, and should serve as sufficient
+discouragement.
+That the actual expected \txtQual is even lower should be of secondary concern.
+
+%At risk of generalizing from this small set of configurations tested,
+%it appears the theoretical bound of \theoremref{qual_bound} is tighter
+%when $\ssiz$ is larger and when \nlatf is larger.
+%When both $\ssiz$ and $\nlatf$ are small it appears the expected \txtQual of
+%the sample \txtMP is a bit lower than the theoretical upper bound.
+%We note that the \txtCR bound we use here discards \pvsig as nuisance
+%parameters, thus some gap is expected.
+%However, for reasonably large \ssiz, this gap is relatively small compared to
+%the bound value.
+
+
+
+
+<<'mc_gap_plot_abs',dependson=c('mc_gap_cleanup'),fig.cap=fig_cap,fig.scap='???',eval.after='fig.cap'>>= 
+fig_cap <- paste0("The absolute gap between the bound of \\theoremref{qual_bound} and the empirical \\txtQual of the \\txtMP is plotted for various values of \\ssiz, \\nfac, \\psnropt. ")
+
+labl <- scales::comma_format(suffix="/sqrt(yr)")
+
+sum_gaprep %>%
+  ggplot(aes(zeta_annual,abs_gap,color=factor(nstok))) + 
+  geom_line(alpha=0.5) + 
+  geom_hline(yintercept=0,linetype='dotted',alpha=0.5) + 
+  scale_x_continuous() + 
+  scale_y_continuous(labels=labl) + 
+  facet_wrap(. ~ years,labeller=label_both) +
+  labs(x=expression(zeta[`*`]/sqrt(yr)),
+       y=expression(B~-~bar(q(hat(nu)(X)))),
+       color=expression(p),
+       title='Absolute Gap to Proposed Bound',
+       # subtitle='Bound minus empirical expected signal noise of Markowitz portfolio',
+       subtitle='Upper bound versus empirical expected signal noise of Markowitz portfolio',
+       caption=glue("Using {scales::comma(mcg_nrep)} simulations per configuration. Assumes {ope} trading days per year."))
+
+@
+<<'mc_gap_plot_rel',dependson=c('mc_gap_cleanup'),fig.cap=fig_cap,fig.scap='???',eval.after='fig.cap'>>= 
+fig_cap <- paste0("The relative gap between the bound of \\theoremref{qual_bound} and the empirical \\txtQual of the \\txtMP is plotted for various values of \\ssiz, \\nfac, \\psnropt. ")
+
+sum_gaprep %>%
+  ggplot(aes(zeta_annual,rel_gap,color=factor(nstok))) + 
+  geom_line(alpha=0.5) + 
+  geom_hline(yintercept=0,linetype='dotted',alpha=0.5) + 
+  scale_x_continuous() +
+  scale_y_continuous(labels=scales::percent) + 
+  facet_wrap(. ~ years,labeller=label_both) +
+  labs(x=expression(zeta[`*`]/sqrt(yr)),
+       y=expression(1~-~bar(q(hat(nu)(X)))/B),
+       color=expression(p),
+       title='Relative Gap to Proposed Bound',
+       # subtitle='One minus empirical expected signal noise of Markowitz portfolio divided by bound',
+       subtitle='Upper bound versus empirical expected signal noise of Markowitz portfolio',
+       caption=glue("Using {scales::comma(mcg_nrep)} simulations per configuration. Assumes {ope} trading days per year."))
+
+@
+
+\pagebreak
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Diversification}%FOLDUP
+\section{Diversification and Overfitting}%FOLDUP
 \label{sec:diversification}
 
 <<'forexample',dependson=c('consts','hcut_qtile','qbound_func')>>=
@@ -2449,17 +2625,22 @@ The last inequality is implied by the inequality
 $\oneby{4\wrapParens{\nlatf-1}} \le \dbyd{\log\psnropt}{\nlatf}$, 
 with equality holding for $\psnropt = c \wrapParens{\nlatf-1}^{1/4}$.
 
-<<'grow_bound',dependson=c('plot_stuff'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=fig_cap,fig.scap="The upper bound of \\theoremref{qual_bound} is plotted versus \\nlatf for different scaling laws.",eval.after='fig.cap'>>= 
+<<'grow_bound',dependson=c('plot_stuff','forexample'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=fig_cap,fig.scap="The upper bound of \\theoremref{qual_bound} is plotted versus \\nlatf for different scaling laws.",eval.after='fig.cap'>>= 
 
-
-bound.experiment <- function(pow,n.obs,zeta.s,
-                             n.stok=n.stok,ope=ope,plims=c(2,250)) {
+bound.experiment <- function(pow,n.obs,
+                             zeta.s=0.1,
+                             zeta.0=NULL,
+                             n.stok=n.stok,
+                             ope=ope,
+                             plims=c(2,250)) {
   require(dplyr,quietly=TRUE)
   require(tidyr,quietly=TRUE)
 	all.ps <- unique(round(exp(seq(log(min(plims)),
 																	log(max(plims)),
 																	length.out=140))))
-	zeta.0 <- zeta.s / (n.stok ^ pow)
+  if (is.null(zeta.0)) {
+    zeta.0 <- zeta.s / (n.stok ^ pow)
+  }
 	all.zeta <- zeta.0 * (all.ps ^ pow)
 	all.bnd <- sqrt(ope * n.obs) * all.zeta^2 / sqrt(all.ps - 1 + n.obs * all.zeta^2)
 
@@ -2492,32 +2673,34 @@ bound.experiment <- function(pow,n.obs,zeta.s,
 #		breaks=2^seq(from=-1,to=2,by=0.5))
 #	print(ph)
 
-bound.plot <- function(pow,n.obs,zeta.s,n.stok,plims=c(2,250),...) {
+bound.plot <- function(pow,n.obs,zeta.s,n.stok,plims=c(2,900),...) {
 	melt.df <- NULL
+  alist <- c()
 	for (ppp in pow) {
-		addon.df <- bound.experiment(ppp,n.obs,zeta.s,plims=plims,n.stok=n.stok,...)
-		if (is.null(melt.df))
-			melt.df <- addon.df
-		else
-			melt.df <- rbind(melt.df,addon.df)
+    alist[[length(alist)+1]] <- bound.experiment(ppp,n.obs,zeta.s,plims=plims,n.stok=n.stok,...)
 	}
-	melt.df$gamma <- factor(melt.df$pow)
+  melt.df <- bind_rows(alist) %>%
+    mutate(gamma=factor(pow))
 
 	require(ggplot2,quietly=TRUE)
 	ph <- ggplot(data=melt.df,aes(x=p,y=value,group=gamma,colour=gamma)) +
     geom_line() +
     scale_x_log10(limits = c(1,max(plims))) +
-    scale_y_log10(limits = c(0.5,4),breaks=2^seq(from=-1,to=2,by=0.5),labels=sqrt_yr) +
+    scale_y_log10(limits = c(0.5,2),breaks=2^seq(from=-1,to=1,by=0.5),labels=sqrt_yr) +
     guides(colour=guide_legend(title=expression(gamma))) +
     labs(x="# assets",y="Signal-Noise ratio",
-         caption=paste0("Using n=",n.obs,". Constant terms are set so all lines have the same SNR at p=",n.stok,"."))
+         title="Bound on Expected Signal Noise, Power Law",
+         caption=paste0("Axes in log space. Using n=",n.obs,". Constant terms are set so all lines have the same SNR at p=",n.stok,"."))
 	return(ph)
 }
 
 #pgammas <- c(0.15,0.20,0.25,0.30)
 #pgammas <- c(0.19,0.22,0.25,0.28)
 #pgammas <- seq(from=0.19,to=0.28,by=0.03)
-pgammas <- seq(from=0.15,to=0.35,by=0.05)
+#pgammas <- seq(from=0.15,to=0.35,by=0.05)
+#pgammas <- seq(from=0.20,to=0.30,by=0.02)
+#pgammas <- seq(from=0.18,to=0.27,by=0.03)
+pgammas <- seq(from=0.19,to=0.31,by=0.03)
 
 sgammas <- sort(pgammas)
 sgammas.txt <- paste0(paste0(sgammas[1:(length(sgammas)-1)],collapse=', '),", and ",sgammas[length(sgammas)],sep='')
@@ -2610,6 +2793,7 @@ scale.plot <- function(pow,n.obs,zeta.s,plims=c(2,250),...) {
       scale_x_log10(limits = c(1,max(plims))) +
       scale_y_log10(limits = c(0.5,4),breaks=2^seq(from=-1,to=2,by=0.5),labels=sqrt_yr) +
       labs(x="# assets",y="Signal-Noise ratio",
+           title="Bound on Expected Signal Noise, Power Law",
            caption=paste0("Using n=",n.obs,", corresponding to ",n.yr," years of daily observations."))
 	return(ph)
 }
@@ -2653,6 +2837,69 @@ print(scale.plot(pgammas,n.obs=n.obs,zeta.s=zeta.s,
 %utility \emph{decreases} because the estimation error 
 %outpaces the growth of \psnropt. 
 %%UNFOLD
+
+We characterize this observed behavior, where the bound on quality of the \txtMP is getting worse
+as one adds more assets to the universe, even though the population optimal
+\txtSNR is growing, as ``overfitting''.
+One would get better out-of-sample performance from a portfolio which ignored 
+the additional assets, effectively setting their weights to zero.
+Moreover, the optimal universe size is growing in \ssiz, the number of
+independent observations, which illustrates that this is a phenomenon of
+lacking enough observations and true underlying effect to justify a larger
+number of non-zero weights in ones portfolio.
+
+<<'overfitting_data',dependson=c('grow_bound','forexample'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=fig_cap,fig.scap="The upper bound of \\theoremref{qual_bound} is plotted versus \\nlatf for different scaling laws.",eval.after='fig.cap'>>= 
+
+require(dplyr)
+require(tidyr)
+require(glue)
+
+pow <- 0.18
+use_zeta <- zeta.s
+plims <- c(2, 1000)
+
+fig_cap <- glue("The upper bound of \\theoremref{{qual_bound}} is plotted versus \\nlatf for different values of \\ssiz, under scaling law $\\psnropt = \\psnr[0]\\nlatf^{{\\gamma}}$, with $\\psnr[0]$ fixed and $\\gamma={pow}$.")
+
+df <- tibble(nyr = c(1, 2, 4, 8)) %>%
+  mutate(nobs=ceiling(ope*nyr)) %>%
+    group_by(nyr,nobs) %>%
+      summarize(res=list(bound.experiment(pow, n.obs=first(nobs), 
+                                          zeta.s=23,  
+                                          zeta.0=use_zeta, 
+                                          ope=ope,
+                                          plims=plims))) %>%
+    ungroup() %>%
+    tidyr::unnest(res) 
+  # %>% group_by(nobs) %>% mutate(value = value * zeta.s / max(value)) %>% ungroup()
+
+maxp <- df %>%
+  group_by(nyr) %>%
+  slice_max(value,n=1)
+
+df %>%
+  rename(`gamma`=pow) %>%
+  ggplot(aes(x=p,y=value,colour=factor(nyr),group=interaction(nyr))) +
+  geom_line() +
+  geom_point(data=maxp, alpha=0.5) + 
+  guides(colour=guide_legend(title="n (yr)")) + 
+  scale_x_log10(limits = c(1,max(plims))) +
+  # gives weird limits.
+  # scale_y_log10(labels=sqrt_yr) +
+  scale_y_log10(limits = c(1/sqrt(2),2),breaks=2^seq(from=-0.5,to=1,by=0.5),labels=sqrt_yr) +
+  labs(x="# assets",y="Signal-Noise ratio",
+       title="Bound on Expected Signal Noise, Power Law",
+       color="n (yr)",
+       caption=glue("Axes in log space. Using gamma={pow}. Point at maximum of each curve. Assumes {ope} trading days per year."))
+@
+
+We illustrate this in \figref{overfitting_data}, where we plot the bound of
+\theoremref{qual_bound} versus \nlatf for a power law
+$\psnropt = \psnr[0]\nlatf^{\gamma}$ with $\gamma=\Sexpr{pow}$ and
+$\psnr[0]=\Sexpr{sqrt(ope)*use_zeta}\yrtomhalf$.
+We plot the bound line for different reasonable values of $\ssiz$.
+We see that for larger sample sizes, the optimal universe size is growing.
+The interpretation is that with more independent observations we can build a
+portfolio on a larger set of assets without experiencing overfitting.
 
 %Via the equivalence in \eqnref{sufficient_growth}, for the 
 %bound \qbnd to be growing with respect to \nlatf, it suffices
@@ -2794,7 +3041,7 @@ return divided by risk is required, it is possible one could define
 second moment. The \txtQual would then be $\ftan{\farcsin{\pQl{\cdot}}}$.
 One could possibly find a \txtCR bound on the expected value of this \pQl{\cdot}.
 This `Pillai-Bartlett' form of \pQl{\cdot} is likely unrequired for low frequency
-settings.} the \txtQual of the portfolio as the
+settings. See also \cite{pav_sherman-morrison-markowitz_2026}.} the \txtQual of the portfolio as the
 unconditional mean divided by the unconditional expected risk:
 \begin{equation}
 \pQl{\sportW}\defeq\frac{\trace{\tr{\sportW}\pRegco\pfacsig}}{%
@@ -2846,8 +3093,7 @@ sphere \sphere{\nfac\nlatf - 1}. An analogue
 to \theoremref{qual_bound} can be proved with $\nfac\nlatf$ replacing
 $\nlatf$, by assuming a particular form to the likelihood. We must
 generalize the assumption of Directional Independence, after which
-the theorem proceeds easily\footnote{We expect few reviewers will have made it
-to this point. If you find yourself reading this, congratulations!}.
+the theorem proceeds easily.%\footnote{We expect few reviewers will have made it to this point. If you find yourself reading this, congratulations!}.
 
 \begin{assumption}[Conditional Directional Independence and Unbiasedness]%FOLDUP
 Assume that
@@ -2859,6 +3105,10 @@ Assume that
 \end{equation}
 %where \Bterm is the bias term, orthogonal to \fnorm{\fvec{\trchol{\pvsig}\pportWopt\chol{\pfacsig}}}.
 \end{assumption}%UNFOLD
+
+Again, this assumption is the equivalent of the Directional Independence and
+Unbiasedness assumption, but applied to the problem of conditionally estimated
+portfolios.
 
 \begin{theorem}%FOLDUP
 \label{theorem:qual_bound_two}
@@ -3223,15 +3473,15 @@ dfp <- pqual(sr1$sr, dim(ff11.xts)[2], dgu.yr, sr2$sropt, use.ope=1, lower.tail=
 @
 
 \theoremref{qual_bound} can help us make sense of puzzling findings
-in the literature. For example, in the ``$1/N$'' paper, DeMiguel \etal
+in the literature. For example, in the ``$1/N$'' paper, 
+\citeauthor{demiguel2009optimal}
 find that the equal-weighting portfolio outperforms, in terms of out-of-sample
 \txtSR (and other measures), the \txtMP and numerous other portfolio
 estimators.  \cite{demiguel2009optimal}
 This finding is supported on a number of real world data
 sets, and a few synthetic ones. One data set used was the returns of
 the 10 industry portfolios and the US equity market portfolio, computed
-by Ken French. 
-% 2FIX: add citation to data.
+by \citeauthor{French10Port}.
 
 The monthly returns, from \Sexpr{ret.TEO.0} to 
 \Sexpr{ret.TEO.f}, for these \Sexpr{dim(ff11.xts)[2]} 
@@ -3245,13 +3495,14 @@ the \Sexpr{dim(ff11.xts)[2]} assets over the same period is around
 $\Sexpr{sr2$sropt}\yrtomhalf$.  
 Now consider a portfolio estimator
 given \Sexpr{dgu.yr} years of observations, as in 
-DeMiguel \etal \cite{demiguel2009optimal}, assuming 
+\cite{demiguel2009optimal}, assuming 
 $\psnropt=\Sexpr{sr2$sropt}\yrtomhalf$.
 The bound on expected value of \pql{\sportwfnc{\mreti}} from \theoremref{qual_bound} is only $\Sexpr{dgqb}\yrtomhalf$.  
 %Under \apxref{qual_dist}, the probability that \pql{\sportwfnc{\mreti}} exceeds $\Sexpr{sr1$sr}\yrtomhalf$ in this case is only $\Sexpr{dfp}$. 
-It is not surprising that DeMiguel \etal drew
+It is not surprising that \citeauthor{demiguel2009optimal}
+drew
 the conclusions they did, nor that they would be refuted
-by looking at a longer sample, as by Kritzman \etal \cite{defoopt2010}
+by looking at a longer sample, as by \cite{defoopt2010}
 
 <<'spantest',dependson=c('hcut_qtile')>>=
 
@@ -3315,6 +3566,7 @@ Gaussian returns.
 \subsection{Empirical diversification in the S\&P 100}%FOLDUP
 
 <<'sp100_divs'>>=
+# load it.
 load('sp100lr.rda')
 
 asof <- 'March 21, 2014'
@@ -3380,9 +3632,9 @@ print(ph)
 %@
 
 Since the ordering of assets here is arbitrary, the experiment was repeated
-\Sexpr{dim(buncho.KRSs)[2]} times, with the stocks randomly permuted, and 
+\Sexpr{scales::comma(dim(buncho.KRSs)[2])} times, with the stocks randomly permuted, and 
 \psnropt estimated as a function of \nlatf. Boxplots, over the
-\Sexpr{dim(buncho.KRSs)[2]} simulations, of the KRS statistic versus
+\Sexpr{scales::comma(dim(buncho.KRSs)[2])} simulations, of the KRS statistic versus
 \nlatf are given in \figref{sp100_box}. There is effectively no 
 diversification benefit observed here beyond the mean effect, which is
 equivalent to holding an equal weight portfolio. Given the 
@@ -3391,7 +3643,7 @@ conditions under which \txtQual grows with \nlatf outlined in
 directionally independent portfolio estimators
 over even a small subset of the S\&P 100.
 
-<<'sp100_box',dependson=c('sp100_divs','plot_stuff'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names is shown over ",dim(buncho.KRSs)[2]," permutations of the stocks, showing that there is effectively \\emph{no} diversification benefit here beyond an equal weight portfolio."),eval.after='fig.cap'>>= 
+<<'sp100_box',dependson=c('sp100_divs','plot_stuff'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names is shown over ",scales::comma(dim(buncho.KRSs)[2])," permutations of the stocks, showing that there is effectively \\emph{no} diversification benefit here beyond an equal weight portfolio."),eval.after='fig.cap'>>= 
 
 foo.df <- data.frame(df=rep(1:(dim(buncho.KRSs)[1]),dim(buncho.KRSs)[2]),
 	KRS=as.vector(t(buncho.KRSs)))
@@ -3469,7 +3721,7 @@ quantity, \psnrsqopt. How can we perform inference,
 Frequentist or Bayesian, on \pql{\sportwopt}, where \sportwopt is the \txtMP, 
 given the observed information (\viz \svmu and \svsig)? 
 This is a problem of enormous practical concern to hundreds of
-quantitative portfolio managers.  \cite{pav2020inference}
+quantitative portfolio managers.  \cite{paulsen2016noise,pav2020inference}
 
 Contrast inference on the portfolio \txtQual with inference
 on the population \txtSNR: under Gaussian returns, the
@@ -3639,10 +3891,10 @@ We can insert $\gram{\Mtx{H}} = \eye$ to arrive at
     + \Mtx{H}\vect{z}}}}}}},\\
   &= \E{\frac{\psnropt \tr{\basev[1]}
   \minv{\tilde{\Mtx{W}}}\wrapParens{\psnropt\basev[1] + \vect{\tilde{z}}}}{%
-    \sqrt{\minv{\tilde{\Mtx{W}}}\wrapParens{\psnropt\basev[1]
-    + \vect{\tilde{z}}}}}},
+    %\sqrt{\minv{\tilde{\Mtx{W}}}\wrapParens{\psnropt\basev[1] + \vect{\tilde{z}}}}}},
+    \norm{\minv{\tilde{\Mtx{W}}}\wrapParens{\psnropt\basev[1] + \vect{\tilde{z}}}}}},
 \end{align*}
-where where \Mtx{\tilde{W}} is a Wishart random variable with scale matrix \eye[\nlatf], 
+where \Mtx{\tilde{W}} is a Wishart random variable with scale matrix \eye[\nlatf], 
 and \vect{\tilde{z}} is a standard zero-mean Gaussian, and the two are independent of each other.
 Thus $c$ depends on \pvmu and \pvsig only via \psnropt, which was to be proven.
 \end{proof}

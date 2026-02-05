@@ -18,6 +18,7 @@ BIBTEX      := $(shell which bibtex)
 PDFLATEX    := $(shell which pdflatex)
 MAKEINDEX   := $(shell which makeindex)
 PAGER   		:= $(shell which less)
+TAR         := $(shell which tar)
 ASPELL  		:= $(shell which aspell)
 
 RLIB         = /usr/lib64/R
@@ -29,6 +30,7 @@ PREBIB       = BSTINPUTS=$(TEXINPADD):$$BSTINPUTS \
                BIBINPUTS=$(TEXINPADD):$$BIBINPUTS 
 
 PREIDX       = INDEXSTYLE=$(TEXINPADD):$$INDEXSTYLE
+PUBD        ?= $(HOME)/w/pub/doc/$(PROJECT)
 
 #undoes psfrag for pdf
 UNPSFRAG		 = perl $(HOME)/sys/bin/unpsfrag.pl
@@ -70,10 +72,19 @@ DOCKER_ENV 				 = -e FOO_ENV='foo' -e RUNTIME_PARAM=$(RUNTIME_PARAM)
 
 DOCKER 						?= $(shell which docker)
 DOCKER_IMG 				 = .docker_img
-DOCKER_NAME 			 = $(USER)/qbound
+DOCKER_NAME 			 = $(USER)/$(PROJECT)
 
 RESULTS_D 				 = output
-DOWNSTREAM_D 			 = ../../qbound
+DOWNSTREAM_D 			 = ../../$(PROJECT)
+
+
+DO_TIME 			?= 
+
+ifeq ($(DO_TIME),1)
+TIMEIT 				= time
+else
+TIMEIT 				= 
+endif
 
 ############## DEFAULT ##############
 
@@ -106,10 +117,10 @@ doc : $(RESULTS_D)/$(PROJECT).pdf  | $(RESULTS_D) ## build the document by knitt
 mdpi : $(RESULTS_D)/$(MDPI_PDF) | $(RESULTS_D) ## build the mdpi published document by knitting source code, for use in docker
 
 %.tex : %.Rnw $(R_DEPS)
-		Rscript -e 'require(knitr);knit("$<")'
+		$(TIMEIT) Rscript -e 'require(knitr);knit("$<")'
 
 %.R : %.Rnw
-		Rscript -e 'require(knitr);knit("$<",tangle=TRUE)'
+		$(TIMEIT) Rscript -e 'require(knitr);knit("$<",tangle=TRUE)'
 
 %.pdf : %.tex
 	latexmk -f -bibtex -pdf -pdflatex="$(PDFLATEX)" -use-make $<
@@ -122,6 +133,13 @@ $(RESULTS_D)/%.pdf : %.pdf
 	cp $< $@
 	echo "in docker, it runs as root, so chmod"
 	chmod 777 $@
+
+.PHONY   : pub
+
+pub: $(PDF_TARGET) ## build and sync all html and pdf files to public web directory
+	@-mkdir -p $(PUBD)
+	rsync -av $^ $(PUBD)/
+
 
 # tex extras
 %.bbl : %.bib
@@ -255,6 +273,12 @@ mf3.pdf : $(PDF_TARGET)
 	pdftk $(PDF_TARGET) cat 35-39 output $@
 
 mf_all : mf1.pdf mf12.pdf mf2.pdf mf3.pdf  ## all the MF bits
+
+# this is for moving the project:
+$(PROJECT).tar.gz : $(PROJECT).Rnw $(PROJECT).tex SharpeR.sty SharpeR.bib rauto.bib figure/ Makefile ws-ijtaf.cls ws-ijtaf.bst sp100lr.rda IJTAF-NoiseInMachine.pdf response.txt 
+	tar -hczvf $@ $^
+
+tarfile:  $(PROJECT).tar.gz  ## make a tarfile to move data around
 
 #for vim modeline: (do not edit)
 # vim:ts=2:sw=2:tw=149:fdm=marker:fmr=FOLDUP,UNFOLD:cms=#%s:tags=tags;:syn=make:ft=make:ai:si:cin:nu:fo=croqt:cino=p0t0c5(0:
