@@ -576,7 +576,7 @@ running_title <- article_title
 %\posttitle{\\ \normalsize running title: ``\Sexpr{running_title}''}
 
 
-\author{Steven E. Pav}
+\author{Steven E. Pav\thanks{An earlier working version of this manuscript was circulated as arXiv:1409.5936. Summary results also appear in Pav (2021).}}
 \address{Bank of America\\
 Currently: Gilgamath Consulting.\\
 2132 15th Ave.\\
@@ -698,6 +698,8 @@ reducing the optimal portfolio utility. However, the population
 parameters can typically only be weakly estimated, and dimensionality
 reduction is common practice. 
 
+While alternative heuristics (such as risk parity, shrinkage estimators, equal weighting, or portfolio constraints) serve as broad practical motivation, the formal mathematical bounds proven in this paper apply specifically to unbiased, directionally independent sample Markowitz estimators and their linear subspace extensions (formalized in Assumption~\ref{assumption:cond_unbiased}). 
+
 
 In this paper, an upper bound is established on the expected value of
 a feasible portfolio's \txtQual, defined to be the expected return of the portfolio
@@ -738,7 +740,7 @@ However, other more data-dependent portfolio construction techniques would also 
 and would not be covered by the bound we prove here.
 Consider, for example, an asset manager who allocates using portfolio
 optimization software with some constraints, such as allocating no more than
-$k/N$ of their capital to one asset for some small $k$. 
+$\wrapParens{1 + \delta}/N$ of their capital to one asset for some modestly sized $\delta$.
 Such heuristic constraints, and more principled ones, are widely used but they
 qualify as stopped clocks and are not subject to our bound.
 
@@ -2838,15 +2840,14 @@ print(scale.plot(pgammas,n.obs=n.obs,zeta.s=zeta.s,
 %outpaces the growth of \psnropt. 
 %%UNFOLD
 
-We characterize this observed behavior, where the bound on quality of the \txtMP is getting worse
-as one adds more assets to the universe, even though the population optimal
-\txtSNR is growing, as ``overfitting''.
-One would get better out-of-sample performance from a portfolio which ignored 
-the additional assets, effectively setting their weights to zero.
+We characterize this observed behavior, where the upper bound on quality of the \txtMP degrades
+as one adds more assets to the universe despite growing population optimal
+\txtSNR, as a mathematical symptom of ``overfitting''.
+While a decreasing upper bound does not strictly imply that expected quality decreases for every individual realization, our Monte Carlo experiments demonstrate that estimation error overwhelms signal when \psnropt grows slowly, indicating that ignoring or constraining additional low-signal assets can improve out-of-sample performance.
 Moreover, the optimal universe size is growing in \ssiz, the number of
 independent observations, which illustrates that this is a phenomenon of
 lacking enough observations and true underlying effect to justify a larger
-number of non-zero weights in ones portfolio.
+number of non-zero weights in one's portfolio.
 
 <<'overfitting_data',dependson=c('grow_bound','forexample'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=fig_cap,fig.scap="The upper bound of \\theoremref{qual_bound} is plotted versus \\nlatf for different scaling laws.",eval.after='fig.cap'>>= 
 
@@ -3096,6 +3097,7 @@ generalize the assumption of Directional Independence, after which
 the theorem proceeds easily.%\footnote{We expect few reviewers will have made it to this point. If you find yourself reading this, congratulations!}.
 
 \begin{assumption}[Conditional Directional Independence and Unbiasedness]%FOLDUP
+\label{assumption:cond_unbiased}
 Assume that
 \begin{equation}
 \label{eqn:sane_estimator_cond}
@@ -3167,89 +3169,29 @@ where
 {\dbyd{\cfnc{\trace{\gramprskMtx}}\frac{\prskMtx}{\sqrt{\trace{\gramprskMtx}}}}{\fvec{\prskMtx}}}.
 \end{equation}
 
-Without loss of generality, we assume it is the first element
-of \vfact[i] that is a deterministic $1$. Then, the log likelihood of 
-the vector of $\vfact[i]$ stacked on top of $\vreti[i+1]$
-is: \cite{pav2013markowitz}
+Without loss of generality, let the first element of \vfact[i] be a deterministic $1$.
+Conditional on \vfact[i], the return vector $\vreti[i+1]$ is Gaussian with mean $\pRegco\vfact[i]$ and covariance matrix $\pvsig$. 
+The conditional log-likelihood of $\vreti[i+1]$ given $\vfact[i]$ is: \cite{pav2013markowitz}
 \begin{equation}
 \label{eqn:cond_llik_one}
-\log \FOOlik{}{\pvsm}{\twobyone{\vfact[i]}{\vreti[i+1]}} = 
-  c_{\nfac+\nlatf} 
-- \half \logdet{\pvsm} 
-- \half \trace{\minv{\pvsm}\ogram{\twobyone{\vfact[i]}{\vreti[i+1]}}},
+\log \lik{\vreti[i+1]}{\vfact[i]; \pRegco, \pvsig} = 
+  c_{\nlatf} 
+- \half \logdet{\pvsig} 
+- \half \qform{\minv{\pvsig}}{\wrapParens{\vreti[i+1] - \pRegco\vfact[i]}}.
 \end{equation}
-where \pvsm is the second moment matrix:
-\begin{equation}
-\pvsm \defeq \E{\ogram{\twobyone{\vfact[i]}{\vreti[i+1]}}}
-= \twobytwo{\pfacsig}{\pfacsig\tr{\pRegco}}{\pRegco\pfacsig}{\pvsig +
-\qoform{\pfacsig}{\pRegco}}.
-%\qoform{\pfaccov}{\pRegco}}}.
-\end{equation}
-The inverse of \pvsm has the following, somewhat surprising, form \cite{pav2013markowitz}:
-\begin{equation}
-\minv{\pvsm} 
-= \twobytwo{\minv{\pfacsig} +
-\qiform{\pvsig}{\pRegco}}{-\tr{\pRegco}\minv{\pvsig}}{-\minv{\pvsig}\pRegco}{\minv{\pvsig}}.
-\end{equation}
-A square root of this matrix (a Cholesky factor, up to permutation)
-is:
-\begin{equation}
-\begin{split}
-\minv{\pvsm} &=
-\ogram{%
-\twobytwo{\ichol{\pfacsig}}{-\tr{\pRegco}\ichol{\pvsig}}{\mzero}{\ichol{\pvsig}}
-},\\
-&= \twobytwo{\ichol{\pfacsig}}{\mzero}{\mzero}{\eye}
-\ogram{%
-\twobytwo{\eye}{-\prskMtxU{\trsym}}{\mzero}{\ichol{\pvsig}}}
-\twobytwo{\trichol{\pfacsig}}{\mzero}{\mzero}{\eye}.
-\end{split}
-\end{equation}
-
-By the block determinant formula, 
-\begin{equation}
-\det{\pvsm} 
-= \det{\pfacsig}\det{\pvsig + \qoform{\pfacsig}{\pRegco} -
-\pRegco\pfacsig\minv{\pfacsig}\pfacsig\tr{\pRegco}}
-= \det{\pfacsig}\det{\pvsig}.
-\end{equation}
-Thus, conditional on \pfacsig and \pvsig, the negative log likelihood
-takes the form:
-\begin{multline}
+Parameterizing in terms of $\prskMtx \defeq \ichol{\pvsig}\pRegco\chol{\pfacsig}$, the score function with respect to $\fvec{\prskMtx}$ evaluated conditionally on $\vfact[i]$ has outer-product expectation:
+  \begin{multline}
+\footnotesize
 \label{eqn:cond_llik_two}
-- \log \FOOlik{}{\prskMtx, \pfacsig, \pvsig}{\twobyone{\vfact[i]}{\vreti[i+1]}} = 
-- c_{\nfac+\nlatf}
-+ \half \logdet{\pfacsig} 
-+ \half \logdet{\pvsig}\\
-+ \half \trace{
-\ogram{%
-\twobytwo{\eye}{-\prskMtxU{\trsym}}{\mzero}{\ichol{\pvsig}}}
-\ogram{\twobyone{\trichol{\pfacsig}\vfact[i]}{\vreti[i+1]}}}.
+\Econd{\scoro{\fvec{\prskMtx}}{\lik{\vreti[i+1]}{\vfact[i]}} \tr{\wrapParens{\scoro{\fvec{\prskMtx}}{\lik{\vreti[i+1]}{\vfact[i]}}}}}{\vfact[i]}
+=\\ \wrapBracks{\trichol{\pfacsig}\ogram{\vfact[i]}\ichol{\pfacsig}} \kron \eye[\nlatf].
 \end{multline}
-Sweeping the nuisance parameter terms into the constant, as well
-as terms in the trace which are not quadratic in \prskMtx, we
-have 
-\begin{align}
-\label{eqn:cond_llik_three}
-- \log \FOOlik{}{\prskMtx, \pfacsig, \pvsig}{\twobyone{\vfact[i]}{\vreti[i+1]}}
-&= - c'
-+ \half \trace{\gramprskMtx 
-\ogram{\wrapParens{\trichol{\pfacsig}\vfact[i]}}},&\\
-&= - c'
-+ \half
-\tr{\fvec{\prskMtx}}\fvec{\prskMtx\trichol{\pfacsig}\ogram{\vfact[i]}\ichol{\pfacsig}}.&\\
-&= - c'
-+ \half
-\tr{\fvec{\prskMtx}}\wrapParens{%
-\wrapBracks{\trichol{\pfacsig}\ogram{\vfact[i]}\ichol{\pfacsig}}
- \kron \eye}\fvec{\prskMtx}.&
-\end{align}
-The Fisher Information, then, is
+Taking expectations over \vfact[i] (noting $\E{\ogram{\vfact[i]}} = \pfacsig$), the Fisher Information matrix is:
 \begin{equation}
 \FishI[\fvec{\prskMtx}] =
 \E{\wrapParens{%
 \wrapBracks{\trichol{\pfacsig}\ogram{\vfact[i]}\ichol{\pfacsig}}
- \kron \eye}} = \eye[\nfac\nlatf].
+ \kron \eye[\nlatf]}} = \eye[\nfac\nlatf].
 \end{equation}
 
 The remainder of the proof proceeds exactly as in 
@@ -3312,9 +3254,17 @@ Let the rows of \zerJ span the null space of the rows of
 
 We can simply use the results of \subsecref{cond_portfolio_qual}, but
 replacing the assets with the \nlatfzer assets spanned by the rows of
-\zerJ. That is, we can replace the \vreti[i+1] with $\zerJ\vreti[i+1]$,
-and replace \sportWfnc{\mreti,\mfact} with
-$\tr{\zerJ}\minv{\wrapParens{\ogram{\zerJ}}}\sportWfnc{\mreti,\mfact}$
+\zerJ.  
+That is we can think of the rows of \zerJ as being \nlatfzer ``baskets'' of the \nlatf
+assets.
+We then apply the results of the previous section to the returns of these
+baskets, which are $\zerJ\vreti[i+1]$.
+So we apply \theoremref{qual_bound_two} but plugging in \nlatfzer for \nlatf,
+$\zerJ\pRegco$ for \pRegco and \qoform{\pvsig}{\zerJ} for \pvsig and so on,
+%That is, we apply the results of the previous section but applying them to
+%$\zerJ\vreti[i+1]$ as the observed returns of the baskets of 
+%and replace \sportWfnc{\mreti,\mfact} with
+%$\zerJ\sportWfnc{\mreti,\mfact}$
 to arrive at the following analogue of \theoremref{qual_bound_two}:
 
 \begin{theorem}%FOLDUP
@@ -3329,8 +3279,7 @@ Let \sportWfnc{\mreti,\mfact} be an estimator
 %\ssiz \iid observations of multivariate Gaussian returns, \mreti, 
 %and multivariate Gaussian features, \mfact, with one column of \mfact
 %an intercept term, 
-satisfying the assumptions of
-directional independence and residual independence, with the constraint
+satisfying Assumption~\ref{assumption:cond_unbiased} (Conditional Directional Independence and Unbiasedness), with the constraint
 \begin{equation}
 \zerJc \sportWfnc{\mreti,\mfact} = \vzero,
 \end{equation}
@@ -3363,7 +3312,7 @@ check or enforce; however, independence implies zero covariation, which
 can be easily formulated and checked. 
 
 Since the portfolio estimator may not deliver a perfectly
-hedged portolio due to misestimation of the covariance matrix, we
+hedged portfolio due to misestimation of the covariance matrix, we
 will, with perfect knowledge of \pvsig, consider the \txtQual of the 
 hedged part of the portfolio. The hedged
 part is defined in terms of a risk projection. 
@@ -3403,8 +3352,7 @@ Let \sportWfnc{\mreti,\mfact} be an estimator
 %\ssiz \iid observations of multivariate Gaussian returns, \mreti, 
 %and multivariate Gaussian features, \mfact, with one column of \mfact
 %an intercept term, 
-satisfying the assumptions of
-directional independence and residual independence. 
+satisfying Assumption~\ref{assumption:cond_unbiased} (Conditional Directional Independence and Unbiasedness). 
 Let \bby{\nlatfhej}{\nlatf} matrix \hejG be chosen
 independently of \mreti and \mfact. 
 
@@ -3413,7 +3361,7 @@ Define
 \begin{equation}
 \Delpsnrsqopt{\eye,\hejG}
 \defeq
-\trace{\qiform{\svsig}{\pRegco}\pfacsig} - 
+\trace{\qiform{\pvsig}{\pRegco}\pfacsig} - 
 \trace{\qform{\wrapProj{\pvsig}{\hejG}}{\pRegco}\pfacsig}.
 \end{equation}
 
@@ -3434,6 +3382,9 @@ Then
 \section{Examples}%FOLDUP
 
 \subsection{The equal weight puzzle}%FOLDUP
+
+Note that non-singularity of the sample covariance matrix requires sample size $\ssiz \ge \nlatf$. In the following empirical analysis, the sample Markowitz Sharpe ratio is used as an empirical proxy for the unknown population parameter $\zeta_*$.
+
 <<'qlook',dependson=c('hcut_qtile','qbound_func')>>=
 if (!require(tsrsa,quietly=TRUE) && require(remotes)) {
   # get the 10 industry data
@@ -3470,6 +3421,10 @@ dgu.yr <- 5
 dgqb <- qbound(dim(ff11.xts)[2], dgu.yr, sr2$sropt, use.ope=1)
 # upper tail prob:
 dfp <- pqual(sr1$sr, dim(ff11.xts)[2], dgu.yr, sr2$sropt, use.ope=1, lower.tail=FALSE)
+
+# now what if we used a larger value?
+large_sr <- 1.0
+dgqb2 <- qbound(dim(ff11.xts)[2], dgu.yr, large_sr, use.ope=1)
 @
 
 \theoremref{qual_bound} can help us make sense of puzzling findings
@@ -3498,11 +3453,13 @@ given \Sexpr{dgu.yr} years of observations, as in
 \cite{demiguel2009optimal}, assuming 
 $\psnropt=\Sexpr{sr2$sropt}\yrtomhalf$.
 The bound on expected value of \pql{\sportwfnc{\mreti}} from \theoremref{qual_bound} is only $\Sexpr{dgqb}\yrtomhalf$.  
+If we assume $\psnropt$ is as large as $\Sexpr{large_sr}\yrtomhalf$, that bound is $\Sexpr{dgqb2}\yrtomhalf$.  
 %Under \apxref{qual_dist}, the probability that \pql{\sportwfnc{\mreti}} exceeds $\Sexpr{sr1$sr}\yrtomhalf$ in this case is only $\Sexpr{dfp}$. 
 It is not surprising that \citeauthor{demiguel2009optimal}
 drew
 the conclusions they did, nor that they would be refuted
 by looking at a longer sample, as by \cite{defoopt2010}
+
 
 <<'spantest',dependson=c('hcut_qtile')>>=
 
@@ -3518,6 +3475,7 @@ asqb <- qbound(dim(ff11.xts)[2]-1, dgu.yr, sqrt(dKRS), use.ope=1)
 
 @
 
+% 2FIX: I do not know what I was getting at here.
 One could also use \theoremref{qual_bound_four} here. However,
 the upper bound of that theorem is non-negative, and zero only
 if the quantity \Delpsnrsqopt{\eye,\hejG} is zero.  This is a
@@ -3565,7 +3523,61 @@ Gaussian returns.
 
 \subsection{Empirical diversification in the S\&P 100}%FOLDUP
 
-<<'sp100_divs'>>=
+<<'nasdaq_100'>>=
+require(readr)
+require(dplyr)
+library(future.apply)
+dat <- readr::read_csv('./NASDAQ100_Historical_Data.csv.bz2')
+diff <- function(x,...) { x - dplyr::lag(x,...) }
+blah <- dat %>%
+  rename(AdjClose=`Adj Close`) %>%
+  arrange(Date) %>%
+  group_by(Ticker) %>%
+    mutate(lr=diff(log(AdjClose),n=1)) %>%
+  ungroup() %>%
+  dplyr::filter(!is.na(lr)) %>%
+  dplyr::filter(Date >= as.Date('2010-01-01')) %>%
+  dplyr::filter(Date <= as.Date('2025-12-31')) %>%
+  group_by(Ticker) %>%
+    mutate(nday=n()) %>%
+  ungroup() %>%
+  slice_max(nday,n=1) %>%
+  dplyr::select(Ticker,Date,lr) %>%
+  tidyr::spread(key=Ticker,value=lr)
+
+asof <- 'February 18, 2026'
+nqTEO <- blah %>%
+  distinct(Date) %>%
+  arrange(Date) %>%
+  pull(Date)
+nqTEO.0 <- min(nqTEO)
+nqTEO.f <- max(nqTEO)
+
+nqX <- blah %>%
+  dplyr::select(-Date) %>%
+  as.matrix()
+
+nq_nday <- dim(nqX)[1]
+nq_nstock <- dim(nqX)[2]
+
+require(SharpeR)
+# compute MLE on SR
+MLEs <- unlist(lapply(1:dim(nqX)[2],function(n) {
+								inference(as.sropt(nqX[,1:n,drop=FALSE]),"MLE") }))
+KRSs <- unlist(lapply(1:dim(nqX)[2],function(n) {
+								inference(as.sropt(nqX[,1:n,drop=FALSE]),"KRS") }))
+
+nrep <- 5000
+plan(multicore, gc = TRUE, workers = 7)
+set.seed(12312L)
+buncho.KRSs <- future_replicate(nrep,
+                                unlist(lapply(sample.int(dim(nqX)[2]),function(n) { inference(as.sropt(nqX[,1:n,drop=FALSE]),"KRS") })),
+                                future.seed=TRUE)
+plan(sequential)
+#plot(rowMeans(buncho.KRSs))
+@
+<<'sp100_divs',eval=FALSE>>=
+# no longer depend on that SP100 data...
 # load it.
 load('sp100lr.rda')
 
@@ -3574,39 +3586,50 @@ asof <- 'March 21, 2014'
 sp1.TEO <- time(sub.lr)
 sp1.TEO.0 <- as.Date(sp1.TEO[1])
 sp1.TEO.f <- as.Date(sp1.TEO[length(sp1.TEO)])
+sp_nday <- dim(sub.lr)[1]
+sp_nstock <- dim(sub.lr)[2]
 
 @
 
-To check how \psnropt \emph{might} scale with \nlatf, the weekly
+%To check how \psnropt \emph{might} scale with \nlatf, the weekly
+%log returns of the adjusted close prices of the stocks in the 
+%S\&P 100 Index, as of March 21, 2014, were downloaded 
+%from \emph{Quandl}.  \cite{Quandl} 
+%Adjustments for splits and
+%dividends were made in some unspecified way by the upstream source
+%of the data, Yahoo Finance. Stocks without a full 5 years of history
+%were discarded, leaving \Sexpr{dim(sub.lr)[2]} stocks. 
+To check how \psnropt \emph{might} scale with \nlatf, the daily
 log returns of the adjusted close prices of the stocks in the 
-S\&P 100 Index, as of March 21, 2014, were downloaded 
-from \emph{Quandl}.  \cite{Quandl} 
-Adjustments for splits and
-dividends were made in some unspecified way by the upstream source
-of the data, Yahoo Finance. Stocks without a full 5 years of history
-were discarded, leaving \Sexpr{dim(sub.lr)[2]} stocks. 
+NASDAQ 100 Index, as of February 19, 2026, were downloaded 
+from \emph{Kaggle}. % 2FIX: cite:
+Adjustments for splits and dividends were made in some unspecified way by the upstream source of the data, Yahoo Finance. 
+Stocks without a full 16 years of history were discarded, leaving \Sexpr{nq_nstock} stocks. 
 Note that selection based on membership in the index at the end of the 
 period adds no small amount of selection bias, which we shall ignore 
 here.
 
-Based on the weekly returns from \Sexpr{sp1.TEO.0} to \Sexpr{sp1.TEO.f},
-estimates of \psnropt were computed, using the `KRS' estimator.
+%Based on the weekly returns from \Sexpr{sp1.TEO.0} to \Sexpr{sp1.TEO.f},
+Based on the daily returns from \Sexpr{nqTEO.0} to \Sexpr{nqTEO.f}, estimates of \psnropt were computed, using the `KRS' estimator.
 \cite{kubokawa1993estimation,pav_the_book} 
 This was performed on the first \nlatf assets, with \nlatf ranging from 
-$1$ to $\Sexpr{dim(sub.lr)[2]}$.  The estimate of \psnropt versus \nlatf
-is plotted in \figref{sp100_grow}, with assets added in alphabetical order.
+$1$ to $\Sexpr{nq_nstock}$.  
+The estimate of \psnropt versus \nlatf is plotted in \figref{sp100_grow}, with assets added in alphabetical order.
 Because Apple appears at the beginning of this list, it appears that
-\psnropt starts reasonably large, but then actually \emph{decreases}
-when adding assets. This is an artifact of the estimator, since the true
-\psnropt can only increase when adding assets. 
+\psnropt starts reasonably large, but then actually \emph{decreases} when adding assets. 
+This is an artifact of the estimator, since the true \psnropt can only increase when adding assets. 
 
-<<'sp100_grow',dependson=c('sp100_divs','plot_stuff'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names, in alphabetical order, showing the `Apple effect.'"),eval.after='fig.cap'>>= 
+<<'sp100_grow',dependson=c('nasdaq_100','plot_stuff','consts'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=fig_cap,eval.after='fig.cap'>>= 
+#fig_cap <- paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names, in alphabetical order, showing the `Apple effect.'")
+fig_cap <- paste0("Growth of estimated \\psnropt versus \\nlatf for the NASDAQ 100 Index names, in alphabetical order, showing the `Apple effect.'")
 
 foo.df <- data.frame(df=seq(1:length(KRSs)),KRS=KRSs,
 		MLE=MLEs,meanKRS=rowMeans(buncho.KRSs))
 
 require(ggplot2)
-ph <- ggplot(data=foo.df,aes(x=df,y=KRS)) +
+ph <- foo.df %>%
+  mutate(KRS=sqrt(ope)*KRS) %>%
+  ggplot(aes(x=df,y=KRS)) +
   geom_line() +
   scale_x_log10() +
   scale_y_continuous(labels=sqrt_yr) + 
@@ -3641,21 +3664,27 @@ equivalent to holding an equal weight portfolio. Given the
 conditions under which \txtQual grows with \nlatf outlined in 
 \secref{diversification}, one expects poor performance of 
 directionally independent portfolio estimators
-over even a small subset of the S\&P 100.
+over even a small subset of the 
+%S\&P 100.
+NASDAQ 100.
 
-<<'sp100_box',dependson=c('sp100_divs','plot_stuff'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=paste0("Growth of estimated \\psnropt versus \\nlatf for the S\\&P 100 Index names is shown over ",scales::comma(dim(buncho.KRSs)[2])," permutations of the stocks, showing that there is effectively \\emph{no} diversification benefit here beyond an equal weight portfolio."),eval.after='fig.cap'>>= 
+<<'sp100_box',dependson=c('nasdaq_100','plot_stuff','consts'),fig.width=wfg_width,fig.height=wfg_height,out.width=wot_width,out.height=wot_height,fig.cap=fig_cap,eval.after='fig.cap'>>= 
+fig_cap <- paste0("Growth of estimated \\psnropt versus \\nlatf for the NASDAQ 100 Index names is shown over ",
+                  scales::comma(dim(buncho.KRSs)[2]),
+                  " permutations of the stocks, showing that there is effectively \\emph{no} diversification benefit here beyond an equal weight portfolio.")
 
 foo.df <- data.frame(df=rep(1:(dim(buncho.KRSs)[1]),dim(buncho.KRSs)[2]),
 	KRS=as.vector(t(buncho.KRSs)))
 foo.df <- foo.df[foo.df$df < 11,]
 
 require(ggplot2)
-ph <- ggplot(data=foo.df,aes(x=factor(df),y=KRS)) +
+ph <- foo.df %>%
+  mutate(KRS=sqrt(ope)*KRS) %>%
+  ggplot(aes(x=factor(df),y=KRS)) +
   geom_boxplot() + 
   scale_y_continuous(labels=sqrt_yr) + 
   labs(x="# assets", y=expression(zeta["*"]))
 print(ph)
-
 @
 %UNFOLD
 %UNFOLD
@@ -3730,7 +3759,7 @@ is known. \cite[Theorem 5.2.2]{anderson2003introduction}
 Thus, for example, the quantity
 $\wrapParens{1 - \fracc{\nlatf}{\ssiz}}\ssrsqopt - \fracc{\nlatf}{\ssiz}$
 is an unbiased estimator for \psnrsqopt, \etc 
-Performing inverence on \pql{\sportwopt} is tricky because \psnrsqopt
+Performing inference on \pql{\sportwopt} is tricky because \psnrsqopt
 is unknown and the error $\sportwopt - \pportwopt$ is likely
 not independent of the error in the estimate \ssropt.
 
@@ -3969,9 +3998,10 @@ $$
   \minvParens{-\E{\prby[2]{\log\FOOlik{}{\vreti}{\vec{\theta}}}{\px[\prskvec]\px[\trprskvec]}}} + \Mtx{C},
 $$
 where $\Mtx{C}$ is a particular symmetric positive definite matrix.
-That is the nuisance parameters of $\vect{\theta}$, which consist of
-$\chol{\pvsig}$, only increase the \txtCR bound on variance\footnote{I suspect
-  this is a commonly used result, but could not find a reference.}
+That is, the nuisance parameters of $\vect{\theta}$, which consist of
+$\chol{\pvsig}$, only increase the \txtCR bound on variance.  \cite[Equation (8.3)]{pawitanIAL}
+%\footnote{See \eg \cite[Equation (8.3)]{pawitanIAL}.}.
+%\footnote{Additional nuisance parameters can only increase or leave unchanged the Cram\'er--Rao bound for the target parameter; see, e.g., Lehmann \& Casella~\cite{lehmann1998theory}, Section 2.6.}
 
 Now note that 
 $$
